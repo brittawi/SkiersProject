@@ -20,27 +20,58 @@ Cross-country skiing consists of two main styles: **classic** and **skating**. T
 
 As part of the project we want to:
 
-1. **Train a pose estimation model** to detect joint key points automatically.
-2. **Use these key points to classify** skating sub-techniques (gear two & three) and their cycle phases.
-3. **Apply Long Short-Term Memory (LSTM) networks** for classification, as they have been effective in previous studies ([[1]](#1), [[2]](#2), [[4]](#4)). We also want to test a simple **MLP network**. 
-4. **Use Dynamic Time Warping (DTW)** to compare user movement against expert data, generating technique feedback.
+1. **Annotate** selected videos.
+2. **Finetune a pose estimation model** to detect joint key points automatically.
+3. **Use these key points to classify** skating sub-techniques (gear two & three) and their cycle phases.
+4. **Apply Long Short-Term Memory (LSTM) networks** for classification, as they have been effective in previous studies ([[1]](#1), [[2]](#2), [[4]](#4)). We also want to test a simple **MLP network**. 
+5. **Use Dynamic Time Warping (DTW)** to compare user movement against expert data, generating technique feedback.
 
 By leveraging machine learning and pose estimation, this project aims to enhance technique analysis in cross-country skiing, providing athletes with meaningful, data-driven feedback.
 
 TODO put Halpe dataset here as well?!
 
 ## Dataset
-**TODO**
-The dataset that will be used for this project is drone captured videos of an expert skier skating on flat ground. The skating techniques used in the videos consist mainly of gear two and three. The skier is captured from several different viewpoints but the two we will use are from the front and from the sides based on an interview with a ski coach. Videos in different conditions (e.g. snow, darkness, etc.) and with various levels of skiers might be added later in the project.  
+**TODO** need to modify this text when we get the new data => add number of videos etc
+currently: 26 videos (8 front, 16 side)
 
-**TODO**
-Talk about annotated data?!
-Talk about data that we will add
+The dataset that will be used for this project is drone captured videos of an expert skier skating on flat ground. The skating techniques used in the videos consist mainly of gear two and three. The skier is captured from several different viewpoints but the two we will use are from the front and from the sides based on an interview with a ski coach. Videos in different conditions (e.g. snow, darkness, etc.) and with various levels of skiers might be added later in the project.  
 
 ## Keypoint annotations
 **TODO**
 Talk about annotated data?!
 Talk about Halpe dataset?!
+We have chosen AlphaPose as the pose estimation model. This is using the [Halpe](https://github.com/Fang-Haoshu/Halpe-FullBody) 26 keypoints: 
+```
+    //26 body keypoints
+    {0,  "Nose"},
+    {1,  "LEye"},
+    {2,  "REye"},
+    {3,  "LEar"},
+    {4,  "REar"},
+    {5,  "LShoulder"},
+    {6,  "RShoulder"},
+    {7,  "LElbow"},
+    {8,  "RElbow"},
+    {9,  "LWrist"},
+    {10, "RWrist"},
+    {11, "LHip"},
+    {12, "RHip"},
+    {13, "LKnee"},
+    {14, "Rknee"},
+    {15, "LAnkle"},
+    {16, "RAnkle"},
+    {17,  "Head"},
+    {18,  "Neck"},
+    {19,  "Hip"},
+    {20, "LBigToe"},
+    {21, "RBigToe"},
+    {22, "LSmallToe"},
+    {23, "RSmallToe"},
+    {24, "LHeel"},
+    {25, "RHeel"}
+```
+We have 
+
 
 ## Installation (Emil)
 TODO how to install AlphaPose and how to use it
