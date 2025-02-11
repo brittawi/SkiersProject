@@ -32,13 +32,17 @@ Start with conda commands but switch to pip.
 5. Run the setup python file
 <br>```python setup.py build develop --user ```
 
-To use pretrained Halpe26 model download from the [Model Zoo](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/MODEL_ZOO.md) and put the halpe26_fat_res50_256x192.pth file into into the pretrained_models folder:
+To use pretrained Halpe26 model download from the [Model Zoo](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/MODEL_ZOO.md) and put the halpe26_fat_res50_256x192.pth file into the pretrained_models folder:
 
     .
     ├── ...
     ├── pretrained_models
     │   └── halpe26_fat_res50_256x192.pth
     └── ...
+
+#### TODO
+#### AlphaPose Finetuning setup
+
 
 ### AlphaPose Usage 
 
@@ -62,7 +66,7 @@ Then just convert the output format to coco using getAnnotationsFromAlphaPose.ip
 
 1. Convert videos to images. Put videos for finetuning into a folder and create output folder for split_video_to_jpg.ipynb to split the videos into images. Set video_folder path to the input folder and output_frame_path to output folder in split_video_to_jpg.ipynb. 
 
-2. Put json from cvat into a folder to load from and name as {video} + "_annotations.json" for example "DJI_0002_annotations.json". Set annotation_folder to the path to this folder in split_video_to_jpg.ipynb and optionally change combined_json_path for output file. 
+2. Put json from cvat into a folder to load from and the same as the video id for example "02.json". Set annotation_folder to the path to this folder in split_video_to_jpg.ipynb and optionally change combined_json_path for output file. 
 
 3. Put split images and annotation file into a training folder to load from. From the [AlphaPose install.md](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/INSTALL.md) the file structure is:
 ```
@@ -116,15 +120,14 @@ Here you set the train image load folder, annotation file, and set which pretrai
     .
     ├── ...
     ├── exp
-        └── ...
+        └── trained_models-256x192_res50_lr1e-3_1x.yaml
+            ├──
     ├── ...
 ```
 
-7. inference command (change xx to video nr in --video, change --checkpoint to trained weights, move videos to folder) 
+7. Run inference with new trained weights, put the trained weights into /pretrained_models folder and in the inference command change ```--checkpoint``` to the weight file name, for example
 
-python scripts/demo_inference.py --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/final_DPG_iter_2.pth --video E:\alphapose\AlphaPose\examples\demo\DJI_0015.MP4 --save_video --vis_fast 
-
-8. convert output json to coco format 
+```python scripts/demo_inference.py --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/final_DPG_iter_2.pth --video E:\alphapose\AlphaPose\examples\demo\DJI_0015.MP4 --save_video --vis_fast```
 
 ## Usage
 TODO folder structure, where to find what and how to use it
