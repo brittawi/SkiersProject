@@ -6,7 +6,7 @@ import numpy as np
 
 # Utility functions
 
-def training(train_loader, net, criterion, optimizer, device):
+def training(train_loader, net, criterion, optimizer, device, mlp):
     running_loss = 0.0
     total_samples = 0  # To track the number of samples for accuracy calculation
     correct_predictions = 0  # To track the correct predictions
@@ -16,6 +16,8 @@ def training(train_loader, net, criterion, optimizer, device):
     for i, data in enumerate(train_loader, 0):
         # get the inputs; data is a list of [inputs, labels]
         inputs, labels = data
+        if mlp:
+            inputs = inputs.view(inputs.size(0), -1)
         inputs = inputs.to(device)
         labels = labels.to(device)
 
@@ -52,7 +54,7 @@ def training(train_loader, net, criterion, optimizer, device):
 
     return avg_epoch_loss, epoch_accuracy, precision, recall, f1, conf_matrix
 
-def validation(val_loader, net, criterion, device):
+def validation(val_loader, net, criterion, device, mlp):
     running_val_loss = 0.0
     epoch_accuracy = 0.0
     total_samples = 0  # To track the number of samples for accuracy calculation
@@ -65,6 +67,8 @@ def validation(val_loader, net, criterion, device):
         for i, data in enumerate(val_loader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
+            if mlp:
+                inputs = inputs.view(inputs.size(0), -1)
             inputs = inputs.to(device)
             labels = labels.to(device)
             outputs = net(inputs)
@@ -104,7 +108,7 @@ def plot_single_metric(epoch_range, train_metric, val_metric, metric_name, xlabe
     plt.ylabel(ylabel)
     plt.legend()
 
-def train_and_validate(seed, net, criterion, optimizer, epochs, learning_rate, patience, train_loader, val_loader, device):
+def train_and_validate(seed, net, criterion, optimizer, epochs, learning_rate, patience, train_loader, val_loader, device, mlp = False):
     set_seed(seed)
 
     results = {
@@ -127,7 +131,7 @@ def train_and_validate(seed, net, criterion, optimizer, epochs, learning_rate, p
     for epoch in range(epochs):  # loop over the dataset multiple times
         
         print("Training")
-        epoch_train_loss, epoch_train_acc, train_precision, train_recall, train_f1, train_conf_matrix = training(train_loader, net, criterion, optimizer, device)
+        epoch_train_loss, epoch_train_acc, train_precision, train_recall, train_f1, train_conf_matrix = training(train_loader, net, criterion, optimizer, device, mlp)
         results["train_losses"].append(epoch_train_loss)
         results["train_accs"].append(epoch_train_acc)
         results["train_precisions"].append(train_precision)
@@ -137,7 +141,7 @@ def train_and_validate(seed, net, criterion, optimizer, epochs, learning_rate, p
         print(f"Epoch: {epoch+1}/{epochs}, Loss: {epoch_train_loss:.3f}, Accuracy: {epoch_train_acc:.3f}")
         
         print("Validation")
-        epoch_val_loss, epoch_val_acc, val_precision, val_recall, val_f1, val_conf_matrix = validation(val_loader, net, criterion, device)
+        epoch_val_loss, epoch_val_acc, val_precision, val_recall, val_f1, val_conf_matrix = validation(val_loader, net, criterion, device, mlp)
         results["val_losses"].append(epoch_val_loss)
         results["val_accs"].append(epoch_val_acc)
         results["val_precisions"].append(val_precision)
