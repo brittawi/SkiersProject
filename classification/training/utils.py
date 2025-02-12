@@ -3,6 +3,10 @@ from sklearn.metrics import precision_score, recall_score, f1_score, confusion_m
 import matplotlib.pyplot as plt
 from datetime import datetime
 import numpy as np
+import os
+import json
+import scipy.ndimage
+from torch.utils.data import Dataset
 
 # Utility functions
 
@@ -223,3 +227,90 @@ def plot_metric(metric, title, x, ylabel, mean_std_results):
     plt.legend()
     plt.grid()
     plt.show()
+
+# half ChatPGT generated
+class CustomDataset(Dataset):
+    def __init__(self, 
+                 files, 
+                 path, 
+                 file_name="labeled_cycles_", 
+                 choosen_joints=["RAnkle_x"],
+                 label_dict = {
+                    "unknown": 0,
+                    "gear2" : 1,
+                    "gear3" : 2,
+                    "gear4" : 3,},
+                 transform=None,
+                 target_transform=None, 
+                 padding_value=0.0,
+                 apply_gaussian_filter=True,
+                 mean=None, 
+                 std=None,
+                 ):
+        
+        self.label_dict = label_dict
+        self.choosen_joints = choosen_joints
+        self.padding_value = padding_value
+        self.data, self.labels = self.__load_data(files, file_name, path)
+        self.transform = transform
+        self.target_transform = target_transform
+        self.apply_gaussian_filter = apply_gaussian_filter
+        self.mean = mean
+        self.std = std
+
+    def __load_data(self, files, file_name, path):
+        data = []
+        labels = []
+        longest_cycle = 0  # Track longest cycle length
+
+        for file in files:
+            file_path = os.path.join(path, file_name + file + ".json")
+            with open(file_path, 'r') as f:
+                data_json = json.load(f)
+
+            for cycle in data_json.values():
+                # Extract joint data as (num_joints, time_steps)
+                cycle_data = [torch.tensor(cycle[joint], dtype=torch.float32) for joint in self.choosen_joints]
+
+                # Stack into a (num_joints, time_steps) tensor
+                cycle_tensor = torch.stack(cycle_data)  # Shape: (num_joints, time_steps)
+                longest_cycle = max(longest_cycle, cycle_tensor.shape[1])  # Update max length
+
+                data.append(cycle_tensor)
+                labels.append(cycle["Label"])
+
+        # Pad all cycles to match the longest cycle length
+        padded_data = []
+        for cycle in data:
+            num_joints, time_steps = cycle.shape
+
+            # Pad the time_steps dimension
+            pad_length = longest_cycle - time_steps
+            padded_cycle = torch.nn.functional.pad(cycle, (0, pad_length), value=self.padding_value)  # Pad last dim
+
+            padded_data.append(padded_cycle)
+        # Stack all padded cycles into a final tensor
+        padded_data = torch.stack(padded_data)  # Shape: (num_cycles, num_joints, max_time)
+        return padded_data, labels
+
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        
+        label = self.label_dict[self.labels[idx]]
+        item = self.data[idx].T #TODO Make sure this transpose makes sense for mlp
+
+        if self.apply_gaussian_filter:
+            item = torch.tensor(scipy.ndimage.gaussian_filter1d(item.numpy(), sigma=2, axis=0), dtype=torch.float32)
+        
+        if self.mean is not None and self.std is not None:
+            item = (item - self.mean) / self.std
+        
+        if self.transform:
+            item = self.transform(item)
+
+        if self.target_transform:
+            label = self.target_transform(label)
+
+        return item, label
