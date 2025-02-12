@@ -10,6 +10,19 @@ from torch.utils.data import Dataset
 
 # Utility functions
 
+METRICS_NAMES = ["train_losses",
+        "train_accs",
+        "train_precisions",
+        "train_recalls",
+        "train_f1s",
+        "val_losses",
+        "val_accs",
+        "val_precisions",
+        "val_recalls",
+        "val_f1s"
+    ]
+
+
 def training(train_loader, net, criterion, optimizer, device, mlp):
     running_loss = 0.0
     total_samples = 0  # To track the number of samples for accuracy calculation
@@ -115,18 +128,9 @@ def plot_single_metric(epoch_range, train_metric, val_metric, metric_name, xlabe
 def train_and_validate(seed, net, criterion, optimizer, epochs, learning_rate, patience, train_loader, val_loader, device, mlp = False):
     set_seed(seed)
 
-    results = {
-        "train_losses": [],
-        "train_accs": [],
-        "train_precisions": [],
-        "train_recalls": [],
-        "train_f1s": [],
-        "val_losses": [],
-        "val_accs": [],
-        "val_precisions": [],
-        "val_recalls": [],
-        "val_f1s": []
-    }
+    results = {}
+    for metric_name in METRICS_NAMES:
+        results[metric_name] = []
 
     best_val_acc = 0.0
     best_val_loss = float('inf')
@@ -314,3 +318,32 @@ class CustomDataset(Dataset):
             label = self.target_transform(label)
 
         return item, label
+    
+def calc_avg_metrics(k_folds, all_results, seeds, epochs):
+    fold_final_results = {}
+    for i in range(1, k_folds+1):
+        fold_results = [entry for entry in all_results if entry['fold'] == i]
+        results_lists = {
+            # "train_losses": np.zeros(epochs),
+            # "train_accs": np.zeros(epochs),
+            # "train_precisions": np.zeros(epochs),
+            # "train_recalls": np.zeros(epochs),
+            # "train_f1s": np.zeros(epochs),
+            # "val_losses": np.zeros(epochs),
+            # "val_accs": np.zeros(epochs),
+            # "val_precisions": np.zeros(epochs),
+            # "val_recalls": np.zeros(epochs),
+            # "val_f1s": np.zeros(epochs)
+        }
+        for metric_name in METRICS_NAMES:
+            results_lists[metric_name] = np.zeros(epochs)
+        for results in fold_results:
+
+            for metric, values in results["results"].items():
+                results_lists[metric] = [a + b for a, b in zip(results_lists[metric], values)]
+
+        for metric in results_lists.keys():
+            results_lists[metric] = [total / len(seeds) for total in results_lists[metric]]
+            
+        fold_final_results[i] = results_lists
+    return fold_final_results
