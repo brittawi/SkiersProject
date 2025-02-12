@@ -12,10 +12,11 @@ def main():
     # check and select device
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
-    file_name = cfg["DATASET"]["FILE_PREFIX"] # Prefix for json files with annotated keypoints
-    print(file_name)
-    path = cfg["DATASET"]["ROOT_PATH"] # Path to folder with annotated jsons
-    print(path)
+    file_name = cfg.DATASET.FILE_PREFIX # Prefix for json files with annotated keypoints
+    path = cfg.DATASET.ROOT_PATH # Path to folder with annotated jsons
+
+
+
 
 if __name__ == '__main__':
     main()
