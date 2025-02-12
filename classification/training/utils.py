@@ -329,18 +329,7 @@ def calc_avg_metrics(k_folds, all_results, seeds, epochs):
     fold_final_results = {}
     for i in range(1, k_folds+1):
         fold_results = [entry for entry in all_results if entry['fold'] == i]
-        results_lists = {
-            # "train_losses": np.zeros(epochs),
-            # "train_accs": np.zeros(epochs),
-            # "train_precisions": np.zeros(epochs),
-            # "train_recalls": np.zeros(epochs),
-            # "train_f1s": np.zeros(epochs),
-            # "val_losses": np.zeros(epochs),
-            # "val_accs": np.zeros(epochs),
-            # "val_precisions": np.zeros(epochs),
-            # "val_recalls": np.zeros(epochs),
-            # "val_f1s": np.zeros(epochs)
-        }
+        results_lists = {}
         for metric_name in METRICS_NAMES:
             results_lists[metric_name] = np.zeros(epochs)
         for results in fold_results:
@@ -353,7 +342,9 @@ def calc_avg_metrics(k_folds, all_results, seeds, epochs):
             
         fold_final_results[i] = results_lists
     return fold_final_results
-
+    
+# TODO Optione for fixing padding -> split load and split into train and train and validation splits first, then find longest in train and apply on validation
+# Move loading out from CustomDataset to achieve 
 def create_train_val_dataloaders(path, choosen_joints, train_size, val_size, k_folds, batch_size, seed = 42):
     # Create initial dataset (without normalization)
     train_dataset = CustomDataset(path, choosen_joints, padding_value=float('nan'), apply_gaussian_filter=False)
