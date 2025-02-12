@@ -6,10 +6,11 @@ import numpy as np
 import os
 import json
 import scipy.ndimage
-from torch.utils.data import Dataset
-#from easydict import EasyDict as edict
+from torch.utils.data import Dataset, Subset, random_split, DataLoader
+from sklearn.model_selection import KFold
 import easydict
 import yaml
+import glob
 
 # Utility functions
 
@@ -243,9 +244,7 @@ def plot_metric(metric, title, x, ylabel, mean_std_results):
 # half ChatPGT generated
 class CustomDataset(Dataset):
     def __init__(self, 
-                 files, 
                  path, 
-                 file_name="labeled_cycles_", 
                  choosen_joints=["RAnkle_x"],
                  label_dict = {
                     "unknown": 0,
@@ -263,21 +262,20 @@ class CustomDataset(Dataset):
         self.label_dict = label_dict
         self.choosen_joints = choosen_joints
         self.padding_value = padding_value
-        self.data, self.labels = self.__load_data(files, file_name, path)
+        self.data, self.labels = self.__load_data(path)
         self.transform = transform
         self.target_transform = target_transform
         self.apply_gaussian_filter = apply_gaussian_filter
         self.mean = mean
         self.std = std
 
-    def __load_data(self, files, file_name, path):
+    def __load_data(self, path):
         data = []
         labels = []
         longest_cycle = 0  # Track longest cycle length
 
-        for file in files:
-            file_path = os.path.join(path, file_name + file + ".json")
-            with open(file_path, 'r') as f:
+        for file in glob.glob(path + '/*.json'):
+            with open(file, 'r') as f:
                 data_json = json.load(f)
 
             for cycle in data_json.values():
@@ -355,3 +353,53 @@ def calc_avg_metrics(k_folds, all_results, seeds, epochs):
             
         fold_final_results[i] = results_lists
     return fold_final_results
+
+def create_train_val_dataloaders(path, choosen_joints, train_size, val_size, k_folds, batch_size, seed = 42):
+    # Create initial dataset (without normalization)
+    train_dataset = CustomDataset(path, choosen_joints, padding_value=float('nan'), apply_gaussian_filter=False)
+
+    # Split into Train+Val and Test
+    generator = torch.Generator().manual_seed(seed)
+    dataset_size = len(train_dataset)
+    train_val_size = int(dataset_size * (train_size + val_size))  # 90% for Train+Val
+    test_size = dataset_size - train_val_size  # 10% for Test
+
+    # Get indices for Train+Val and Test
+    #TODO test loader
+    train_val_indices, test_indices = random_split(range(dataset_size), [train_val_size, test_size], generator=generator)
+
+    # Initialize KFold (5 splits)
+    kf = KFold(n_splits=k_folds, shuffle=True, random_state=seed)
+
+    train_val_indices = list(train_val_indices)  # Convert to list
+    fold_loaders = []
+
+    for fold, (train_idx, val_idx) in enumerate(kf.split(train_val_indices)):
+        print(f"Fold {fold+1}: Train size = {len(train_idx)}, Val size = {len(val_idx)}")
+        
+        # Get actual dataset indices
+        train_subset_indices = [train_val_indices[i] for i in train_idx]
+        val_subset_indices = [train_val_indices[i] for i in val_idx]
+
+        # Create Subsets (before normalization)
+        train_subset = Subset(train_dataset, train_subset_indices)
+
+        # Compute mean and std from the training subset
+        all_train_samples = torch.cat([train_subset[i][0] for i in range(len(train_subset))], dim=0)
+        mean = all_train_samples.nanmean(dim=0)
+        std = torch.std(all_train_samples[~torch.isnan(all_train_samples)])
+
+        # Create a new dataset with computed mean/std (normalize train and val using train stats)
+        normalized_dataset = CustomDataset(path, choosen_joints, mean=mean, std=std, apply_gaussian_filter=True)
+
+        # Create train/val subsets on normalized dataset
+        train_data = Subset(normalized_dataset, train_subset_indices)
+        val_data = Subset(normalized_dataset, val_subset_indices)
+
+        # Create DataLoaders
+        train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+        val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False)
+
+        # Store loaders for this fold
+        fold_loaders.append((train_loader, val_loader))
+    return fold_loaders
