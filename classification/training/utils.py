@@ -7,8 +7,16 @@ import os
 import json
 import scipy.ndimage
 from torch.utils.data import Dataset
+#from easydict import EasyDict as edict
+import easydict
+import yaml
 
 # Utility functions
+
+def update_config(config_file):
+    with open(config_file) as f:
+        config = easydict.EasyDict(yaml.load(f, Loader=yaml.FullLoader))
+        return config
 
 METRICS_NAMES = ["train_losses",
         "train_accs",

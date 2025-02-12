@@ -1,0 +1,37 @@
+DATASET:
+  TRAIN_SIZE : 0.8
+  VAL_SIZE : 0.1
+  TEST_SIZE : 0.1
+  ROOT_PATH: "../cycle_splits/labeled_data"
+  FILE_PREFIX: "labeled_cycles_"
+  AUG:
+    SMOOTHING: 2
+    NORMALIZATION: true
+
+DATA_PRESET:
+  CHOOSEN_JOINTS: 
+    - LShoulder_x
+    - RShoulder_y
+    - LElbow_x
+    - RElbow_x
+    - LWrist_y
+    - RWrist_x
+    - LHip_y
+    - RHip_x
+    - LKnee_x
+    - RKnee_x
+    - LAnkle_x
+    - RAnkle_x
+  LABELS :
+    unknown: 0
+    gear2 : 1
+    gear3 : 2
+    gear4 : 3
+
+TRAIN:
+  BATCH_SIZE: 48
+  EPOCHS: 5
+  OPTIMIZER: 'adam'
+  LR: 0.001
+  PATIENCE: 100
+  K_FOLDS: 5
