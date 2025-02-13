@@ -14,10 +14,6 @@ import glob
 from scipy.ndimage import gaussian_filter1d
 from nets import LSTMNet, SimpleMLP
 
-# ======================================
-#      TRAIN AND VALIDATION SECTION
-# ======================================
-
 def update_config(config_file):
     with open(config_file) as f:
         config = easydict.EasyDict(yaml.load(f, Loader=yaml.FullLoader))
@@ -35,8 +31,32 @@ METRICS_NAMES = ["train_losses",
         "val_f1s"
     ]
 
+# ======================================
+#      TRAIN AND VALIDATION SECTION
+# ======================================
+
 
 def training(train_loader, net, criterion, optimizer, device, network_type):
+    """
+    Trains the model for one epoch.
+
+    Parameters:
+    - train_loader (DataLoader): DataLoader for the training dataset.
+    - net (torch.nn.Module): Neural network model.
+    - criterion (torch.nn.Module): Loss function.
+    - optimizer (torch.optim.Optimizer): Optimizer for updating model weights.
+    - device (torch.device): Device to run the model on (CPU or GPU).
+    - network_type (str): Type of network ('mlp' or 'lstm').
+
+    Returns:
+    - avg_epoch_loss (float): Average training loss for the epoch.
+    - epoch_accuracy (float): Training accuracy in percentage.
+    - precision (float): Weighted precision score.
+    - recall (float): Weighted recall score.
+    - f1 (float): Weighted F1-score.
+    - conf_matrix (numpy.ndarray): Confusion matrix of predictions.
+    """
+
     running_loss = 0.0
     total_samples = 0  # To track the number of samples for accuracy calculation
     correct_predictions = 0  # To track the correct predictions
@@ -45,7 +65,6 @@ def training(train_loader, net, criterion, optimizer, device, network_type):
     
     for i, data in enumerate(train_loader, 0):
         # get the inputs; data is a list of [inputs, labels]
-        print(f"Current batch: {i+1}")
         inputs, labels = data
         if network_type == "mlp":
             inputs = inputs.view(inputs.size(0), -1)
@@ -86,6 +105,25 @@ def training(train_loader, net, criterion, optimizer, device, network_type):
     return avg_epoch_loss, epoch_accuracy, precision, recall, f1, conf_matrix
 
 def validation(val_loader, net, criterion, device, network_type):
+    """
+    Evaluates the model on the validation set.
+
+    Parameters:
+    - val_loader (DataLoader): DataLoader for the validation dataset.
+    - net (torch.nn.Module): Trained neural network model.
+    - criterion (torch.nn.Module): Loss function.
+    - device (torch.device): Device to run the model on (CPU or GPU).
+    - network_type (str): Type of network ('mlp' or 'lstm').
+
+    Returns:
+    - avg_val_loss (float): Average validation loss.
+    - epoch_accuracy (float): Validation accuracy in percentage.
+    - precision (float): Weighted precision score.
+    - recall (float): Weighted recall score.
+    - f1 (float): Weighted F1-score.
+    - conf_matrix (numpy.ndarray): Confusion matrix of predictions.
+    """
+
     running_val_loss = 0.0
     epoch_accuracy = 0.0
     total_samples = 0  # To track the number of samples for accuracy calculation
@@ -130,16 +168,26 @@ def validation(val_loader, net, criterion, device, network_type):
     
     return avg_val_loss, epoch_accuracy, precision, recall, f1, conf_matrix
 
-
-def plot_single_metric(epoch_range, train_metric, val_metric, metric_name, xlabel, ylabel):
-    plt.plot(epoch_range, train_metric, label=f'Training {metric_name}')
-    plt.plot(epoch_range, val_metric, label=f'Validation {metric_name}')
-    plt.title(f'Training and Validation {metric_name}')
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.legend()
-
 def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_loader, device):
+    """
+    Trains and validates the model across multiple epochs.
+
+    Parameters:
+    - seed (int): Random seed for reproducibility.
+    - net (torch.nn.Module): Neural network model.
+    - criterion (torch.nn.Module): Loss function.
+    - optimizer (torch.optim.Optimizer): Optimizer for training.
+    - cfg (Config): Configuration object containing training parameters.
+    - train_loader (DataLoader): DataLoader for the training dataset.
+    - val_loader (DataLoader): DataLoader for the validation dataset.
+    - device (torch.device): Device to run the model on (CPU or GPU).
+
+    Returns:
+    - results (dict): Dictionary storing loss, accuracy, precision, recall, and F1-score for each epoch.
+    - best_train_cm (numpy.ndarray): Best confusion matrix for training.
+    - best_val_cm (numpy.ndarray): Best confusion matrix for validation.
+    """
+
     set_seed(seed)
 
     results = {}
@@ -192,6 +240,20 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
     return results, best_train_cm, best_val_cm
 
 def cross_validation(cfg, fold_loaders, output_channels, device):
+    """
+    Performs k-fold cross-validation on the dataset.
+
+    Parameters:
+    - cfg (Config): Configuration object containing training settings.
+    - fold_loaders (list): List of (train_loader, val_loader) tuples for each fold.
+    - output_channels (int): Number of output classes.
+    - device (torch.device): Device to run the model on (CPU or GPU).
+
+    Returns:
+    - all_results (list): List of dictionaries storing results for each fold and seed.
+    - best_train_cms (list): List of best training confusion matrices.
+    - best_val_cms (list): List of best validation confusion matrices.
+    """
     all_results = []
     best_train_cms = []
     best_val_cms = []   
@@ -242,6 +304,12 @@ def cross_validation(cfg, fold_loaders, output_channels, device):
     return all_results, best_train_cms, best_val_cms
 
 def set_seed(seed=42):
+    """
+    Sets seeds for reproducibility
+
+    Parameters:
+    - seed (int): Number to use as seed. 
+    """
     torch.manual_seed(seed)  # PyTorch CPU
     torch.cuda.manual_seed(seed)  # PyTorch GPU
     torch.cuda.manual_seed_all(seed)  # If using multi-GPU
@@ -300,6 +368,14 @@ def plot_train_val(results, metric, title, ylabel, mean_std_results):
     plt.legend()
     plt.grid()
     plt.show()
+
+def plot_single_metric(epoch_range, train_metric, val_metric, metric_name, xlabel, ylabel):
+    plt.plot(epoch_range, train_metric, label=f'Training {metric_name}')
+    plt.plot(epoch_range, val_metric, label=f'Validation {metric_name}')
+    plt.title(f'Training and Validation {metric_name}')
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend()
 
 # Function to plot a metric
 def plot_metric(metric, title, x, ylabel, mean_std_results):
