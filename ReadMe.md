@@ -43,7 +43,9 @@ To use pretrained Halpe26 model download from the [Model Zoo](https://github.com
 #### TODO
 #### AlphaPose Finetuning setup
 
-
+The train.py file did not run for us without fixing some errors first, to make it run we had to:
+1. Change the number of workers, we manually edited the DataLoaders in train.py to ``num_workers = 0```
+2. Disable the validation set, # TODO
 ### AlphaPose Usage 
 
 #### Inference
