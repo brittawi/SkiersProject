@@ -29,10 +29,18 @@ DATA_PRESET:
     gear4 : 3
 
 TRAIN:
-  BATCH_SIZE: 48
+  BATCH_SIZE: 32
   EPOCHS: 5
   OPTIMIZER: 'adam'
   LR: 0.001
   PATIENCE: 100
   K_FOLDS: 5
-  NETWORK: mlp
+  NETWORK: 
+    NETWORKTYPE: mlp
+    LSTM:
+      HIDDEN_SIZE: 256
+      NUM_LAYERS: 2
+      DROPOUT: 0.2
+    MLP:
+      HIDDEN_1: 128
+      HIDDEN_2: 64
