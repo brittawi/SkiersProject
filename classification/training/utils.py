@@ -335,16 +335,12 @@ class CustomDataset(Dataset):
                     "unknown": 0,
                     "gear2" : 1,
                     "gear3" : 2,
-                    "gear4" : 3,},
-                 transform=None,
-                 target_transform=None, 
+                    "gear4" : 3,}
                  ):
         
         self.data = data
         self.labels = labels
         self.label_dict = label_dict
-        self.transform = transform
-        self.target_transform = target_transform
 
     def __len__(self):
         return len(self.labels)
@@ -355,12 +351,6 @@ class CustomDataset(Dataset):
         item = torch.tensor(self.data[idx], dtype=torch.float32)
         item = self.data[idx].T #TODO Make sure this transpose makes sense for mlp
         
-        if self.transform:
-            item = self.transform(item)
-
-        if self.target_transform:
-            label = self.target_transform(label)
-
         return item, label
     
 def calc_avg_metrics(k_folds, all_results, seeds, epochs):
