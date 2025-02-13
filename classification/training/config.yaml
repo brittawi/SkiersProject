@@ -6,6 +6,7 @@ DATASET:
   AUG:
     SMOOTHING: 2
     NORMALIZATION: true
+    NORM_TYPE: full_signal
 
 DATA_PRESET:
   CHOOSEN_JOINTS: 

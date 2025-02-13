@@ -394,3 +394,32 @@ def create_train_val_dataloaders(path, choosen_joints, train_size, val_size, k_f
         # Store loaders for this fold
         fold_loaders.append((train_loader, val_loader))
     return fold_loaders
+
+def plot_raw_vs_normalized(X_train_raw, X_train, y_train):
+                # Extract the raw signal (before normalization)
+                raw_signal = X_train_raw[0].T  # From the first dataset instance
+                label = y_train[0]
+
+                # Extract the processed signal (after normalization)
+                normalized_signal = X_train[0].T  # From the first dataset instance
+
+                # Plot the signals for each joint
+                plt.figure(figsize=(12, 6))
+
+                for i in range(raw_signal.shape[1]):  # Iterate over each joint
+                    plt.subplot(1, 2, 1)
+                    plt.plot(raw_signal[:, i], label=f'Joint {i}')
+                    plt.title(f"Raw Signal (Before Normalization), label = {label}")
+                    plt.xlabel("Time Steps")
+                    plt.ylabel("Value")
+                    plt.legend()
+
+                    plt.subplot(1, 2, 2)
+                    plt.plot(normalized_signal[:, i], label=f'Joint {i}')
+                    plt.title("Normalized Signal (After Normalization)")
+                    plt.xlabel("Time Steps")
+                    plt.ylabel("Value")
+                    plt.legend()
+
+                plt.tight_layout()
+                plt.show()

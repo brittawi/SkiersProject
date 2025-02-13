@@ -10,6 +10,7 @@ from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
 import numpy as np
 import matplotlib.pyplot as plt
+from utils import *
 
 def normalize_per_timestamp(train_val_data, mean, std):
     """
@@ -21,19 +22,11 @@ def normalize_per_timestamp(train_val_data, mean, std):
     Returns:
     - Normalized list of NumPy arrays with the same shape
     """
-    # # Convert list of arrays to a 3D NumPy array: (num_samples, num_joints, time_steps)
-    # data_array = np.array(train_val_data)  # Shape: (num_samples, num_joints, time_steps)
-    
-    # # Compute mean and std along the sample axis (axis=0)
-    # mean = np.nanmean(data_array, axis=0)  # Shape: (num_joints, time_steps)
-    # print(f"mean = {mean[0]}")
-    # std = np.nanstd(data_array, axis=0)    # Shape: (num_joints, time_steps)
     
     # Normalize (avoid division by zero with epsilon)
     normalized_data = (train_val_data - mean) / (std + 1e-8)
     
     return normalized_data
-    #return [sample for sample in normalized_data]  # Convert back to list of arrays
     
 def normalize_full_signal(train_val_data, mean, std):
     """
@@ -48,18 +41,14 @@ def normalize_full_signal(train_val_data, mean, std):
 
     # # Reshape to merge time steps: (num_joints, num_samples * time_steps)
     flattened = train_val_data.transpose(1, 0, 2).reshape(train_val_data.shape[1], -1)
-    print(f"flattened = {flattened.shape}")
 
     # Normalize each joint across all time steps
     normalized_flattened = (flattened - mean) / (std + 1e-8)
-    #print(normalized_flattened[0])
 
     # Reshape back to (num_samples, num_joints, time_steps)
     normalized_data = normalized_flattened.reshape(train_val_data.shape[1], train_val_data.shape[0], train_val_data.shape[2])
     normalized_data = normalized_data.transpose(1, 0, 2)  # Back to (num_samples, num_joints, time_steps)
-
-    print("normalized", normalized_data.shape)
-    #return [sample for sample in normalized_data]  # Convert back to list of arrays
+    
     return normalized_data
     
 def pad_sequences(sequences, max_length=None, pad_value=0.0):
@@ -86,16 +75,17 @@ def pad_sequences(sequences, max_length=None, pad_value=0.0):
         # Pad if needed
         if pad_length > 0:
             padded_seq = np.pad(seq, ((0, 0), (0, pad_length)), mode='constant', constant_values=pad_value)
+        # cut sequence if needed
         elif pad_length < 0:
-            print("cutting seq")
             padded_seq = seq[:, :max_length]
-            print(f"new len = {padded_seq.shape}")
         else:
             padded_seq = seq  # If already max_length, keep as is
         
         padded_sequences.append(padded_seq)
     
     return np.array(padded_sequences)
+
+plotting = True
 
 def main():
     # Load config 
@@ -146,64 +136,45 @@ def main():
         ## prepocess data based on train set
         # Pad the sequences to have the same length in both X_train and X_val
         max_length = max(seq.shape[1] for seq in X_train)  # Find the max length in X_train
-        print(f"max length = {max_length}")
-        X_train_padded = pad_sequences(X_train, max_length=max_length, pad_value=float('nan'))
-        X_val_padded = pad_sequences(X_val, max_length=max_length, pad_value=float('nan'))
+        X_train = pad_sequences(X_train, max_length=max_length, pad_value=float('nan'))
+        X_val = pad_sequences(X_val, max_length=max_length, pad_value=float('nan'))
         
         # Normalize the padded training data
-        mean_per_timestamp = np.nanmean(X_train_padded, axis=0)  # Shape: (num_joints, time_steps)
-        print(f"mean = {mean_per_timestamp.shape}")
-        std_per_timestamp = np.nanstd(X_train_padded, axis=0) 
-        print(f"std = {std_per_timestamp.shape}")
-        
-        # Reshape to merge time steps: (num_joints, num_samples * time_steps)
-        X_train_flattened = X_train_padded.transpose(1, 0, 2).reshape(X_train_padded.shape[1], -1)
-        print(X_train_flattened[0])
+        if cfg.DATASET.AUG.NORMALIZATION:
+            # TODO just for sanity checking
+            X_train_raw = X_train
+            print("Normalizing the data...")
+            
+            norm_type = cfg.DATASET.AUG.get('NORM_TYPE', "full_signal")
+            if norm_type == "per_timestamp":
+                print("Normalizing the signal per timestamp")
+                
+                mean = np.nanmean(X_train, axis=0)  # Shape: (num_joints, time_steps)
+                std = np.nanstd(X_train, axis=0) 
+                
+                # normalize the train and val data
+                X_train = normalize_per_timestamp(X_train, mean, std)
+                X_val = normalize_per_timestamp(X_val, mean, std)
+            
+            else:
+                print("Normalizing the full signal")
+                
+                # Reshape to merge time steps: (num_joints, num_samples * time_steps)
+                X_train_flattened = X_train.transpose(1, 0, 2).reshape(X_train.shape[1], -1)
 
-        # Compute mean and std along the flattened axis
-        mean_full_signal = np.nanmean(X_train_flattened, axis=1, keepdims=True)  # Shape: (num_joints, 1)
-        std_full_signal = np.nanstd(X_train_flattened, axis=1, keepdims=True)    # Shape: (num_joints, 1)
-        print(f"mean full signal shape {mean_full_signal.shape}")
-        print(f"std full signal shape {std_full_signal.shape}")
-        
-        # normalize the train data
-        normalized_train_data_1 = normalize_per_timestamp(X_train_padded, mean_per_timestamp, std_per_timestamp)
-        normalized_train_data_2 = normalize_full_signal(X_train_padded, mean_full_signal, std_full_signal)
-        
-        # normalize val data with mean and std from train set
-        normalized_val_data_1 = normalize_per_timestamp(X_val_padded, mean_per_timestamp, std_per_timestamp)
-        normalized_val_data_2 = normalize_full_signal(X_val_padded, mean_full_signal, std_full_signal)
-
-        # Extract the raw signal (before normalization)
-        raw_signal = X_train_padded[0].T  # From the first dataset instance
-        label = y_train[0]
-
-        # Extract the processed signal (after normalization)
-        normalized_signal = normalized_train_data_2[0].T  # From the first dataset instance
-
-        # Plot the signals for each joint
-        plt.figure(figsize=(12, 6))
-
-        for i in range(raw_signal.shape[1]):  # Iterate over each joint
-            plt.subplot(1, 2, 1)
-            plt.plot(raw_signal[:, i], label=f'Joint {i}')
-            plt.title(f"Raw Signal (Before Normalization), label = {label}")
-            plt.xlabel("Time Steps")
-            plt.ylabel("Value")
-            plt.legend()
-
-            plt.subplot(1, 2, 2)
-            plt.plot(normalized_signal[:, i], label=f'Joint {i}')
-            plt.title("Normalized Signal (After Normalization)")
-            plt.xlabel("Time Steps")
-            plt.ylabel("Value")
-            plt.legend()
-
-        plt.tight_layout()
-        plt.show()
-        
-        # TODO remove
-        break
+                # Compute mean and std along the flattened axis
+                mean = np.nanmean(X_train_flattened, axis=1, keepdims=True)  # Shape: (num_joints, 1)
+                std = np.nanstd(X_train_flattened, axis=1, keepdims=True)    # Shape: (num_joints, 1)
+                
+                # normalize the train and val data
+                X_train = normalize_full_signal(X_train, mean, std)
+                X_val = normalize_full_signal(X_val, mean, std)
+                
+            if plotting:
+                plot_raw_vs_normalized(X_train_raw, X_train, y_train)
+            
+            
+            
     
     # crossvalidation
     
