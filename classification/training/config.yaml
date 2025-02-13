@@ -35,3 +35,4 @@ TRAIN:
   LR: 0.001
   PATIENCE: 100
   K_FOLDS: 5
+  NETWORK: mlp
