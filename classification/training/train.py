@@ -7,84 +7,11 @@ from utils import update_config
 import glob
 import json
 from sklearn.model_selection import KFold
-from sklearn.model_selection import train_test_split
 import numpy as np
-import matplotlib.pyplot as plt
 from utils import *
+from nets import LSTMNet, SimpleMLP
 
-def normalize_per_timestamp(train_val_data, mean, std):
-    """
-    Normalizes data per timestamp and per joint.
-    
-    Parameters:
-    - train_val_data: list of NumPy arrays of shape (num_joints, time_steps)
-
-    Returns:
-    - Normalized list of NumPy arrays with the same shape
-    """
-    
-    # Normalize (avoid division by zero with epsilon)
-    normalized_data = (train_val_data - mean) / (std + 1e-8)
-    
-    return normalized_data
-    
-def normalize_full_signal(train_val_data, mean, std):
-    """
-    Normalizes data per joint over the full signal (all timestamps concatenated).
-    
-    Parameters:
-    - train_val_data: list of NumPy arrays of shape (num_joints, time_steps)
-
-    Returns:
-    - Normalized list of NumPy arrays with the same shape
-    """
-
-    # # Reshape to merge time steps: (num_joints, num_samples * time_steps)
-    flattened = train_val_data.transpose(1, 0, 2).reshape(train_val_data.shape[1], -1)
-
-    # Normalize each joint across all time steps
-    normalized_flattened = (flattened - mean) / (std + 1e-8)
-
-    # Reshape back to (num_samples, num_joints, time_steps)
-    normalized_data = normalized_flattened.reshape(train_val_data.shape[1], train_val_data.shape[0], train_val_data.shape[2])
-    normalized_data = normalized_data.transpose(1, 0, 2)  # Back to (num_samples, num_joints, time_steps)
-    
-    return normalized_data
-    
-def pad_sequences(sequences, max_length=None, pad_value=0.0):
-    """
-    Pads each sequence in the list to the specified max_length with a custom value.
-    
-    Parameters:
-    - sequences: list of NumPy arrays (each of shape (num_joints, time_steps))
-    - max_length: the desired length of the time series dimension (default None, will use the max length of sequences in sequences)
-    - pad_value: the value to use for padding (default is 0.0)
-
-    Returns:
-    - List of padded NumPy arrays with shape (num_joints, max_length)
-    """
-    # Determine max_length if not provided
-    if max_length is None:
-        max_length = max(seq.shape[1] for seq in sequences)
-    
-    padded_sequences = []
-    
-    for seq in sequences:
-        pad_length = max_length - seq.shape[1]
-        
-        # Pad if needed
-        if pad_length > 0:
-            padded_seq = np.pad(seq, ((0, 0), (0, pad_length)), mode='constant', constant_values=pad_value)
-        # cut sequence if needed
-        elif pad_length < 0:
-            padded_seq = seq[:, :max_length]
-        else:
-            padded_seq = seq  # If already max_length, keep as is
-        
-        padded_sequences.append(padded_seq)
-    
-    return np.array(padded_sequences)
-
+# TODO just for checking
 plotting = True
 
 def main():
@@ -104,21 +31,21 @@ def main():
     train_val_data = []
     labels = []
     for file in glob.glob(path + '/*.json'):
-            # TODO make json load function
-            with open(file, 'r') as f:
-                data_json = json.load(f)
-                
-            for cycle in data_json.values():
-                # TODO not sure if transforming to tensors should be done here already
-                # Extract joint data as (num_joints, time_steps)
-                cycle_data = [np.array(cycle[joint], dtype=np.float32) for joint in cfg.DATA_PRESET.CHOOSEN_JOINTS]
+        # TODO make json load function
+        with open(file, 'r') as f:
+            data_json = json.load(f)
+            
+        for cycle in data_json.values():
+            # TODO not sure if transforming to tensors should be done here already
+            # Extract joint data as (num_joints, time_steps)
+            cycle_data = [np.array(cycle[joint], dtype=np.float32) for joint in cfg.DATA_PRESET.CHOOSEN_JOINTS]
 
-                # Stack into a (num_joints, time_steps) tensor
-                cycle_tensor = np.stack(cycle_data)  # Shape: (num_joints, time_steps)
-                #longest_cycle = max(longest_cycle, cycle_tensor.shape[1])  # Update max length
+            # Stack into a (num_joints, time_steps) tensor
+            cycle_tensor = np.stack(cycle_data)  # Shape: (num_joints, time_steps)
+            #longest_cycle = max(longest_cycle, cycle_tensor.shape[1])  # Update max length
 
-                train_val_data.append(cycle_tensor)
-                labels.append(cycle["Label"])
+            train_val_data.append(cycle_tensor)
+            labels.append(cycle["Label"])
     
     # create train and val dataloaders for crossvalidation
     
@@ -127,51 +54,103 @@ def main():
     # TODO check test size in config!
     kf = KFold(n_splits=cfg.TRAIN.K_FOLDS, shuffle=True, random_state=42)
     # loop through folds to create dataloaders
+    fold_loaders = []
     for fold, (train_index, val_index) in enumerate(kf.split(train_val_data)):
         
         print(f"Fold {fold+1}: Train size = {len(train_index)}, Val size = {len(val_index)}")
         X_train, y_train = ([train_val_data[i] for i in train_index], [labels[i] for i in train_index])
         X_val, y_val = ([train_val_data[i] for i in val_index], [labels[i] for i in val_index])
-
-        ## prepocess data based on train set
-        # Pad the sequences to have the same length in both X_train and X_val
-        max_length = max(seq.shape[1] for seq in X_train)  # Find the max length in X_train
-        X_train = pad_sequences(X_train, max_length=max_length, pad_value=float('nan'))
-        X_val = pad_sequences(X_val, max_length=max_length, pad_value=float('nan'))
         
-        # Normalize the padded training data
-        if cfg.DATASET.AUG.NORMALIZATION:
-            # TODO just for sanity checking
-            X_train_raw = X_train
-            print("Normalizing the data...")
-            
-            norm_type = cfg.DATASET.AUG.get('NORM_TYPE', "full_signal")
-            if norm_type == "per_timestamp":
-                print("Normalizing the signal per timestamp")
-                
-                mean = np.nanmean(X_train, axis=0)  # Shape: (num_joints, time_steps)
-                std = np.nanstd(X_train, axis=0) 
-                
-                # normalize the train and val data
-                X_train = normalize_per_timestamp(X_train, mean, std)
-                X_val = normalize_per_timestamp(X_val, mean, std)
-            
-            else:
-                print("Normalizing the full signal")
-                
-                # Reshape to merge time steps: (num_joints, num_samples * time_steps)
-                X_train_flattened = X_train.transpose(1, 0, 2).reshape(X_train.shape[1], -1)
+        # prepocess data based on train set
+        X_train, X_val, _, _, _ = preprocess_data(cfg, X_train, X_val, y_train, fold, plotting)
+        
+        # create Datasets
+        print("Creating Datasets...")
+        train_dataset = CustomDataset(X_train, y_train, cfg.DATA_PRESET.LABELS)
+        val_dataset = CustomDataset(X_val, y_val, cfg.DATA_PRESET.LABELS)
+        
+        # create dataloaders
+        train_loader = DataLoader(train_dataset, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=True)
+        val_loader = DataLoader(val_dataset, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=False)
 
-                # Compute mean and std along the flattened axis
-                mean = np.nanmean(X_train_flattened, axis=1, keepdims=True)  # Shape: (num_joints, 1)
-                std = np.nanstd(X_train_flattened, axis=1, keepdims=True)    # Shape: (num_joints, 1)
-                
-                # normalize the train and val data
-                X_train = normalize_full_signal(X_train, mean, std)
-                X_val = normalize_full_signal(X_val, mean, std)
-                
-            if plotting:
-                plot_raw_vs_normalized(X_train_raw, X_train, y_train)
+        # Store loaders for this fold
+        fold_loaders.append((train_loader, val_loader))
+        
+    output = len(set(train_dataset.labels))
+    input_channels = train_dataset[0][0].shape[1]
+    
+    # intializing network
+    # default is MLP
+    def initialize_net(cfg, input_channels, output):
+        net_type = cfg.TRAIN.get('NET', "mlp")
+        
+        if net_type == "lstm":
+            print("Initializing lstm...")
+            net = LSTMNet(input_channels, 
+                        cfg.TRAIN.NETWORK.LSTM.HIDDEN_SIZE, 
+                        output, 
+                        cfg.TRAIN.NETWORK.LSTM.NUM_LAYERS, 
+                        cfg.TRAIN.NETWORK.LSTM.DROPOUT)
+        else:
+            print("Initializing mlp...")
+            net = SimpleMLP(input_channels, 
+                            cfg.TRAIN.NETWORK.MLP.HIDDEN_1, 
+                            cfg.TRAIN.NETWORK.MLP.HIDDEN_2, 
+                            output)
+            
+        return net
+     
+    # # training the network
+    # # TODO
+    # seeds = [42,7]
+    # all_results = []
+    # best_train_cms = []
+    # best_val_cms = []   
+    
+    # for fold, (train_loader, val_loader) in enumerate(fold_loaders):
+    #     print(f"\n>>> Training on Fold {fold+1} <<<\n")
+        
+    #     # Initialize a new model for each fold
+    #     for seed in seeds:
+    #         print(f"\n========== Running for Seed {seed} on Fold {fold+1} ==========\n")
+            
+    #         # Set seed for reproducibility
+    #         torch.manual_seed(seed)
+    #         torch.cuda.manual_seed_all(seed)
+
+    #         net = LSTMNet(input_channels=input_channels, 
+    #                     hidden_size=hidden_size, 
+    #                     output=output, 
+    #                     num_layers=num_layers, 
+    #                     dropout=dropout)
+    #         net.to(device)
+
+    #         # Define loss function and optimizer
+    #         criterion = nn.CrossEntropyLoss()
+    #         optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate)
+
+    #         # Train and validate
+    #         results, best_train_cm, best_val_cm = train_and_validate(seed, 
+    #                                                                 net, 
+    #                                                                 criterion, 
+    #                                                                 optimizer,
+    #                                                                 epochs,
+    #                                                                 learning_rate,
+    #                                                                 patience,
+    #                                                                 train_loader,
+    #                                                                 val_loader,
+    #                                                                 device
+    #                                                                 )
+            
+    #         # Store results
+    #         all_results.append({'seed': seed, 'fold': fold+1, 'results': results})
+    #         best_train_cms.append({'seed': seed, 'fold': fold+1, 'cm': best_train_cm})
+    #         best_val_cms.append({'seed': seed, 'fold': fold+1, 'cm': best_val_cm})
+        
+        
+            
+            
+            
             
             
             
