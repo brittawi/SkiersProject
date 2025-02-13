@@ -555,7 +555,8 @@ def replace_nan_with_first_value(arr):
             # Find the first non-NaN value
             valid_values = arr[sample, joint, ~mask[sample, joint]]
             if valid_values.size > 0:  # If there are valid values
-                first_value = valid_values[0]  # Take the first valid number
+                # TODO 
+                first_value = valid_values[-1]  # Take the first valid number
                 arr[sample, joint, mask[sample, joint]] = first_value  # Replace NaNs with it
 
     return arr
@@ -599,15 +600,16 @@ def preprocess_data(cfg, X_train, X_val, y_train, fold, plotting=False):
             X_train = normalize_full_signal(X_train, mean, std)
             X_val = normalize_full_signal(X_val, mean, std)
     
+    # TODO when to replace padding?!!
+    # replace padded values with start of sequence
+    X_train = replace_nan_with_first_value(X_train)
+    X_val = replace_nan_with_first_value(X_val)
+    
     # Smooth the signal
     if cfg.DATASET.AUG.SMOOTHING > 0:
         print("Smoothing the signal")
         X_train = gaussian_filter1d(X_train, sigma=cfg.DATASET.AUG.SMOOTHING, axis=2)
         
-    # TODO when to replace padding?!!
-    # replace padded values with start of sequence
-    X_train = replace_nan_with_first_value(X_train)
-    X_val = replace_nan_with_first_value(X_val)
         
     if plotting and fold == 0:
         plot_raw_vs_normalized(X_train_raw, X_train, y_train)

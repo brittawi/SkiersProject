@@ -31,21 +31,21 @@ def main():
     train_val_data = []
     labels = []
     for file in glob.glob(path + '/*.json'):
-            # TODO make json load function
-            with open(file, 'r') as f:
-                data_json = json.load(f)
-                
-            for cycle in data_json.values():
-                # TODO not sure if transforming to tensors should be done here already
-                # Extract joint data as (num_joints, time_steps)
-                cycle_data = [np.array(cycle[joint], dtype=np.float32) for joint in cfg.DATA_PRESET.CHOOSEN_JOINTS]
+        # TODO make json load function
+        with open(file, 'r') as f:
+            data_json = json.load(f)
+            
+        for cycle in data_json.values():
+            # TODO not sure if transforming to tensors should be done here already
+            # Extract joint data as (num_joints, time_steps)
+            cycle_data = [np.array(cycle[joint], dtype=np.float32) for joint in cfg.DATA_PRESET.CHOOSEN_JOINTS]
 
-                # Stack into a (num_joints, time_steps) tensor
-                cycle_tensor = np.stack(cycle_data)  # Shape: (num_joints, time_steps)
-                #longest_cycle = max(longest_cycle, cycle_tensor.shape[1])  # Update max length
+            # Stack into a (num_joints, time_steps) tensor
+            cycle_tensor = np.stack(cycle_data)  # Shape: (num_joints, time_steps)
+            #longest_cycle = max(longest_cycle, cycle_tensor.shape[1])  # Update max length
 
-                train_val_data.append(cycle_tensor)
-                labels.append(cycle["Label"])
+            train_val_data.append(cycle_tensor)
+            labels.append(cycle["Label"])
     
     # create train and val dataloaders for crossvalidation
     
@@ -54,6 +54,7 @@ def main():
     # TODO check test size in config!
     kf = KFold(n_splits=cfg.TRAIN.K_FOLDS, shuffle=True, random_state=42)
     # loop through folds to create dataloaders
+    fold_loaders = []
     for fold, (train_index, val_index) in enumerate(kf.split(train_val_data)):
         
         print(f"Fold {fold+1}: Train size = {len(train_index)}, Val size = {len(val_index)}")
@@ -68,16 +69,85 @@ def main():
         train_dataset = CustomDataset(X_train, y_train, cfg.DATA_PRESET.LABELS)
         val_dataset = CustomDataset(X_val, y_val, cfg.DATA_PRESET.LABELS)
         
-        # intializing network
-        # default is MLP
+        # create dataloaders
+        train_loader = DataLoader(train_dataset, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=True)
+        val_loader = DataLoader(val_dataset, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=False)
+
+        # Store loaders for this fold
+        fold_loaders.append((train_loader, val_loader))
+        
+    output = len(set(train_dataset.labels))
+    input_channels = train_dataset[0][0].shape[1]
+    
+    # intializing network
+    # default is MLP
+    def initialize_net(cfg, input_channels, output):
         net_type = cfg.TRAIN.get('NET', "mlp")
-        input_channels = train_dataset[0][0].shape[1]
-        num_layers = 2
         
         if net_type == "lstm":
-            net = LSTMNet()
+            print("Initializing lstm...")
+            net = LSTMNet(input_channels, 
+                        cfg.TRAIN.NETWORK.LSTM.HIDDEN_SIZE, 
+                        output, 
+                        cfg.TRAIN.NETWORK.LSTM.NUM_LAYERS, 
+                        cfg.TRAIN.NETWORK.LSTM.DROPOUT)
         else:
-            net = SimpleMLP()
+            print("Initializing mlp...")
+            net = SimpleMLP(input_channels, 
+                            cfg.TRAIN.NETWORK.MLP.HIDDEN_1, 
+                            cfg.TRAIN.NETWORK.MLP.HIDDEN_2, 
+                            output)
+            
+        return net
+     
+    # # training the network
+    # # TODO
+    # seeds = [42,7]
+    # all_results = []
+    # best_train_cms = []
+    # best_val_cms = []   
+    
+    # for fold, (train_loader, val_loader) in enumerate(fold_loaders):
+    #     print(f"\n>>> Training on Fold {fold+1} <<<\n")
+        
+    #     # Initialize a new model for each fold
+    #     for seed in seeds:
+    #         print(f"\n========== Running for Seed {seed} on Fold {fold+1} ==========\n")
+            
+    #         # Set seed for reproducibility
+    #         torch.manual_seed(seed)
+    #         torch.cuda.manual_seed_all(seed)
+
+    #         net = LSTMNet(input_channels=input_channels, 
+    #                     hidden_size=hidden_size, 
+    #                     output=output, 
+    #                     num_layers=num_layers, 
+    #                     dropout=dropout)
+    #         net.to(device)
+
+    #         # Define loss function and optimizer
+    #         criterion = nn.CrossEntropyLoss()
+    #         optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate)
+
+    #         # Train and validate
+    #         results, best_train_cm, best_val_cm = train_and_validate(seed, 
+    #                                                                 net, 
+    #                                                                 criterion, 
+    #                                                                 optimizer,
+    #                                                                 epochs,
+    #                                                                 learning_rate,
+    #                                                                 patience,
+    #                                                                 train_loader,
+    #                                                                 val_loader,
+    #                                                                 device
+    #                                                                 )
+            
+    #         # Store results
+    #         all_results.append({'seed': seed, 'fold': fold+1, 'results': results})
+    #         best_train_cms.append({'seed': seed, 'fold': fold+1, 'cm': best_train_cm})
+    #         best_val_cms.append({'seed': seed, 'fold': fold+1, 'cm': best_val_cm})
+        
+        
             
             
             
