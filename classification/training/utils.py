@@ -135,7 +135,7 @@ def plot_single_metric(epoch_range, train_metric, val_metric, metric_name, xlabe
     plt.ylabel(ylabel)
     plt.legend()
 
-def train_and_validate(seed, net, criterion, optimizer, epochs, learning_rate, patience, train_loader, val_loader, device, mlp = False):
+def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_loader, device, mlp = False):
     set_seed(seed)
 
     results = {}
@@ -146,7 +146,7 @@ def train_and_validate(seed, net, criterion, optimizer, epochs, learning_rate, p
     best_val_loss = float('inf')
     counter = 0
 
-    for epoch in range(epochs):  # loop over the dataset multiple times
+    for epoch in range(cfg.TRAIN.EPOCHS):  # loop over the dataset multiple times
         
         print("Training")
         epoch_train_loss, epoch_train_acc, train_precision, train_recall, train_f1, train_conf_matrix = training(train_loader, net, criterion, optimizer, device, mlp)
@@ -156,7 +156,7 @@ def train_and_validate(seed, net, criterion, optimizer, epochs, learning_rate, p
         results["train_recalls"].append(train_recall)
         results["train_f1s"].append(train_f1)
 
-        print(f"Epoch: {epoch+1}/{epochs}, Loss: {epoch_train_loss:.3f}, Accuracy: {epoch_train_acc:.3f}")
+        print(f"Epoch: {epoch+1}/{cfg.TRAIN.EPOCHS}, Loss: {epoch_train_loss:.3f}, Accuracy: {epoch_train_acc:.3f}")
         
         print("Validation")
         epoch_val_loss, epoch_val_acc, val_precision, val_recall, val_f1, val_conf_matrix = validation(val_loader, net, criterion, device, mlp)
@@ -165,14 +165,14 @@ def train_and_validate(seed, net, criterion, optimizer, epochs, learning_rate, p
         results["val_precisions"].append(val_precision)
         results["val_recalls"].append(val_recall)
         results["val_f1s"].append(val_f1)
-        print(f"Epoch: {epoch+1}/{epochs}, Loss: {epoch_val_loss:.3f}, Accuracy: {epoch_val_acc:.3f}")
+        print(f"Epoch: {epoch+1}/{cfg.TRAIN.EPOCHS}, Loss: {epoch_val_loss:.3f}, Accuracy: {epoch_val_acc:.3f}")
 
         # Check early stopping based on validation loss
         if epoch_val_loss < best_val_loss:
             best_val_loss = epoch_val_loss
-            # TODO Check more later if loss or any other metric
+            # TODO We should use loss (Asked Homam)
             current_time = datetime.now().strftime("%Y_%m_%d_%H_%M")  # Format as HH:MM:SS
-            torch.save(net.state_dict(), f"best_model_{current_time}_lr{learning_rate}_seed{seed}.pth")  # Save the best model
+            torch.save(net.state_dict(), f"best_model_{current_time}_lr{cfg.TRAIN.LR}_seed{seed}.pth")  # Save the best model
             print(f"Model saved at epoch {epoch+1}")
             counter = 0  # Reset patience counter
             best_val_cm = val_conf_matrix
@@ -180,7 +180,7 @@ def train_and_validate(seed, net, criterion, optimizer, epochs, learning_rate, p
         else:
             counter += 1  # Increment counter if no loss improvement
         
-        if counter >= patience:
+        if counter >= cfg.TRAIN.PATIENCE:
             print(f"Early stopping triggered at epoch {epoch+1}")
             break  # Stop training
         
@@ -371,7 +371,7 @@ def calc_avg_metrics(k_folds, all_results, seeds, epochs):
         fold_final_results[i] = results_lists
     return fold_final_results
     
-# TODO Optione for fixing padding -> split load and split into train and train and validation splits first, then find longest in train and apply on validation
+# TODO Option for fixing padding -> split load and split into train and train and validation splits first, then find longest in train and apply on validation
 # Move loading out from CustomDataset to achieve 
 def create_train_val_dataloaders(path, choosen_joints, train_size, val_size, k_folds, batch_size, seed = 42):
     # Create initial dataset (without normalization)

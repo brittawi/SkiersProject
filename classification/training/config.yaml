@@ -32,9 +32,16 @@ TRAIN:
   BATCH_SIZE: 32
   EPOCHS: 5
   OPTIMIZER: 'adam'
+  LOSS: cross_entropy
   LR: 0.001
   PATIENCE: 100
   K_FOLDS: 5
+  SEEDS:
+    - 42
+    - 2
+    - 3
+    - 4
+    - 5
   NETWORK: 
     NETWORKTYPE: mlp
     LSTM:

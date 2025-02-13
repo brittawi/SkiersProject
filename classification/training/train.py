@@ -77,7 +77,10 @@ def main():
         fold_loaders.append((train_loader, val_loader))
         
     output = len(set(train_dataset.labels))
-    input_channels = train_dataset[0][0].shape[1]
+    if cfg.TRAIN.NETWORK.NETWORKTYPE == "lstm":
+        input_channels = train_dataset[0][0].shape[1]
+    elif cfg.TRAIN.NETWORK.NETWORKTYPE == "mlp":
+        input_channels = len(train_dataset[0][0].view(-1)) # get first entry, then item and then first joint
     
     # intializing network
     # default is MLP
@@ -100,52 +103,51 @@ def main():
             
         return net
      
-    # # training the network
-    # # TODO
-    # seeds = [42,7]
-    # all_results = []
-    # best_train_cms = []
-    # best_val_cms = []   
+    # training the network
+    # TODO
+    all_results = []
+    best_train_cms = []
+    best_val_cms = []   
     
-    # for fold, (train_loader, val_loader) in enumerate(fold_loaders):
-    #     print(f"\n>>> Training on Fold {fold+1} <<<\n")
+    for fold, (train_loader, val_loader) in enumerate(fold_loaders):
+        print(f"\n>>> Training on Fold {fold+1} <<<\n")
         
-    #     # Initialize a new model for each fold
-    #     for seed in seeds:
-    #         print(f"\n========== Running for Seed {seed} on Fold {fold+1} ==========\n")
+        # Initialize a new model for each fold
+        for seed in cfg.TRAIN.SEEDS:
+            print(f"\n========== Running for Seed {seed} on Fold {fold+1} ==========\n")
             
-    #         # Set seed for reproducibility
-    #         torch.manual_seed(seed)
-    #         torch.cuda.manual_seed_all(seed)
+            # Set seed for reproducibility
+            torch.manual_seed(seed)
+            torch.cuda.manual_seed_all(seed)
 
-    #         net = LSTMNet(input_channels=input_channels, 
-    #                     hidden_size=hidden_size, 
-    #                     output=output, 
-    #                     num_layers=num_layers, 
-    #                     dropout=dropout)
-    #         net.to(device)
+            # Create neural network
+            net = initialize_net(cfg, input_channels, output)
+            net.to(device)
 
-    #         # Define loss function and optimizer
-    #         criterion = nn.CrossEntropyLoss()
-    #         optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate)
-
-    #         # Train and validate
-    #         results, best_train_cm, best_val_cm = train_and_validate(seed, 
-    #                                                                 net, 
-    #                                                                 criterion, 
-    #                                                                 optimizer,
-    #                                                                 epochs,
-    #                                                                 learning_rate,
-    #                                                                 patience,
-    #                                                                 train_loader,
-    #                                                                 val_loader,
-    #                                                                 device
-    #                                                                 )
+            # Define loss function and optimizer
+            criterion_type = cfg.TRAIN.get('LOSS', "cross_entropy")
+            if criterion_type == "cross_entropy":
+                criterion = torch.nn.CrossEntropyLoss()
+            else:
+                print("Loss type not implemented")
             
-    #         # Store results
-    #         all_results.append({'seed': seed, 'fold': fold+1, 'results': results})
-    #         best_train_cms.append({'seed': seed, 'fold': fold+1, 'cm': best_train_cm})
-    #         best_val_cms.append({'seed': seed, 'fold': fold+1, 'cm': best_val_cm})
+            optimizer = torch.optim.Adam(net.parameters(), lr=cfg.TRAIN.LR)  
+
+            # Train and validate
+            results, best_train_cm, best_val_cm = train_and_validate(seed, 
+                                                                    net, 
+                                                                    criterion, 
+                                                                    optimizer,
+                                                                    cfg,
+                                                                    train_loader,
+                                                                    val_loader,
+                                                                    device
+                                                                    )
+            
+            # Store results
+            all_results.append({'seed': seed, 'fold': fold+1, 'results': results})
+            best_train_cms.append({'seed': seed, 'fold': fold+1, 'cm': best_train_cm})
+            best_val_cms.append({'seed': seed, 'fold': fold+1, 'cm': best_val_cm})
         
         
             
