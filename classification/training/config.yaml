@@ -1,7 +1,6 @@
 DATASET:
-  TRAIN_SIZE : 0.8
+  TRAIN_SIZE : 0.9
   VAL_SIZE : 0.1
-  TEST_SIZE : 0.1
   ROOT_PATH: "../cycle_splits/labeled_data"
   FILE_PREFIX: "labeled_cycles_"
   AUG:
