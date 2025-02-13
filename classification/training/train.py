@@ -12,7 +12,7 @@ from utils import *
 from nets import LSTMNet, SimpleMLP
 
 # TODO just for checking
-plotting = True
+plotting = False
 
 def main():
     # Load config 
@@ -75,79 +75,36 @@ def main():
 
         # Store loaders for this fold
         fold_loaders.append((train_loader, val_loader))
-        
-    output = len(set(train_dataset.labels))
-    if cfg.TRAIN.NETWORK.NETWORKTYPE == "lstm":
-        input_channels = train_dataset[0][0].shape[1]
-    elif cfg.TRAIN.NETWORK.NETWORKTYPE == "mlp":
-        input_channels = len(train_dataset[0][0].view(-1)) # get first entry, then item and then first joint
+    
+
+    output_channels = len(set(train_dataset.labels))
     
     # intializing network
     # default is MLP
-    def initialize_net(cfg, input_channels, output):
-        net_type = cfg.TRAIN.get('NET', "mlp")
+# def initialize_net(cfg, input_channels, output):
+#     net_type = cfg.TRAIN.get('NET', "mlp")
+    
+#     if net_type == "lstm":
+#         print("Initializing lstm...")
+#         net = LSTMNet(input_channels, 
+#                     cfg.TRAIN.NETWORK.LSTM.HIDDEN_SIZE, 
+#                     output, 
+#                     cfg.TRAIN.NETWORK.LSTM.NUM_LAYERS, 
+#                     cfg.TRAIN.NETWORK.LSTM.DROPOUT)
+#     else:
+#         print("Initializing mlp...")
+#         net = SimpleMLP(input_channels, 
+#                         cfg.TRAIN.NETWORK.MLP.HIDDEN_1, 
+#                         cfg.TRAIN.NETWORK.MLP.HIDDEN_2, 
+#                         output)
         
-        if net_type == "lstm":
-            print("Initializing lstm...")
-            net = LSTMNet(input_channels, 
-                        cfg.TRAIN.NETWORK.LSTM.HIDDEN_SIZE, 
-                        output, 
-                        cfg.TRAIN.NETWORK.LSTM.NUM_LAYERS, 
-                        cfg.TRAIN.NETWORK.LSTM.DROPOUT)
-        else:
-            print("Initializing mlp...")
-            net = SimpleMLP(input_channels, 
-                            cfg.TRAIN.NETWORK.MLP.HIDDEN_1, 
-                            cfg.TRAIN.NETWORK.MLP.HIDDEN_2, 
-                            output)
-            
-        return net
+#     return net
      
     # training the network
     # TODO
-    all_results = []
-    best_train_cms = []
-    best_val_cms = []   
-    
-    for fold, (train_loader, val_loader) in enumerate(fold_loaders):
-        print(f"\n>>> Training on Fold {fold+1} <<<\n")
-        
-        # Initialize a new model for each fold
-        for seed in cfg.TRAIN.SEEDS:
-            print(f"\n========== Running for Seed {seed} on Fold {fold+1} ==========\n")
-            
-            # Set seed for reproducibility
-            torch.manual_seed(seed)
-            torch.cuda.manual_seed_all(seed)
 
-            # Create neural network
-            net = initialize_net(cfg, input_channels, output)
-            net.to(device)
 
-            # Define loss function and optimizer
-            criterion_type = cfg.TRAIN.get('LOSS', "cross_entropy")
-            if criterion_type == "cross_entropy":
-                criterion = torch.nn.CrossEntropyLoss()
-            else:
-                print("Loss type not implemented")
-            
-            optimizer = torch.optim.Adam(net.parameters(), lr=cfg.TRAIN.LR)  
-
-            # Train and validate
-            results, best_train_cm, best_val_cm = train_and_validate(seed, 
-                                                                    net, 
-                                                                    criterion, 
-                                                                    optimizer,
-                                                                    cfg,
-                                                                    train_loader,
-                                                                    val_loader,
-                                                                    device
-                                                                    )
-            
-            # Store results
-            all_results.append({'seed': seed, 'fold': fold+1, 'results': results})
-            best_train_cms.append({'seed': seed, 'fold': fold+1, 'cm': best_train_cm})
-            best_val_cms.append({'seed': seed, 'fold': fold+1, 'cm': best_val_cm})
+    all_results, best_train_cms, best_val_cms = cross_validation(cfg, fold_loaders, output_channels, device)
         
         
             

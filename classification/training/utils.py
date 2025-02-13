@@ -12,8 +12,11 @@ import easydict
 import yaml
 import glob
 from scipy.ndimage import gaussian_filter1d
+from nets import LSTMNet, SimpleMLP
 
-# Utility functions
+# ======================================
+#      TRAIN AND VALIDATION SECTION
+# ======================================
 
 def update_config(config_file):
     with open(config_file) as f:
@@ -33,7 +36,7 @@ METRICS_NAMES = ["train_losses",
     ]
 
 
-def training(train_loader, net, criterion, optimizer, device, mlp):
+def training(train_loader, net, criterion, optimizer, device, network_type):
     running_loss = 0.0
     total_samples = 0  # To track the number of samples for accuracy calculation
     correct_predictions = 0  # To track the correct predictions
@@ -42,8 +45,9 @@ def training(train_loader, net, criterion, optimizer, device, mlp):
     
     for i, data in enumerate(train_loader, 0):
         # get the inputs; data is a list of [inputs, labels]
+        print(f"Current batch: {i+1}")
         inputs, labels = data
-        if mlp:
+        if network_type == "mlp":
             inputs = inputs.view(inputs.size(0), -1)
         inputs = inputs.to(device)
         labels = labels.to(device)
@@ -81,7 +85,7 @@ def training(train_loader, net, criterion, optimizer, device, mlp):
 
     return avg_epoch_loss, epoch_accuracy, precision, recall, f1, conf_matrix
 
-def validation(val_loader, net, criterion, device, mlp):
+def validation(val_loader, net, criterion, device, network_type):
     running_val_loss = 0.0
     epoch_accuracy = 0.0
     total_samples = 0  # To track the number of samples for accuracy calculation
@@ -94,7 +98,7 @@ def validation(val_loader, net, criterion, device, mlp):
         for i, data in enumerate(val_loader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
-            if mlp:
+            if network_type == "mlp":
                 inputs = inputs.view(inputs.size(0), -1)
             inputs = inputs.to(device)
             labels = labels.to(device)
@@ -135,7 +139,7 @@ def plot_single_metric(epoch_range, train_metric, val_metric, metric_name, xlabe
     plt.ylabel(ylabel)
     plt.legend()
 
-def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_loader, device, mlp = False):
+def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_loader, device):
     set_seed(seed)
 
     results = {}
@@ -149,7 +153,7 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
     for epoch in range(cfg.TRAIN.EPOCHS):  # loop over the dataset multiple times
         
         print("Training")
-        epoch_train_loss, epoch_train_acc, train_precision, train_recall, train_f1, train_conf_matrix = training(train_loader, net, criterion, optimizer, device, mlp)
+        epoch_train_loss, epoch_train_acc, train_precision, train_recall, train_f1, train_conf_matrix = training(train_loader, net, criterion, optimizer, device, cfg.TRAIN.NETWORK.NETWORKTYPE)
         results["train_losses"].append(epoch_train_loss)
         results["train_accs"].append(epoch_train_acc)
         results["train_precisions"].append(train_precision)
@@ -159,7 +163,7 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
         print(f"Epoch: {epoch+1}/{cfg.TRAIN.EPOCHS}, Loss: {epoch_train_loss:.3f}, Accuracy: {epoch_train_acc:.3f}")
         
         print("Validation")
-        epoch_val_loss, epoch_val_acc, val_precision, val_recall, val_f1, val_conf_matrix = validation(val_loader, net, criterion, device, mlp)
+        epoch_val_loss, epoch_val_acc, val_precision, val_recall, val_f1, val_conf_matrix = validation(val_loader, net, criterion, device, cfg.TRAIN.NETWORK.NETWORKTYPE)
         results["val_losses"].append(epoch_val_loss)
         results["val_accs"].append(epoch_val_acc)
         results["val_precisions"].append(val_precision)
@@ -187,12 +191,81 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
     print('Finished Training')
     return results, best_train_cm, best_val_cm
 
+def cross_validation(cfg, fold_loaders, output_channels, device):
+    all_results = []
+    best_train_cms = []
+    best_val_cms = []   
+    
+    for fold, (train_loader, val_loader) in enumerate(fold_loaders):
+        print(f"\n>>> Training on Fold {fold+1} <<<\n")
+        if cfg.TRAIN.NETWORK.NETWORKTYPE == "lstm":
+            input_channels = train_loader.dataset.data.shape[1]
+        elif cfg.TRAIN.NETWORK.NETWORKTYPE == "mlp":
+            input_channels = train_loader.dataset.data.shape[1] * train_loader.dataset.data.shape[2]
+        
+        # Initialize a new model for each fold
+        for seed in cfg.TRAIN.SEEDS:
+            print(f"\n========== Running for Seed {seed} on Fold {fold+1} ==========\n")
+            
+            # Set seed for reproducibility
+            torch.manual_seed(seed)
+            torch.cuda.manual_seed_all(seed)
+
+            # Create neural network
+            net = initialize_net(cfg, input_channels, output_channels)
+            net.to(device)
+
+            # Define loss function and optimizer
+            criterion_type = cfg.TRAIN.get('LOSS', "cross_entropy")
+            if criterion_type == "cross_entropy":
+                criterion = torch.nn.CrossEntropyLoss()
+            else:
+                print("Loss type not implemented")
+            
+            optimizer = torch.optim.Adam(net.parameters(), lr=cfg.TRAIN.LR)  
+
+            # Train and validate
+            results, best_train_cm, best_val_cm = train_and_validate(seed, 
+                                                                    net, 
+                                                                    criterion, 
+                                                                    optimizer,
+                                                                    cfg,
+                                                                    train_loader,
+                                                                    val_loader,
+                                                                    device,
+                                                                    )
+            
+            # Store results
+            all_results.append({'seed': seed, 'fold': fold+1, 'results': results})
+            best_train_cms.append({'seed': seed, 'fold': fold+1, 'cm': best_train_cm})
+            best_val_cms.append({'seed': seed, 'fold': fold+1, 'cm': best_val_cm})
+    return all_results, best_train_cms, best_val_cms
+
 def set_seed(seed=42):
     torch.manual_seed(seed)  # PyTorch CPU
     torch.cuda.manual_seed(seed)  # PyTorch GPU
     torch.cuda.manual_seed_all(seed)  # If using multi-GPU
     torch.backends.cudnn.deterministic = True  # Make CuDNN deterministic
     torch.backends.cudnn.benchmark = False  # Disable auto-tuner for CuDNN (ensures deterministic behavior)
+
+def initialize_net(cfg, input_channels, output):
+    net_type = cfg.TRAIN.get('NET', "mlp")
+    
+    if net_type == "lstm":
+        print("Initializing lstm...")
+        net = LSTMNet(input_channels, 
+                    cfg.TRAIN.NETWORK.LSTM.HIDDEN_SIZE, 
+                    output, 
+                    cfg.TRAIN.NETWORK.LSTM.NUM_LAYERS, 
+                    cfg.TRAIN.NETWORK.LSTM.DROPOUT)
+    else:
+        print("Initializing mlp...")
+        net = SimpleMLP(input_channels, 
+                        cfg.TRAIN.NETWORK.MLP.HIDDEN_1, 
+                        cfg.TRAIN.NETWORK.MLP.HIDDEN_2, 
+                        output)
+        
+    return net
 
 #ChatGPT generated plotting
 
