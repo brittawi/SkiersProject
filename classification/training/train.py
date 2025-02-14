@@ -23,8 +23,8 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     print(f"Device = {device}")
 
-    # TODO do not need file_name??!
-    file_name = cfg.DATASET.FILE_PREFIX # Prefix for json files with annotated keypoints
+    # # TODO do not need file_name??!
+    # file_name = cfg.DATASET.FILE_PREFIX # Prefix for json files with annotated keypoints
     path = cfg.DATASET.ROOT_PATH # Path to folder with annotated jsons
     
     # load data
@@ -37,13 +37,11 @@ def main():
             data_json = json.load(f)
             
         for cycle in data_json.values():
-            # TODO not sure if transforming to tensors should be done here already
             # Extract joint data as (num_joints, time_steps)
             cycle_data = [np.array(cycle[joint], dtype=np.float32) for joint in cfg.DATA_PRESET.CHOOSEN_JOINTS]
 
             # Stack into a (num_joints, time_steps) tensor
             cycle_tensor = np.stack(cycle_data)  # Shape: (num_joints, time_steps)
-            #longest_cycle = max(longest_cycle, cycle_tensor.shape[1])  # Update max length
 
             train_val_data.append(cycle_tensor)
             labels.append(cycle["Label"])
@@ -51,9 +49,9 @@ def main():
     # create train and val dataloaders for crossvalidation
     
     ## Initialize KFold (5 splits)
-    # TODO seed!
+    # TODO seed! -> Use first in train list of seeds?(Added)
     # TODO check test size in config!
-    kf = KFold(n_splits=cfg.TRAIN.K_FOLDS, shuffle=True, random_state=42)
+    kf = KFold(n_splits=cfg.TRAIN.K_FOLDS, shuffle=True, random_state=cfg.TRAIN.SEEDS[0])
     # loop through folds to create dataloaders
     fold_loaders = []
     for fold, (train_index, val_index) in enumerate(kf.split(train_val_data)):

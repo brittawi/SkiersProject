@@ -241,7 +241,6 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
     return results, best_train_cm, best_val_cm
 
 def save_model(net, cfg, fold, seed, start_time):
-    # TODO doc string
     """
     Saves the model weights in a structured folder based on fold and seed.
 
@@ -250,7 +249,7 @@ def save_model(net, cfg, fold, seed, start_time):
     - cfg (Config): Configuration object containing training parameters.
     - fold (int): Current cross-validation fold.
     - seed (int): Random seed for reproducibility.
-    - save_dir (str, optional): Base directory to store model checkpoints. Defaults to "saved_models".
+    - start_time (str): Time for timestamping model creation.
     """
 
     # Define the folder structure
@@ -268,7 +267,7 @@ def save_model(net, cfg, fold, seed, start_time):
 
 def cross_validation(cfg, fold_loaders, output_channels, device):
     """
-    Performs k-fold cross-validation on the dataset.
+    Performs k-fold cross-validation on the dataset. Creates a new net for each seed in each fold. 
 
     Parameters:
     - cfg (Config): Configuration object containing training settings.
@@ -508,7 +507,7 @@ class CustomDatasetOld(Dataset):
     def __getitem__(self, idx):
         
         label = self.label_dict[self.labels[idx]]
-        item = self.data[idx].T #TODO Make sure this transpose makes sense for mlp
+        item = self.data[idx].T
 
         if self.apply_gaussian_filter:
             item = torch.tensor(scipy.ndimage.gaussian_filter1d(item.numpy(), sigma=2, axis=0), dtype=torch.float32)
@@ -547,7 +546,7 @@ class CustomDataset(Dataset):
         
         label = self.label_dict[self.labels[idx]]
         item = torch.tensor(self.data[idx], dtype=torch.float32)
-        item = self.data[idx].T #TODO Make sure this transpose makes sense for mlp
+        item = self.data[idx].T
         
         return item, label
     
@@ -569,7 +568,6 @@ def calc_avg_metrics(k_folds, all_results, seeds, epochs):
         fold_final_results[i] = results_lists
     return fold_final_results
     
-# TODO Option for fixing padding -> split load and split into train and train and validation splits first, then find longest in train and apply on validation
 # Move loading out from CustomDataset to achieve 
 def create_train_val_dataloaders(path, choosen_joints, train_size, val_size, k_folds, batch_size, seed = 42):
     # Create initial dataset (without normalization)
