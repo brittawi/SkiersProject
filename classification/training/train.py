@@ -11,6 +11,8 @@ import numpy as np
 from utils import *
 from nets import LSTMNet, SimpleMLP
 from torch.utils.tensorboard import SummaryWriter
+import numpy as np
+import matplotlib.pyplot as plt
 
 # TODO just for checking
 plotting = False
@@ -77,28 +79,6 @@ def main():
     
 
     output_channels = len(set(train_dataset.labels))
-    
-    # intializing network
-    # TODO Moved to utils
-    # default is MLP
-# def initialize_net(cfg, input_channels, output):
-#     net_type = cfg.TRAIN.get('NET', "mlp")
-    
-#     if net_type == "lstm":
-#         print("Initializing lstm...")
-#         net = LSTMNet(input_channels, 
-#                     cfg.TRAIN.NETWORK.LSTM.HIDDEN_SIZE, 
-#                     output, 
-#                     cfg.TRAIN.NETWORK.LSTM.NUM_LAYERS, 
-#                     cfg.TRAIN.NETWORK.LSTM.DROPOUT)
-#     else:
-#         print("Initializing mlp...")
-#         net = SimpleMLP(input_channels, 
-#                         cfg.TRAIN.NETWORK.MLP.HIDDEN_1, 
-#                         cfg.TRAIN.NETWORK.MLP.HIDDEN_2, 
-#                         output)
-        
-#     return net
      
     # training the network
     all_results, best_train_cms, best_val_cms = cross_validation(cfg, fold_loaders, output_channels, device)
@@ -110,9 +90,11 @@ def main():
     write_cv_results(average_results, cfg.TRAIN.EPOCHS, writer)     
     writer.close()
 
+    plot_avg_std_combined(average_results, cfg)
+
 
         
-        
+    
             
             
             
