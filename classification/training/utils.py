@@ -254,6 +254,7 @@ def cross_validation(cfg, fold_loaders, output_channels, device):
     - best_train_cms (list): List of best training confusion matrices.
     - best_val_cms (list): List of best validation confusion matrices.
     """
+
     all_results = []
     best_train_cms = []
     best_val_cms = []   
@@ -317,7 +318,7 @@ def set_seed(seed=42):
     torch.backends.cudnn.benchmark = False  # Disable auto-tuner for CuDNN (ensures deterministic behavior)
 
 def initialize_net(cfg, input_channels, output):
-    net_type = cfg.TRAIN.get('NET', "mlp")
+    net_type = cfg.TRAIN.NETWORK.get('NETWORKTYPE', "mlp")
     
     if net_type == "lstm":
         print("Initializing lstm...")
