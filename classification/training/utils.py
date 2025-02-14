@@ -168,7 +168,7 @@ def validation(val_loader, net, criterion, device, network_type):
     
     return avg_val_loss, epoch_accuracy, precision, recall, f1, conf_matrix
 
-def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_loader, device, fold):
+def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_loader, device, fold, start_time):
     """
     Trains and validates the model across multiple epochs. Saves the model weights based on lowest validation accuracy. 
 
@@ -182,6 +182,7 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
     - val_loader (DataLoader): DataLoader for the validation dataset.
     - device (torch.device): Device to run the model on (CPU or GPU).
     - fold (int): Current cross validation fold. 
+    - start_time (str): Start time as string for saving models.
 
     Returns:
     - results (dict): Dictionary storing loss, accuracy, precision, recall, and F1-score for each epoch.
@@ -189,6 +190,7 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
     - best_val_cm (numpy.ndarray): Best confusion matrix for validation.
     """
 
+    # Set all seeds and make deterministic
     set_seed(seed)
 
     results = {}
@@ -223,7 +225,7 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
         # Check early stopping based on validation loss
         if epoch_val_loss < best_val_loss:
             best_val_loss = epoch_val_loss
-            save_model(net, cfg, fold, seed)
+            save_model(net, cfg, fold, seed, start_time)
             print(f"Model saved at epoch {epoch+1}")
             counter = 0  # Reset patience counter
             best_val_cm = val_conf_matrix
@@ -238,7 +240,8 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
     print('Finished Training')
     return results, best_train_cm, best_val_cm
 
-def save_model(net, cfg, fold, seed, save_dir="saved_models"):
+def save_model(net, cfg, fold, seed, start_time):
+    # TODO doc string
     """
     Saves the model weights in a structured folder based on fold and seed.
 
@@ -251,13 +254,13 @@ def save_model(net, cfg, fold, seed, save_dir="saved_models"):
     """
 
     # Define the folder structure
-    current_time = datetime.now().strftime("%Y_%m_%d_%H_%M")
-    run_dir = os.path.join(save_dir, f"run_{current_time}_{cfg.TRAIN.NETWORK.NETWORKTYPE}")
-    fold_dir = os.path.join(run_dir, f"fold_{fold+1}")
+    run_dir = os.path.join(cfg.LOGGING.ROOT_PATH, cfg.LOGGING.MODEL_DIR)
+    model_dir = os.path.join(run_dir, f"run_{start_time}_{cfg.TRAIN.NETWORK.NETWORKTYPE}")
+    fold_dir = os.path.join(model_dir, f"fold_{fold+1}")
     os.makedirs(fold_dir, exist_ok=True)
 
     # Create a timestamped filename
-    model_filename = f"best_model_{current_time}_lr{cfg.TRAIN.LR}_seed{seed}.pth"
+    model_filename = f"best_model_{start_time}_lr{cfg.TRAIN.LR}_seed{seed}.pth"
     model_path = os.path.join(fold_dir, model_filename)
 
     # Save the model state dictionary
@@ -281,7 +284,10 @@ def cross_validation(cfg, fold_loaders, output_channels, device):
 
     all_results = []
     best_train_cms = []
-    best_val_cms = []   
+    best_val_cms = []
+
+    # Log start time for model saving
+    start_time = datetime.now().strftime("%Y_%m_%d_%H_%M")
     
     for fold, (train_loader, val_loader) in enumerate(fold_loaders):
         print(f"\n>>> Training on Fold {fold+1} <<<\n")
@@ -320,7 +326,8 @@ def cross_validation(cfg, fold_loaders, output_channels, device):
                                                                     train_loader,
                                                                     val_loader,
                                                                     device,
-                                                                    fold
+                                                                    fold,
+                                                                    start_time
                                                                     )
             
             # Store results
@@ -361,7 +368,23 @@ def initialize_net(cfg, input_channels, output):
         
     return net
 
-#ChatGPT generated plotting
+def write_cv_results(fold_final_results, epochs, writer):
+    # Loop through each fold
+    for fold in fold_final_results:
+        for epoch in range(epochs):  # Loop through 5 epochs
+            # Log train metrics
+            writer.add_scalar(f'Fold_{fold}/Train/Loss', fold_final_results[fold]['train_losses'][epoch], epoch)
+            writer.add_scalar(f'Fold_{fold}/Train/Accuracy', fold_final_results[fold]['train_accs'][epoch], epoch)
+            writer.add_scalar(f'Fold_{fold}/Train/Precision', fold_final_results[fold]['train_precisions'][epoch], epoch)
+            writer.add_scalar(f'Fold_{fold}/Train/Recall', fold_final_results[fold]['train_recalls'][epoch], epoch)
+            writer.add_scalar(f'Fold_{fold}/Train/F1', fold_final_results[fold]['train_f1s'][epoch], epoch)
+            
+            # Log validation metrics
+            writer.add_scalar(f'Fold_{fold}/Val/Loss', fold_final_results[fold]['val_losses'][epoch], epoch)
+            writer.add_scalar(f'Fold_{fold}/Val/Accuracy', fold_final_results[fold]['val_accs'][epoch], epoch)
+            writer.add_scalar(f'Fold_{fold}/Val/Precision', fold_final_results[fold]['val_precisions'][epoch], epoch)
+            writer.add_scalar(f'Fold_{fold}/Val/Recall', fold_final_results[fold]['val_recalls'][epoch], epoch)
+            writer.add_scalar(f'Fold_{fold}/Val/F1', fold_final_results[fold]['val_f1s'][epoch], epoch)
 
 # Function to compute mean and std across seeds
 def compute_mean_std(results, metric):

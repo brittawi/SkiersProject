@@ -43,7 +43,7 @@ TRAIN:
     - 4
     - 5
   NETWORK: 
-    NETWORKTYPE: mlp
+    NETWORKTYPE: lstm
     LSTM:
       HIDDEN_SIZE: 256
       NUM_LAYERS: 2
@@ -51,3 +51,8 @@ TRAIN:
     MLP:
       HIDDEN_1: 128
       HIDDEN_2: 64
+
+LOGGING:
+  ROOT_PATH: "runs"
+  TENSORBOARD_PATH: "tensorboard_runs"
+  MODEL_DIR: "saved_models"

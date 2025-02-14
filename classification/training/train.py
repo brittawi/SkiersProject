@@ -10,6 +10,7 @@ from sklearn.model_selection import KFold
 import numpy as np
 from utils import *
 from nets import LSTMNet, SimpleMLP
+from torch.utils.tensorboard import SummaryWriter
 
 # TODO just for checking
 plotting = False
@@ -80,6 +81,7 @@ def main():
     output_channels = len(set(train_dataset.labels))
     
     # intializing network
+    # TODO Moved to utils
     # default is MLP
 # def initialize_net(cfg, input_channels, output):
 #     net_type = cfg.TRAIN.get('NET', "mlp")
@@ -101,10 +103,16 @@ def main():
 #     return net
      
     # training the network
-    # TODO
-
-
     all_results, best_train_cms, best_val_cms = cross_validation(cfg, fold_loaders, output_channels, device)
+
+    # log results to tensorboard
+    tensorboard_file_path = os.path.join(cfg.LOGGING.ROOT_PATH, cfg.LOGGING.TENSORBOARD_PATH)
+    writer = SummaryWriter(tensorboard_file_path + '/cross_validation_experiment_' + datetime.now().strftime("%Y_%m_%d_%H_%M") ) # Format as HH:MM:SS)
+    average_results = calc_avg_metrics(cfg.TRAIN.K_FOLDS, all_results, cfg.TRAIN.SEEDS, cfg.TRAIN.EPOCHS)
+    write_cv_results(average_results, cfg.TRAIN.EPOCHS, writer)     
+    writer.close()
+
+
         
         
             
