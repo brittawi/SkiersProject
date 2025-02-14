@@ -168,9 +168,9 @@ def validation(val_loader, net, criterion, device, network_type):
     
     return avg_val_loss, epoch_accuracy, precision, recall, f1, conf_matrix
 
-def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_loader, device):
+def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_loader, device, fold):
     """
-    Trains and validates the model across multiple epochs.
+    Trains and validates the model across multiple epochs. Saves the model weights based on lowest validation accuracy. 
 
     Parameters:
     - seed (int): Random seed for reproducibility.
@@ -181,6 +181,7 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
     - train_loader (DataLoader): DataLoader for the training dataset.
     - val_loader (DataLoader): DataLoader for the validation dataset.
     - device (torch.device): Device to run the model on (CPU or GPU).
+    - fold (int): Current cross validation fold. 
 
     Returns:
     - results (dict): Dictionary storing loss, accuracy, precision, recall, and F1-score for each epoch.
@@ -222,9 +223,7 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
         # Check early stopping based on validation loss
         if epoch_val_loss < best_val_loss:
             best_val_loss = epoch_val_loss
-            # TODO We should use loss (Asked Homam)
-            current_time = datetime.now().strftime("%Y_%m_%d_%H_%M")  # Format as HH:MM:SS
-            torch.save(net.state_dict(), f"best_model_{current_time}_lr{cfg.TRAIN.LR}_seed{seed}.pth")  # Save the best model
+            save_model(net, cfg, fold, seed)
             print(f"Model saved at epoch {epoch+1}")
             counter = 0  # Reset patience counter
             best_val_cm = val_conf_matrix
@@ -238,6 +237,31 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
         
     print('Finished Training')
     return results, best_train_cm, best_val_cm
+
+def save_model(net, cfg, fold, seed, save_dir="saved_models"):
+    """
+    Saves the model weights in a structured folder based on fold and seed.
+
+    Parameters:
+    - net (torch.nn.Module): Neural network model.
+    - cfg (Config): Configuration object containing training parameters.
+    - fold (int): Current cross-validation fold.
+    - seed (int): Random seed for reproducibility.
+    - save_dir (str, optional): Base directory to store model checkpoints. Defaults to "saved_models".
+    """
+
+    # Define the folder structure
+    current_time = datetime.now().strftime("%Y_%m_%d_%H_%M")
+    run_dir = os.path.join(save_dir, f"run_{current_time}_{cfg.TRAIN.NETWORK.NETWORKTYPE}")
+    fold_dir = os.path.join(run_dir, f"fold_{fold+1}")
+    os.makedirs(fold_dir, exist_ok=True)
+
+    # Create a timestamped filename
+    model_filename = f"best_model_{current_time}_lr{cfg.TRAIN.LR}_seed{seed}.pth"
+    model_path = os.path.join(fold_dir, model_filename)
+
+    # Save the model state dictionary
+    torch.save(net.state_dict(), model_path)
 
 def cross_validation(cfg, fold_loaders, output_channels, device):
     """
@@ -296,6 +320,7 @@ def cross_validation(cfg, fold_loaders, output_channels, device):
                                                                     train_loader,
                                                                     val_loader,
                                                                     device,
+                                                                    fold
                                                                     )
             
             # Store results
