@@ -440,6 +440,7 @@ def plot_metric(metric, title, x, ylabel, mean_std_results):
     plt.show()
 
 # half ChatPGT generated
+# TODO Remove?
 class CustomDatasetOld(Dataset):
     def __init__(self, 
                  path, 
@@ -569,6 +570,7 @@ def calc_avg_metrics(k_folds, all_results, seeds, epochs):
     return fold_final_results
     
 # Move loading out from CustomDataset to achieve 
+# TODO Remove?
 def create_train_val_dataloaders(path, choosen_joints, train_size, val_size, k_folds, batch_size, seed = 42):
     # Create initial dataset (without normalization)
     train_dataset = CustomDataset(path, choosen_joints, padding_value=float('nan'), apply_gaussian_filter=False)
@@ -806,11 +808,6 @@ def preprocess_data(cfg, X_train, X_val, y_train, fold, plotting=False):
 # ======================================
 #        PLOTTING SECTION
 # ======================================
-
-
-import numpy as np
-import matplotlib.pyplot as plt
-import os
 
 def plot_avg_std_combined(metrics_dict, cfg, show_plots=False):
     # TODO Fix save path/overwriting
