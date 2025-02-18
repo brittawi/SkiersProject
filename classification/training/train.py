@@ -25,15 +25,14 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     print(f"Device = {device}")
 
-    # # TODO do not need file_name??!
-    # file_name = cfg.DATASET.FILE_PREFIX # Prefix for json files with annotated keypoints
-    path = cfg.DATASET.ROOT_PATH # Path to folder with annotated jsons
+    # TODO Remove
+    #path = cfg.DATASET.ROOT_PATH # Path to folder with annotated jsons
     
     # load data
     print("Loading Train and validation data...")
     train_val_data = []
     labels = []
-    for file in glob.glob(path + '/*.json'):
+    for file in glob.glob(cfg.DATASET.ROOT_PATH + '/*.json'):
         # TODO make json load function
         with open(file, 'r') as f:
             data_json = json.load(f)
@@ -91,28 +90,6 @@ def main():
     writer.close()
 
     plot_avg_std_combined(average_results, cfg)
-
-
-        
-    
-            
-            
-            
-            
-            
-            
-    
-    # crossvalidation
-    
-    
-    ## prepocess data based on train set
-    
-    ## train Network
-    
-    ## validate Network
-    
-    ## save results in tensorboard
-
 
 
 
