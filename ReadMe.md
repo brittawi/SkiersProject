@@ -16,6 +16,7 @@ Our goal is to provide **technique feedback for cross-country skiers** using mac
 In this project, we aim to **classify cross-country skiing sub-techniques using non-static drone video data** and **provide feedback to skiers** based on their movement.
 
 ![project_overview](project_overview.png)
+*Project overview*
 
 **Scope of the Project**</br>
 Cross-country skiing consists of two main styles: **classic** and **skating**. This project focuses on the **skating style**, specifically **gear two and gear three**, as these sub-techniques are available in our dataset.
