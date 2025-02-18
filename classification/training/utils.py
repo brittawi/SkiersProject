@@ -749,7 +749,7 @@ def replace_nan_with_first_value(arr):
 
     return arr
                
-def preprocess_data(cfg, X_train, X_val, y_train, fold, plotting=False):
+def preprocess_data(cfg, X_train, X_val, y_train, fold = 1, plotting=False):
     # Pad the sequences to have the same length in both X_train and X_val
     max_length = max(seq.shape[1] for seq in X_train)  # Find the max length in X_train
     X_train = pad_sequences(X_train, max_length=max_length, pad_value=float('nan'))

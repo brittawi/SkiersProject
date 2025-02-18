@@ -178,8 +178,10 @@ def train_optimize(config, cfg, data_loaders, output_channels, device):
 
     results, _, _ = train_and_validate(cfg.TRAIN.SEEDS[0], net, criterion, optimizer, cfg, train_loader, val_loader, device)
     
-    best_val_acc = max(results["val_accs"])
-    best_val_loss = min(results["val_losses"])
+    # best_val_acc = max(results["val_accs"])
+    # best_val_loss = min(results["val_losses"])
+    best_val_acc = results["val_accs"][-1]
+    best_val_loss = results["val_losses"][-1]
     # Log metric for Ray Tune optimization
     ray.train.report(dict(accuracy=best_val_acc, loss=best_val_loss))
 
