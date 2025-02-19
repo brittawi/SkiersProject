@@ -56,21 +56,21 @@ def create_dataloaders(config, cfg, train_val_data, labels):
 
     return train_loader, val_loader
 
-def initialize_net(cfg, input_channels, output, hidden_1, hidden_2):
+def initialize_net(cfg, input_channels, output, config):
     net_type = cfg.TRAIN.NETWORK.get('NETWORKTYPE', "mlp")
     
     if net_type == "lstm":
         print("Initializing lstm...")
         net = LSTMNet(input_channels, 
-                    cfg.TRAIN.NETWORK.LSTM.HIDDEN_SIZE, 
+                    config["hidden_size"], 
                     output, 
-                    cfg.TRAIN.NETWORK.LSTM.NUM_LAYERS, 
-                    cfg.TRAIN.NETWORK.LSTM.DROPOUT)
+                    config["num_layers"], 
+                    config["dropout"])
     else:
         print("Initializing mlp...")
         net = SimpleMLP(input_channels, 
-                        hidden_1, 
-                        hidden_2, 
+                        config["hidden_1"], 
+                        config["hidden_2"], 
                         output)
         
     return net
@@ -90,7 +90,7 @@ def train_function(config, cfg):
         input_channels = train_loader.dataset.data.shape[1]
     elif cfg.TRAIN.NETWORK.NETWORKTYPE == "mlp":
         input_channels = train_loader.dataset.data.shape[1] * train_loader.dataset.data.shape[2]
-    net = initialize_net(cfg, input_channels, output_channels, config["hidden_1"], config["hidden_2"])
+    net = initialize_net(cfg, input_channels, output_channels, config)
     net.to(device)
 
     # Load existing checkpoint through `get_checkpoint()` API.
@@ -150,7 +150,7 @@ def train_function(config, cfg):
                 val_loss += loss.cpu().numpy()
                 val_steps += 1
 
-                # Here we save a checkpoint. It is automatically registered with
+        # Here we save a checkpoint. It is automatically registered with
         # Ray Tune and will potentially be accessed through in ``get_checkpoint()``
         # in future iterations.
         # Note to save a file like checkpoint, you still need to put it under a directory
@@ -176,15 +176,30 @@ def tune_hyperparameters():
     if cfg.TRAIN.NETWORK.NETWORKTYPE != ssp.NETWORK.NETWORKTYPE:
         raise ValueError(f"Error: Different config ({cfg.TRAIN.NETWORK.NETWORKTYPE})"
                          f" and serach space network ({ssp.NETWORK.NETWORKTYPE}) type!")
+    if cfg.TRAIN.EPOCHS != ssp.MAX_EPOCHS:
+        print("#"*100)
+        print(f"***WARNING***")
+        print(f"Not the same amount of epochs in config and search space, search might end sooner than given MAX_EPOCHS")
+        print("#"*100)
 
-    # Define search space for hyperparameters
-    search_space = {
-        "lr": tune.loguniform(ssp.LR.MIN, ssp.LR.MAX),  # Learning rate search space
-        "batch_size": tune.choice(ssp.BATCH_SIZE),  # Different batch sizes
-        #"hidden_units": tune.randint(32, 256)  # Number of hidden units
-        "hidden_1" : tune.randint(ssp.NETWORK.MLP.HIDDEN_MIN_SIZE, ssp.NETWORK.MLP.HIDDEN_MAX_SIZE),
-        "hidden_2" : tune.randint(ssp.NETWORK.MLP.HIDDEN_MIN_SIZE, ssp.NETWORK.MLP.HIDDEN_MAX_SIZE)
-    }
+    if  ssp.NETWORK.NETWORKTYPE == "mlp":
+        # Define search space for hyperparameters
+        search_space = {
+            "lr": tune.loguniform(ssp.LR.MIN, ssp.LR.MAX),  # Learning rate search space
+            "batch_size": tune.choice(ssp.BATCH_SIZE),  # Different batch sizes
+            #"hidden_units": tune.randint(32, 256)  # Number of hidden units
+            "hidden_1" : tune.randint(ssp.NETWORK.MLP.HIDDEN_MIN_SIZE, ssp.NETWORK.MLP.HIDDEN_MAX_SIZE),
+            "hidden_2" : tune.randint(ssp.NETWORK.MLP.HIDDEN_MIN_SIZE, ssp.NETWORK.MLP.HIDDEN_MAX_SIZE)
+        }
+    elif ssp.NETWORK.NETWORKTYPE == "lstm":
+        search_space = {
+            "lr": tune.loguniform(ssp.LR.MIN, ssp.LR.MAX),  # Learning rate search space
+            "batch_size": tune.choice(ssp.BATCH_SIZE),  # Different batch sizes
+            "hidden_size": tune.randint(ssp.NETWORK.LSTM.HIDDEN_MIN_SIZE, ssp.NETWORK.LSTM.HIDDEN_MAX_SIZE),  # Number of hidden units
+            "num_layers": tune.choice(ssp.NETWORK.LSTM.NUM_LAYERS),
+            "dropout": tune.choice(ssp.NETWORK.LSTM.DROPOUT)
+        }
+
 
     scheduler = ASHAScheduler(
         max_t=ssp.MAX_EPOCHS,
