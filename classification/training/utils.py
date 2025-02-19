@@ -15,8 +15,6 @@ import glob
 from scipy.ndimage import gaussian_filter1d
 from nets import LSTMNet, SimpleMLP
 
-# TODO
-# Take num_classes from config LABELS list?
 
 def update_config(config_file):
     with open(config_file) as f:
