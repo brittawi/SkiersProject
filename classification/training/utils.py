@@ -266,7 +266,7 @@ def save_model(net, cfg, fold, seed, start_time):
     # Save the model state dictionary
     torch.save(net.state_dict(), model_path)
 
-def cross_validation(cfg, fold_loaders, output_channels, device):
+def cross_validation(cfg, fold_loaders, output_channels, device, start_time):
     """
     Performs k-fold cross-validation on the dataset. Creates a new net for each seed in each fold. 
 
@@ -275,6 +275,7 @@ def cross_validation(cfg, fold_loaders, output_channels, device):
     - fold_loaders (list): List of (train_loader, val_loader) tuples for each fold.
     - output_channels (int): Number of output classes.
     - device (torch.device): Device to run the model on (CPU or GPU).
+    - start_time (str): Time used for timestamping saved models/folder structure. 
 
     Returns:
     - all_results (list): List of dictionaries storing results for each fold and seed.
@@ -285,9 +286,6 @@ def cross_validation(cfg, fold_loaders, output_channels, device):
     all_results = []
     best_train_cms = []
     best_val_cms = []
-
-    # Log start time for model saving
-    start_time = datetime.now().strftime("%Y_%m_%d_%H_%M")
     
     for fold, (train_loader, val_loader) in enumerate(fold_loaders):
         print(f"\n>>> Training on Fold {fold+1} <<<\n")
@@ -373,7 +371,7 @@ def initialize_net(cfg, input_channels, output):
 def write_cv_results(fold_final_results, epochs, writer):
     # Loop through each fold
     for fold in fold_final_results:
-        for epoch in range(epochs):  # Loop through 5 epochs
+        for epoch in range(epochs):  # Loop through epochs
             # Log train metrics
             writer.add_scalar(f'Fold_{fold}/Train/Loss', fold_final_results[fold]['train_losses'][epoch], epoch)
             writer.add_scalar(f'Fold_{fold}/Train/Accuracy', fold_final_results[fold]['train_accs'][epoch], epoch)
@@ -812,8 +810,7 @@ def preprocess_data(cfg, X_train, X_val, y_train, fold = 1, plotting=False):
 #        PLOTTING SECTION
 # ======================================
 
-def plot_avg_std_combined(metrics_dict, cfg, show_plots=False):
-    # TODO Fix save path/overwriting
+def plot_avg_std_combined(metrics_dict, cfg, start_time, show_plots=False):
     """
     Plots the average and standard deviation of training and validation metrics over folds,
     saves them as PNG files, and optionally displays them.
@@ -821,11 +818,13 @@ def plot_avg_std_combined(metrics_dict, cfg, show_plots=False):
     Parameters:
     - metrics_dict (dict): Dictionary containing metrics for each fold.
     - cfg: Configuration object containing paths.
+    - start_time (str): Used for creating save folder structure.
     - show_plots (bool, optional): If True, displays the plots after saving. Defaults to False.
     """
 
     # Ensure save directory exists
     root_dir = os.path.join(cfg.LOGGING.ROOT_PATH, cfg.LOGGING.PLOT_PATH)
+    root_dir = os.path.join(root_dir, "run_" + start_time)
     os.makedirs(root_dir, exist_ok=True)
 
     # Identify training and validation metric names dynamically

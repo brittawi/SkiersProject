@@ -30,11 +30,11 @@ DATA_PRESET:
     gear4 : 3
 
 TRAIN:
-  BATCH_SIZE: 32
-  EPOCHS: 300
+  BATCH_SIZE: 16
+  EPOCHS: 10
   OPTIMIZER: 'adam'
   LOSS: cross_entropy
-  LR: 0.001
+  LR: 0.00016738085788752132
   PATIENCE: 100
   K_FOLDS: 5
   SEEDS:
@@ -50,8 +50,8 @@ TRAIN:
       NUM_LAYERS: 2
       DROPOUT: 0.2
     MLP:
-      HIDDEN_1: 128
-      HIDDEN_2: 64
+      HIDDEN_1: 251
+      HIDDEN_2: 219
 
 LOGGING:
   ROOT_PATH: "runs"
