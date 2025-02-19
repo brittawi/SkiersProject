@@ -19,7 +19,6 @@ from torch.utils.tensorboard import SummaryWriter
 # TODO OPTIMIZE
 # Loss function
 # Scheduler
-# Checkpoint
 
 def load_dataset(cfg):
     train_val_data = []
@@ -111,11 +110,7 @@ def train_func(config, cfg):
                 optimizer.load_state_dict(optimizer_state)
 
     # Define loss function and optimizer
-    criterion_type = cfg.TRAIN.get('LOSS', "cross_entropy")
-    if criterion_type == "cross_entropy":
-        criterion = torch.nn.CrossEntropyLoss()
-    else:
-        print("Loss type not implemented")
+    criterion = initialize_loss(cfg, config)
 
     optimizer = torch.optim.Adam(net.parameters(), lr=config["lr"])  
 
@@ -207,7 +202,8 @@ def tune_hyperparameters():
                 "lr": tune.loguniform(ssp.LR.MIN, ssp.LR.MAX),  # Learning rate search space
                 "batch_size": tune.choice(ssp.BATCH_SIZE),  # Different batch sizes
                 "hidden_1" : tune.randint(ssp.NETWORK.MLP.HIDDEN_MIN_SIZE, ssp.NETWORK.MLP.HIDDEN_MAX_SIZE),
-                "hidden_2" : tune.randint(ssp.NETWORK.MLP.HIDDEN_MIN_SIZE, ssp.NETWORK.MLP.HIDDEN_MAX_SIZE)
+                "hidden_2" : tune.randint(ssp.NETWORK.MLP.HIDDEN_MIN_SIZE, ssp.NETWORK.MLP.HIDDEN_MAX_SIZE),
+                "loss_type": tune.choice(ssp.LOSS_TYPE)
             }
         elif ssp.NETWORK.NETWORKTYPE == "lstm":
             search_space = {

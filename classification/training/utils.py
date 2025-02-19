@@ -15,6 +15,9 @@ import glob
 from scipy.ndimage import gaussian_filter1d
 from nets import LSTMNet, SimpleMLP
 
+# TODO
+# Take num_classes from config LABELS list?
+
 def update_config(config_file):
     with open(config_file) as f:
         config = easydict.EasyDict(yaml.load(f, Loader=yaml.FullLoader))
@@ -307,11 +310,7 @@ def cross_validation(cfg, fold_loaders, output_channels, device, start_time):
             net.to(device)
 
             # Define loss function and optimizer
-            criterion_type = cfg.TRAIN.get('LOSS', "cross_entropy")
-            if criterion_type == "cross_entropy":
-                criterion = torch.nn.CrossEntropyLoss()
-            else:
-                print("Loss type not implemented")
+            criterion = initialize_loss(cfg)
             
             optimizer = torch.optim.Adam(net.parameters(), lr=cfg.TRAIN.LR)  
 
@@ -367,6 +366,88 @@ def initialize_net(cfg, input_channels, output):
                         output)
         
     return net
+
+def initialize_loss(cfg, config = None):
+    # Check if cfg is string, because can't send in cfg in hyperparameter optimization
+    if not config == None:
+        criterion_type = config["loss_type"]
+    else:
+        criterion_type = cfg.TRAIN.get('LOSS', "cross_entropy")
+
+    if criterion_type == "cross_entropy":
+        criterion = torch.nn.CrossEntropyLoss()
+    elif criterion_type == "focal_loss":
+        criterion = FocalLoss(num_classes=len(cfg.DATA_PRESET.LABELS.keys()))
+    else:
+        print("Loss type not implemented")
+    return criterion
+
+# Taken and modified from: https://github.com/itakurah/Focal-loss-PyTorch/blob/main/focal_loss.py
+class FocalLoss(torch.nn.Module):
+    def __init__(self, gamma=2, alpha=None, reduction='mean', num_classes=None):
+        """
+        Unified Focal Loss class for binary, multi-class, and multi-label classification tasks.
+        :param gamma: Focusing parameter, controls the strength of the modulating factor (1 - p_t)^gamma
+        :param alpha: Balancing factor, can be a scalar or a tensor for class-wise weights. If None, no class balancing is used.
+        :param reduction: Specifies the reduction method: 'none' | 'mean' | 'sum'
+        :param num_classes: Number of classes (only required for multi-class classification)
+        """
+        super(FocalLoss, self).__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+        self.reduction = reduction
+        self.num_classes = num_classes
+
+        # Handle alpha for class balancing in multi-class tasks
+        assert num_classes is not None, "num_classes must be specified for multi-class classification"
+        if isinstance(alpha, list):
+            self.alpha = torch.Tensor(alpha)
+        else:
+            self.alpha = alpha
+    
+    def forward(self, inputs, targets):
+        """
+        Forward pass to compute the Focal Loss based on the specified task type.
+        :param inputs: Predictions (logits) from the model.
+                       Shape:
+                         - multi-class: (batch_size, num_classes)
+        :param targets: Ground truth labels.
+                        Shape:
+                         - multi-class: (batch_size,)
+        """
+        return self.multi_class_focal_loss(inputs, targets)
+    
+    def multi_class_focal_loss(self, inputs, targets):
+        """ Focal loss for multi-class classification. """
+        if self.alpha is not None:
+            alpha = self.alpha.to(inputs.device)
+
+        # Convert logits to probabilities with softmax
+        probs = torch.nn.functional.softmax(inputs, dim=1)
+
+        # One-hot encode the targets
+        targets_one_hot = torch.nn.functional.one_hot(targets, num_classes=self.num_classes).float()
+
+        # Compute cross-entropy for each class
+        ce_loss = -targets_one_hot * torch.log(probs)
+
+        # Compute focal weight
+        p_t = torch.sum(probs * targets_one_hot, dim=1)  # p_t for each sample
+        focal_weight = (1 - p_t) ** self.gamma
+
+        # Apply alpha if provided (per-class weighting)
+        if self.alpha is not None:
+            alpha_t = alpha.gather(0, targets)
+            ce_loss = alpha_t.unsqueeze(1) * ce_loss
+
+        # Apply focal loss weight
+        loss = focal_weight.unsqueeze(1) * ce_loss
+
+        if self.reduction == 'mean':
+            return loss.mean()
+        elif self.reduction == 'sum':
+            return loss.sum()
+        return loss
 
 def write_cv_results(fold_final_results, epochs, writer):
     # Loop through each fold

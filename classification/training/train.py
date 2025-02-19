@@ -77,7 +77,7 @@ def main():
         fold_loaders.append((train_loader, val_loader))
     
 
-    output_channels = len(set(train_dataset.labels))
+    output_channels = len(cfg.DATA_PRESET.LABELS.keys())
      
     # training the network
     all_results, best_train_cms, best_val_cms = cross_validation(cfg, fold_loaders, output_channels, device, start_time)
