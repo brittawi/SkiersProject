@@ -1,6 +1,6 @@
 import ray
 from ray import train, tune
-from ray.train import Checkpoint
+from ray.train import Checkpoint, RunConfig
 from ray.tune.schedulers import ASHAScheduler
 from ray.tune.search.hyperopt import HyperOptSearch
 import os
@@ -15,6 +15,11 @@ from datetime import datetime
 from utils import *
 from nets import LSTMNet, SimpleMLP
 from torch.utils.tensorboard import SummaryWriter
+
+# TODO OPTIMIZE
+# Loss function
+# Scheduler
+# Checkpoint
 
 def load_dataset(cfg):
     train_val_data = []
@@ -51,8 +56,9 @@ def create_dataloaders(config, cfg, train_val_data, labels):
     train_dataset = CustomDataset(train_data, train_labels, cfg.DATA_PRESET.LABELS)
     val_dataset = CustomDataset(val_data, val_labels, cfg.DATA_PRESET.LABELS)
     # create dataloaders
-    train_loader = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=config["batch_size"], shuffle=False)
+
+    train_loader = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=True, num_workers=0)
+    val_loader = DataLoader(val_dataset, batch_size=config["batch_size"], shuffle=False, num_workers=0)
 
     return train_loader, val_loader
 
@@ -93,15 +99,16 @@ def train_func(config, cfg):
     net = initialize_net(cfg, input_channels, output_channels, config)
     net.to(device)
 
-    # Load existing checkpoint through `get_checkpoint()` API.
-    if train.get_checkpoint():
-        loaded_checkpoint = train.get_checkpoint()
-        with loaded_checkpoint.as_directory() as loaded_checkpoint_dir:
-            model_state, optimizer_state = torch.load(
-                os.path.join(loaded_checkpoint_dir, "checkpoint.pt")
-            )
-            net.load_state_dict(model_state)
-            optimizer.load_state_dict(optimizer_state)
+    if cfg.OPTIMIZATION.CHECKPOINTS.ENABLE:
+        # Load existing checkpoint through `get_checkpoint()` API.
+        if train.get_checkpoint():
+            loaded_checkpoint = train.get_checkpoint()
+            with loaded_checkpoint.as_directory() as loaded_checkpoint_dir:
+                model_state, optimizer_state = torch.load(
+                    os.path.join(loaded_checkpoint_dir, "checkpoint.pt")
+                )
+                net.load_state_dict(model_state)
+                optimizer.load_state_dict(optimizer_state)
 
     # Define loss function and optimizer
     criterion_type = cfg.TRAIN.get('LOSS', "cross_entropy")
@@ -155,81 +162,111 @@ def train_func(config, cfg):
         # in future iterations.
         # Note to save a file like checkpoint, you still need to put it under a directory
         # to construct a checkpoint.
-        with tempfile.TemporaryDirectory() as temp_checkpoint_dir:
-            path = os.path.join(temp_checkpoint_dir, "checkpoint.pt")
-            torch.save(
-                (net.state_dict(), optimizer.state_dict()), path
-            )
-            checkpoint = Checkpoint.from_directory(temp_checkpoint_dir)
-            train.report(
-                {"loss": (val_loss / val_steps), "accuracy": correct / total},
-                checkpoint=checkpoint,
-            )
+        if cfg.OPTIMIZATION.CHECKPOINTS.ENABLE == True:
+            with tempfile.TemporaryDirectory() as temp_checkpoint_dir:
+                path = os.path.join(temp_checkpoint_dir, "checkpoint.pt")
+                torch.save(
+                    (net.state_dict(), optimizer.state_dict()), path
+                )
+                checkpoint = Checkpoint.from_directory(temp_checkpoint_dir)
+                train.report(
+                    {"loss": (val_loss / val_steps), "accuracy": correct / total},
+                    checkpoint=checkpoint,
+                )
+        else:
+            train.report({"loss": (val_loss / val_steps), "accuracy": correct / total})
+
     print("Finished Training")
+
+def set_ray_seed(seed):
+    ray.init(ignore_reinit_error=True, runtime_env={"env_vars": {"PYTHONHASHSEED": str(seed)}})
 
 def tune_hyperparameters():
     # Load config
     cfg = update_config("config.yaml")
     # Load search space params
-    ssp = update_config("search_space.yaml")
+    ssp = update_config(cfg.OPTIMIZATION.SEARCH_CONFIG)
 
-    set_seed(cfg.TRAIN.SEEDS[0])
-
-    if cfg.TRAIN.NETWORK.NETWORKTYPE != ssp.NETWORK.NETWORKTYPE:
-        raise ValueError(f"Error: Different config ({cfg.TRAIN.NETWORK.NETWORKTYPE})"
-                         f" and serach space network ({ssp.NETWORK.NETWORKTYPE}) type!")
-    if cfg.TRAIN.EPOCHS != ssp.MAX_EPOCHS:
-        print("#"*100)
-        print(f"***WARNING***")
-        print(f"Not the same amount of epochs in config and search space, search might end sooner than given MAX_EPOCHS")
-        print("#"*100)
-
-    if  ssp.NETWORK.NETWORKTYPE == "mlp":
-        # Define search space for hyperparameters
-        search_space = {
-            "lr": tune.loguniform(ssp.LR.MIN, ssp.LR.MAX),  # Learning rate search space
-            "batch_size": tune.choice(ssp.BATCH_SIZE),  # Different batch sizes
-            #"hidden_units": tune.randint(32, 256)  # Number of hidden units
-            "hidden_1" : tune.randint(ssp.NETWORK.MLP.HIDDEN_MIN_SIZE, ssp.NETWORK.MLP.HIDDEN_MAX_SIZE),
-            "hidden_2" : tune.randint(ssp.NETWORK.MLP.HIDDEN_MIN_SIZE, ssp.NETWORK.MLP.HIDDEN_MAX_SIZE)
-        }
-    elif ssp.NETWORK.NETWORKTYPE == "lstm":
-        search_space = {
-            "lr": tune.loguniform(ssp.LR.MIN, ssp.LR.MAX),  # Learning rate search space
-            "batch_size": tune.choice(ssp.BATCH_SIZE),  # Different batch sizes
-            "hidden_size": tune.randint(ssp.NETWORK.LSTM.HIDDEN_MIN_SIZE, ssp.NETWORK.LSTM.HIDDEN_MAX_SIZE),  # Number of hidden units
-            "num_layers": tune.choice(ssp.NETWORK.LSTM.NUM_LAYERS),
-            "dropout": tune.choice(ssp.NETWORK.LSTM.DROPOUT)
-        }
-
-
-    scheduler = ASHAScheduler(
-        max_t=ssp.MAX_EPOCHS,
-        grace_period=ssp.GRACE_PERIOD,
-        reduction_factor=ssp.REDUCTION_FACTOR)
     
-    tuner = tune.Tuner(
-        tune.with_resources(
-            tune.with_parameters(train_func, cfg=cfg),
-            resources={"cpu": 4, "gpu": 0} # TODO check this
-        ),
-        tune_config=tune.TuneConfig(
-            metric="loss",
-            mode="min",
-            scheduler=scheduler,
-            num_samples=ssp.NUM_SAMPLES,
-        ),
-        param_space=search_space,
-    )
-    results = tuner.fit()
-    
-    best_result = results.get_best_result("loss", "min")
+    for seed in ssp.SEEDS:
+        set_seed(seed)
+        set_ray_seed(seed)
 
-    print("Best trial config: {}".format(best_result.config))
-    print("Best trial final validation loss: {}".format(
-        best_result.metrics["loss"]))
-    print("Best trial final validation accuracy: {}".format(
-        best_result.metrics["accuracy"]))
+        if cfg.TRAIN.NETWORK.NETWORKTYPE != ssp.NETWORK.NETWORKTYPE:
+            raise ValueError(f"Error: Different config ({cfg.TRAIN.NETWORK.NETWORKTYPE})"
+                            f" and serach space network ({ssp.NETWORK.NETWORKTYPE}) type!")
+        if cfg.TRAIN.EPOCHS != ssp.MAX_EPOCHS:
+            print("#"*100)
+            print(f"***WARNING***")
+            print(f"Not the same amount of epochs in config and search space, search might end sooner than given MAX_EPOCHS")
+            print("#"*100)
+
+        if  ssp.NETWORK.NETWORKTYPE == "mlp":
+            # Define search space for hyperparameters
+            search_space = {
+                "lr": tune.loguniform(ssp.LR.MIN, ssp.LR.MAX),  # Learning rate search space
+                "batch_size": tune.choice(ssp.BATCH_SIZE),  # Different batch sizes
+                "hidden_1" : tune.randint(ssp.NETWORK.MLP.HIDDEN_MIN_SIZE, ssp.NETWORK.MLP.HIDDEN_MAX_SIZE),
+                "hidden_2" : tune.randint(ssp.NETWORK.MLP.HIDDEN_MIN_SIZE, ssp.NETWORK.MLP.HIDDEN_MAX_SIZE)
+            }
+        elif ssp.NETWORK.NETWORKTYPE == "lstm":
+            search_space = {
+                "lr": tune.loguniform(ssp.LR.MIN, ssp.LR.MAX),  # Learning rate search space
+                "batch_size": tune.choice(ssp.BATCH_SIZE),  # Different batch sizes
+                "hidden_size": tune.randint(ssp.NETWORK.LSTM.HIDDEN_MIN_SIZE, ssp.NETWORK.LSTM.HIDDEN_MAX_SIZE),  # Number of hidden units
+                "num_layers": tune.choice(ssp.NETWORK.LSTM.NUM_LAYERS),
+                "dropout": tune.choice(ssp.NETWORK.LSTM.DROPOUT)
+            }
+
+
+        scheduler = ASHAScheduler(
+            max_t=ssp.MAX_EPOCHS,
+            grace_period=ssp.GRACE_PERIOD,
+            reduction_factor=ssp.REDUCTION_FACTOR)
+        
+        run_folder_name = "raytune_experiment_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        
+        tuner = tune.Tuner(
+            tune.with_resources(
+                tune.with_parameters(train_func, cfg=cfg),
+                resources={"cpu": 4, "gpu": 0}
+            ),
+            tune_config=tune.TuneConfig(
+                metric="loss",
+                mode="min",
+                scheduler=scheduler,
+                num_samples=ssp.NUM_SAMPLES,
+            ),
+            run_config=RunConfig(
+            storage_path=cfg.OPTIMIZATION.OUTPUT_ROOT,  # Change this to any folder
+            name=run_folder_name
+            ),
+            param_space=search_space,
+        )
+        results = tuner.fit()
+        
+        best_result = results.get_best_result("loss", "min")
+
+        print("Best trial config: {}".format(best_result.config))
+        print("Best trial final validation loss: {}".format(
+            best_result.metrics["loss"]))
+        print("Best trial final validation accuracy: {}".format(
+            best_result.metrics["accuracy"]))
+        
+        # Save best results to a json
+        best_trial_results = {
+            "best_config": best_result.config,
+            "final_validation_loss": best_result.metrics["loss"],
+            "final_validation_accuracy": best_result.metrics["accuracy"],
+            "seed": seed
+        }
+        json_path = os.path.join(cfg.OPTIMIZATION.OUTPUT_ROOT, run_folder_name)
+        json_path = os.path.join(json_path, "raytune_results.json")
+        with open(json_path, "w") as f:
+            json.dump(best_trial_results, f, indent=4)
+
+        if not ssp.MULTIPLE_SEEDS:
+            break
     
 if __name__ == '__main__':
     tune_hyperparameters()

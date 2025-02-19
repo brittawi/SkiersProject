@@ -31,7 +31,7 @@ DATA_PRESET:
 
 TRAIN:
   BATCH_SIZE: 16
-  EPOCHS: 10
+  EPOCHS: 100
   OPTIMIZER: 'adam'
   LOSS: cross_entropy
   LR: 0.00016738085788752132
@@ -58,3 +58,9 @@ LOGGING:
   TENSORBOARD_PATH: "tensorboard_runs"
   MODEL_DIR: "saved_models"
   PLOT_PATH: "plots"
+
+OPTIMIZATION: 
+  SEARCH_CONFIG: search_space.yaml
+  OUTPUT_ROOT: "/Users/emillundin/Desktop/Ski_project/SkiersProject/classification/training/ray_tune"
+  CHECKPOINTS:
+    ENABLE: False
