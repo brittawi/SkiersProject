@@ -17,8 +17,8 @@ from nets import LSTMNet, SimpleMLP
 from torch.utils.tensorboard import SummaryWriter
 
 # TODO OPTIMIZE
-# Loss function
 # Scheduler
+# Not reproducible anymore
 
 def load_dataset(cfg):
     train_val_data = []
