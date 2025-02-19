@@ -75,7 +75,7 @@ def initialize_net(cfg, input_channels, output, config):
         
     return net
 
-def train_function(config, cfg):
+def train_func(config, cfg):
     # Select device (CUDA, MPS, or CPU)
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
@@ -173,6 +173,8 @@ def tune_hyperparameters():
     # Load search space params
     ssp = update_config("search_space.yaml")
 
+    set_seed(cfg.TRAIN.SEEDS[0])
+
     if cfg.TRAIN.NETWORK.NETWORKTYPE != ssp.NETWORK.NETWORKTYPE:
         raise ValueError(f"Error: Different config ({cfg.TRAIN.NETWORK.NETWORKTYPE})"
                          f" and serach space network ({ssp.NETWORK.NETWORKTYPE}) type!")
@@ -208,7 +210,7 @@ def tune_hyperparameters():
     
     tuner = tune.Tuner(
         tune.with_resources(
-            tune.with_parameters(train_function, cfg=cfg),
+            tune.with_parameters(train_func, cfg=cfg),
             resources={"cpu": 4, "gpu": 0} # TODO check this
         ),
         tune_config=tune.TuneConfig(

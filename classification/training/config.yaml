@@ -31,7 +31,7 @@ DATA_PRESET:
 
 TRAIN:
   BATCH_SIZE: 32
-  EPOCHS: 3001
+  EPOCHS: 300
   OPTIMIZER: 'adam'
   LOSS: cross_entropy
   LR: 0.001
@@ -44,7 +44,7 @@ TRAIN:
     - 4
     - 5
   NETWORK: 
-    NETWORKTYPE: lstm
+    NETWORKTYPE: mlp
     LSTM:
       HIDDEN_SIZE: 256
       NUM_LAYERS: 2

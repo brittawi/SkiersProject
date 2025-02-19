@@ -6,6 +6,7 @@ import numpy as np
 import os
 import json
 import scipy.ndimage
+import random
 from torch.utils.data import Dataset, Subset, random_split, DataLoader
 from sklearn.model_selection import KFold
 import easydict
@@ -342,6 +343,8 @@ def set_seed(seed=42):
     Parameters:
     - seed (int): Number to use as seed. 
     """
+    random.seed(seed)
+    np.random.seed(seed)
     torch.manual_seed(seed)  # PyTorch CPU
     torch.cuda.manual_seed(seed)  # PyTorch GPU
     torch.cuda.manual_seed_all(seed)  # If using multi-GPU
