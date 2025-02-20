@@ -17,8 +17,8 @@ from nets import LSTMNet, SimpleMLP
 from torch.utils.tensorboard import SummaryWriter
 
 # TODO OPTIMIZE
-# Scheduler
-# Not reproducible anymore
+# TODO Scheduler
+# TODO Not reproducible anymore
 
 def load_dataset(cfg):
     train_val_data = []
@@ -211,7 +211,8 @@ def tune_hyperparameters():
                 "batch_size": tune.choice(ssp.BATCH_SIZE),  # Different batch sizes
                 "hidden_size": tune.randint(ssp.NETWORK.LSTM.HIDDEN_MIN_SIZE, ssp.NETWORK.LSTM.HIDDEN_MAX_SIZE),  # Number of hidden units
                 "num_layers": tune.choice(ssp.NETWORK.LSTM.NUM_LAYERS),
-                "dropout": tune.choice(ssp.NETWORK.LSTM.DROPOUT)
+                "dropout": tune.choice(ssp.NETWORK.LSTM.DROPOUT),
+                "loss_type": tune.choice(ssp.LOSS_TYPE)
             }
 
 
