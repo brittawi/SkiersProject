@@ -269,6 +269,70 @@ Each Cycle contains the keypoints for the choosen joints in that time period, a 
 
 #### Training (Emil)
 
+The ```/training``` folder contains two main runnable files for optimizing and training MLP or LSTM models for gear classification of the cycles. The file ```train.py``` loads parameters from ```config.yaml``` and does cross validation with each fold getting the average from the seeds listed in config, on the ```train.json``` dataset. In ```/run``` it outputs plots of the averaged metrics in ```/plots```, each model from each seed in each fold in ```/saved_models```, and the tensorboard logs in ```/tensorboard_runs```. 
+
+Parameters in ```config.yaml```:
+
+**DATASET**
+| Param            | Description |
+|-----------------|-------------|
+| TRAIN_SIZE | Proportion of the dataset used for training in hyperparameter optimization. |
+| VAL_SIZE | Proportion of the dataset used for validation in hyperparameter optimization. |
+| ROOT_PATH | Relative path to the dataset. |
+| ROOT_ABSOLUTE_PATH | Absolute path to the dataset for reference. Used in hyperparameter optimization because raytune have different root.  |
+| FILE_PREFIX | Prefix for labeled cycle files in the dataset. |
+| AUG: SMOOTHING | Smoothing factor applied to the dataset. |
+| AUG: NORMALIZATION | Determines if dataset normalization should be applied. |
+| AUG: NORM_TYPE | Type of normalization applied to the dataset `full_signal` or `per_timestamp`. |
+
+**DATA_PRESET**
+| Param            | Description |
+|-----------------|-------------|
+| CHOOSEN_JOINTS | List of selected joints used for classification. |
+| LABELS | Dictionary mapping cycle labels to numeric values. |
+
+**TRAIN**
+| Param            | Description |
+|-----------------|-------------|
+| BATCH_SIZE | Number of samples per batch during training. |
+| EPOCHS | Total number of training epochs. |
+| OPTIMIZER | Optimization algorithm used. |
+| LOSS | Loss function used `cross_entropy` or `focal_loss`. |
+| LR | Learning rate for the optimizer. |
+| PATIENCE | Number of epochs with no improvement before early stopping. |
+| K_FOLDS | Number of folds used for k-fold cross-validation. |
+| SEEDS | List of random seeds for reproducibility. The first seed in this list is used for the cross validation split and seed in train/val split for hyperparemeter optimization.  |
+
+**NETWORK**
+| Param            | Description |
+|-----------------|-------------|
+| NETWORKTYPE | Specifies the neural network architecture `lstm` or `mlp`. |
+| LSTM: HIDDEN_SIZE | Number of hidden units in the LSTM network. |
+| LSTM: NUM_LAYERS | Number of stacked LSTM layers. |
+| LSTM: DROPOUT | Dropout rate applied to the LSTM layers. |
+| MLP: HIDDEN_1 | Number of neurons in the first hidden layer of MLP. |
+| MLP: HIDDEN_2 | Number of neurons in the second hidden layer of MLP. |
+
+**LOGGING**
+| Param            | Description |
+|-----------------|-------------|
+| ROOT_PATH | Root path for all the outputs. |
+| TENSORBOARD_PATH | Path for TensorBoard logs within `ROOT_PATH`. |
+| MODEL_DIR | Path for saved models within `ROOT_PATH`. |
+| PLOT_PATH | Path for plots within `ROOT_PATH`. |
+
+### OPTIMIZATION
+| Param            | Description |
+|-----------------|-------------|
+| SEARCH_CONFIG | .yaml file defining the hyperparameter search space. |
+| OUTPUT_ROOT | Root directory for saving training outputs and checkpoints. |
+| CHECKPOINTS: ENABLE | Enables checkpointing during training `true` or `false`. |
+
+
+
+
+The file ```tune_hyperparameters.py``` load a search space parameters from ```search_space.yaml``` and other run parameters from ```config.yaml``` and use raytune to optimize models and output the best found paramateres in ```/ray_tune```. 
+
 #### Create Annotations (Emil)
 
 #### Other models (Britta)
