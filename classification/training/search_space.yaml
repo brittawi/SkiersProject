@@ -1,0 +1,36 @@
+LR:
+  MAX: 0.001
+  MIN: 0.00001
+BATCH_SIZE:
+  - 8
+  - 16
+  - 32
+LOSS_TYPE:
+  - cross_entropy
+  - focal_loss
+NUM_SAMPLES: 5
+MAX_EPOCHS: 100
+GRACE_PERIOD: 10
+REDUCTION_FACTOR: 2
+NETWORK:
+  NETWORKTYPE: lstm
+  MLP:
+    HIDDEN_MIN_SIZE: 32
+    HIDDEN_MAX_SIZE: 256
+  LSTM: 
+    HIDDEN_MIN_SIZE: 32
+    HIDDEN_MAX_SIZE: 256
+    NUM_LAYERS:
+      - 2
+      - 3
+    DROPOUT:
+      - 0.2
+      - 0.5
+MULTIPLE_SEEDS: False
+SEEDS:
+  - 42
+  - 2
+  - 3
+  - 4
+  - 5
+

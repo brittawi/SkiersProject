@@ -18,22 +18,21 @@ import matplotlib.pyplot as plt
 plotting = False
 
 def main():
+    start_time = datetime.now().strftime("%Y_%m_%d_%H_%M")
+    print(f"Starting run {start_time}...")
+    
     # Load config 
     print("Loading config...")
     cfg = update_config("config.yaml")
     # check and select device
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     print(f"Device = {device}")
-
-    # # TODO do not need file_name??!
-    # file_name = cfg.DATASET.FILE_PREFIX # Prefix for json files with annotated keypoints
-    path = cfg.DATASET.ROOT_PATH # Path to folder with annotated jsons
     
     # load data
     print("Loading Train and validation data...")
     train_val_data = []
     labels = []
-    for file in glob.glob(path + '/*.json'):
+    for file in glob.glob(cfg.DATASET.ROOT_PATH + '/*.json'):
         # TODO make json load function
         with open(file, 'r') as f:
             data_json = json.load(f)
@@ -78,41 +77,19 @@ def main():
         fold_loaders.append((train_loader, val_loader))
     
 
-    output_channels = len(set(train_dataset.labels))
+    output_channels = len(cfg.DATA_PRESET.LABELS.keys())
      
     # training the network
-    all_results, best_train_cms, best_val_cms = cross_validation(cfg, fold_loaders, output_channels, device)
+    all_results, best_train_cms, best_val_cms = cross_validation(cfg, fold_loaders, output_channels, device, start_time)
 
     # log results to tensorboard
     tensorboard_file_path = os.path.join(cfg.LOGGING.ROOT_PATH, cfg.LOGGING.TENSORBOARD_PATH)
-    writer = SummaryWriter(tensorboard_file_path + '/cross_validation_experiment_' + datetime.now().strftime("%Y_%m_%d_%H_%M") ) # Format as HH:MM:SS)
+    writer = SummaryWriter(tensorboard_file_path + '/cross_validation_experiment_' +  start_time)
     average_results = calc_avg_metrics(cfg.TRAIN.K_FOLDS, all_results, cfg.TRAIN.SEEDS, cfg.TRAIN.EPOCHS)
     write_cv_results(average_results, cfg.TRAIN.EPOCHS, writer)     
     writer.close()
 
-    plot_avg_std_combined(average_results, cfg)
-
-
-        
-    
-            
-            
-            
-            
-            
-            
-    
-    # crossvalidation
-    
-    
-    ## prepocess data based on train set
-    
-    ## train Network
-    
-    ## validate Network
-    
-    ## save results in tensorboard
-
+    plot_avg_std_combined(average_results, cfg, start_time)
 
 
 

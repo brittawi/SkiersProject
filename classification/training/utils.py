@@ -6,6 +6,7 @@ import numpy as np
 import os
 import json
 import scipy.ndimage
+import random
 from torch.utils.data import Dataset, Subset, random_split, DataLoader
 from sklearn.model_selection import KFold
 import easydict
@@ -13,6 +14,7 @@ import yaml
 import glob
 from scipy.ndimage import gaussian_filter1d
 from nets import LSTMNet, SimpleMLP
+
 
 def update_config(config_file):
     with open(config_file) as f:
@@ -265,7 +267,7 @@ def save_model(net, cfg, fold, seed, start_time):
     # Save the model state dictionary
     torch.save(net.state_dict(), model_path)
 
-def cross_validation(cfg, fold_loaders, output_channels, device):
+def cross_validation(cfg, fold_loaders, output_channels, device, start_time):
     """
     Performs k-fold cross-validation on the dataset. Creates a new net for each seed in each fold. 
 
@@ -274,6 +276,7 @@ def cross_validation(cfg, fold_loaders, output_channels, device):
     - fold_loaders (list): List of (train_loader, val_loader) tuples for each fold.
     - output_channels (int): Number of output classes.
     - device (torch.device): Device to run the model on (CPU or GPU).
+    - start_time (str): Time used for timestamping saved models/folder structure. 
 
     Returns:
     - all_results (list): List of dictionaries storing results for each fold and seed.
@@ -284,9 +287,6 @@ def cross_validation(cfg, fold_loaders, output_channels, device):
     all_results = []
     best_train_cms = []
     best_val_cms = []
-
-    # Log start time for model saving
-    start_time = datetime.now().strftime("%Y_%m_%d_%H_%M")
     
     for fold, (train_loader, val_loader) in enumerate(fold_loaders):
         print(f"\n>>> Training on Fold {fold+1} <<<\n")
@@ -308,11 +308,7 @@ def cross_validation(cfg, fold_loaders, output_channels, device):
             net.to(device)
 
             # Define loss function and optimizer
-            criterion_type = cfg.TRAIN.get('LOSS', "cross_entropy")
-            if criterion_type == "cross_entropy":
-                criterion = torch.nn.CrossEntropyLoss()
-            else:
-                print("Loss type not implemented")
+            criterion = initialize_loss(cfg)
             
             optimizer = torch.optim.Adam(net.parameters(), lr=cfg.TRAIN.LR)  
 
@@ -342,6 +338,8 @@ def set_seed(seed=42):
     Parameters:
     - seed (int): Number to use as seed. 
     """
+    random.seed(seed)
+    np.random.seed(seed)
     torch.manual_seed(seed)  # PyTorch CPU
     torch.cuda.manual_seed(seed)  # PyTorch GPU
     torch.cuda.manual_seed_all(seed)  # If using multi-GPU
@@ -367,10 +365,92 @@ def initialize_net(cfg, input_channels, output):
         
     return net
 
+def initialize_loss(cfg, config = None):
+    # Check if cfg is string, because can't send in cfg in hyperparameter optimization
+    if not config == None:
+        criterion_type = config["loss_type"]
+    else:
+        criterion_type = cfg.TRAIN.get('LOSS', "cross_entropy")
+
+    if criterion_type == "cross_entropy":
+        criterion = torch.nn.CrossEntropyLoss()
+    elif criterion_type == "focal_loss":
+        criterion = FocalLoss(num_classes=len(cfg.DATA_PRESET.LABELS.keys()))
+    else:
+        print("Loss type not implemented")
+    return criterion
+
+# Taken and modified from: https://github.com/itakurah/Focal-loss-PyTorch/blob/main/focal_loss.py
+class FocalLoss(torch.nn.Module):
+    def __init__(self, gamma=2, alpha=None, reduction='mean', num_classes=None):
+        """
+        Unified Focal Loss class for binary, multi-class, and multi-label classification tasks.
+        :param gamma: Focusing parameter, controls the strength of the modulating factor (1 - p_t)^gamma
+        :param alpha: Balancing factor, can be a scalar or a tensor for class-wise weights. If None, no class balancing is used.
+        :param reduction: Specifies the reduction method: 'none' | 'mean' | 'sum'
+        :param num_classes: Number of classes (only required for multi-class classification)
+        """
+        super(FocalLoss, self).__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+        self.reduction = reduction
+        self.num_classes = num_classes
+
+        # Handle alpha for class balancing in multi-class tasks
+        assert num_classes is not None, "num_classes must be specified for multi-class classification"
+        if isinstance(alpha, list):
+            self.alpha = torch.Tensor(alpha)
+        else:
+            self.alpha = alpha
+    
+    def forward(self, inputs, targets):
+        """
+        Forward pass to compute the Focal Loss based on the specified task type.
+        :param inputs: Predictions (logits) from the model.
+                       Shape:
+                         - multi-class: (batch_size, num_classes)
+        :param targets: Ground truth labels.
+                        Shape:
+                         - multi-class: (batch_size,)
+        """
+        return self.multi_class_focal_loss(inputs, targets)
+    
+    def multi_class_focal_loss(self, inputs, targets):
+        """ Focal loss for multi-class classification. """
+        if self.alpha is not None:
+            alpha = self.alpha.to(inputs.device)
+
+        # Convert logits to probabilities with softmax
+        probs = torch.nn.functional.softmax(inputs, dim=1)
+
+        # One-hot encode the targets
+        targets_one_hot = torch.nn.functional.one_hot(targets, num_classes=self.num_classes).float()
+
+        # Compute cross-entropy for each class
+        ce_loss = -targets_one_hot * torch.log(probs)
+
+        # Compute focal weight
+        p_t = torch.sum(probs * targets_one_hot, dim=1)  # p_t for each sample
+        focal_weight = (1 - p_t) ** self.gamma
+
+        # Apply alpha if provided (per-class weighting)
+        if self.alpha is not None:
+            alpha_t = alpha.gather(0, targets)
+            ce_loss = alpha_t.unsqueeze(1) * ce_loss
+
+        # Apply focal loss weight
+        loss = focal_weight.unsqueeze(1) * ce_loss
+
+        if self.reduction == 'mean':
+            return loss.mean()
+        elif self.reduction == 'sum':
+            return loss.sum()
+        return loss
+
 def write_cv_results(fold_final_results, epochs, writer):
     # Loop through each fold
     for fold in fold_final_results:
-        for epoch in range(epochs):  # Loop through 5 epochs
+        for epoch in range(epochs):  # Loop through epochs
             # Log train metrics
             writer.add_scalar(f'Fold_{fold}/Train/Loss', fold_final_results[fold]['train_losses'][epoch], epoch)
             writer.add_scalar(f'Fold_{fold}/Train/Accuracy', fold_final_results[fold]['train_accs'][epoch], epoch)
@@ -440,6 +520,7 @@ def plot_metric(metric, title, x, ylabel, mean_std_results):
     plt.show()
 
 # half ChatPGT generated
+# TODO Remove?
 class CustomDatasetOld(Dataset):
     def __init__(self, 
                  path, 
@@ -569,6 +650,7 @@ def calc_avg_metrics(k_folds, all_results, seeds, epochs):
     return fold_final_results
     
 # Move loading out from CustomDataset to achieve 
+# TODO Remove?
 def create_train_val_dataloaders(path, choosen_joints, train_size, val_size, k_folds, batch_size, seed = 42):
     # Create initial dataset (without normalization)
     train_dataset = CustomDataset(path, choosen_joints, padding_value=float('nan'), apply_gaussian_filter=False)
@@ -747,7 +829,7 @@ def replace_nan_with_first_value(arr):
 
     return arr
                
-def preprocess_data(cfg, X_train, X_val, y_train, fold, plotting=False):
+def preprocess_data(cfg, X_train, X_val, y_train, fold = 1, plotting=False):
     # Pad the sequences to have the same length in both X_train and X_val
     max_length = max(seq.shape[1] for seq in X_train)  # Find the max length in X_train
     X_train = pad_sequences(X_train, max_length=max_length, pad_value=float('nan'))
@@ -807,13 +889,7 @@ def preprocess_data(cfg, X_train, X_val, y_train, fold, plotting=False):
 #        PLOTTING SECTION
 # ======================================
 
-
-import numpy as np
-import matplotlib.pyplot as plt
-import os
-
-def plot_avg_std_combined(metrics_dict, cfg, show_plots=False):
-    # TODO Fix save path/overwriting
+def plot_avg_std_combined(metrics_dict, cfg, start_time, show_plots=False):
     """
     Plots the average and standard deviation of training and validation metrics over folds,
     saves them as PNG files, and optionally displays them.
@@ -821,11 +897,13 @@ def plot_avg_std_combined(metrics_dict, cfg, show_plots=False):
     Parameters:
     - metrics_dict (dict): Dictionary containing metrics for each fold.
     - cfg: Configuration object containing paths.
+    - start_time (str): Used for creating save folder structure.
     - show_plots (bool, optional): If True, displays the plots after saving. Defaults to False.
     """
 
     # Ensure save directory exists
     root_dir = os.path.join(cfg.LOGGING.ROOT_PATH, cfg.LOGGING.PLOT_PATH)
+    root_dir = os.path.join(root_dir, "run_" + start_time)
     os.makedirs(root_dir, exist_ok=True)
 
     # Identify training and validation metric names dynamically
