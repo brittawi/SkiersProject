@@ -1,18 +1,22 @@
 # Train file for MLP and LSTM
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
 import torch
 from torch.utils.data import DataLoader
-from utils import update_config
+from utils.config import update_config
 import glob
 import json
 from sklearn.model_selection import KFold
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
-import datetime
-import os
-from ...utils.preprocess_signals import preprocess_data
-from ...utils.CustomDataset import CustomDataset
-from ...utils.training_utils import *
-from ...utils.plotting import plot_avg_std_combined
+from datetime import datetime
+from utils.preprocess_signals import preprocess_data
+from utils.CustomDataset import CustomDataset
+from utils.plotting import plot_avg_std_combined
+from utils.training_utils import *
+
 
 # TODO just for checking
 plotting = False
@@ -23,7 +27,7 @@ def main():
     
     # Load config 
     print("Loading config...")
-    cfg = update_config("config.yaml")
+    cfg = update_config("./classification/training/config.yaml")
     # check and select device
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     print(f"Device = {device}")

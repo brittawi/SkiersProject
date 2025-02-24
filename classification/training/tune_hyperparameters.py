@@ -1,8 +1,11 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
 import ray
 from ray import train, tune
 from ray.train import Checkpoint, RunConfig
 from ray.tune.schedulers import ASHAScheduler
-import os
 import torch
 import json
 import glob
@@ -11,34 +14,35 @@ import numpy as np
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from datetime import datetime
-from utils import *
-from ...utils.CustomDataset import CustomDataset
-from ...utils.preprocess_signals import preprocess_data
-from ...utils.config import update_config
-from ...utils.training_utils import *
+from utils.CustomDataset import CustomDataset
+from utils.preprocess_signals import preprocess_data
+from utils.config import update_config
+from utils.training_utils import *
 from utils.nets import LSTMNet, SimpleMLP
 
 # TODO OPTIMIZE
 # TODO Scheduler
 # TODO Not reproducible anymore
 
-def load_dataset(cfg):
+def load_dataset(cfg, current_folder):
     train_val_data = []
     labels = []
-    for file in glob.glob(cfg.DATASET.ROOT_ABSOLUTE_PATH + '/*.json'):
-        # TODO make json load function
-        with open(file, 'r') as f:
-            data_json = json.load(f)
-            
-        for cycle in data_json.values():
-            # Extract joint data as (num_joints, time_steps)
-            cycle_data = [np.array(cycle[joint], dtype=np.float32) for joint in cfg.DATA_PRESET.CHOOSEN_JOINTS]
+    while os.path.basename(current_folder) != "SkiersProject": # This should be git name
+        current_folder = os.path.dirname(current_folder)
+    file_path = os.path.join(current_folder, cfg.DATASET.ROOT_PATH[2:])
+    file_path = os.path.join(file_path, cfg.DATASET.TRAIN_FILE_NAME)
+    with open(file_path, 'r') as f:
+        data_json = json.load(f)
+        
+    for cycle in data_json.values():
+        # Extract joint data as (num_joints, time_steps)
+        cycle_data = [np.array(cycle[joint], dtype=np.float32) for joint in cfg.DATA_PRESET.CHOOSEN_JOINTS]
 
-            # Stack into a (num_joints, time_steps) tensor
-            cycle_tensor = np.stack(cycle_data)  # Shape: (num_joints, time_steps)
+        # Stack into a (num_joints, time_steps) tensor
+        cycle_tensor = np.stack(cycle_data)  # Shape: (num_joints, time_steps)
 
-            train_val_data.append(cycle_tensor)
-            labels.append(cycle["Label"])
+        train_val_data.append(cycle_tensor)
+        labels.append(cycle["Label"])
     return train_val_data, labels
 
 def create_dataloaders(config, cfg, train_val_data, labels):
@@ -82,12 +86,12 @@ def initialize_net(cfg, input_channels, output, config):
         
     return net
 
-def train_func(config, cfg):
+def train_func(config, cfg, current_folder):
     # Select device (CUDA, MPS, or CPU)
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
     # Load data and put into dataloaders
-    train_val_data, labels = load_dataset(cfg)
+    train_val_data, labels = load_dataset(cfg, current_folder)
 
     train_loader, val_loader = create_dataloaders(config, cfg, train_val_data, labels)
 
@@ -180,10 +184,10 @@ def set_ray_seed(seed):
 
 def tune_hyperparameters():
     # Load config
-    cfg = update_config("config.yaml")
+    cfg = update_config("./classification/training/config.yaml")
     # Load search space params
-    ssp = update_config(cfg.OPTIMIZATION.SEARCH_CONFIG)
-
+    ssp = update_config(os.path.join("./classification/training/",cfg.OPTIMIZATION.SEARCH_CONFIG))
+    current_folder = os.path.dirname(os.path.abspath(__file__))
     
     for seed in ssp.SEEDS:
         set_seed(seed)
@@ -227,7 +231,7 @@ def tune_hyperparameters():
         
         tuner = tune.Tuner(
             tune.with_resources(
-                tune.with_parameters(train_func, cfg=cfg),
+                tune.with_parameters(train_func, cfg=cfg, current_folder=current_folder),
                 resources={"cpu": 4, "gpu": 0}
             ),
             tune_config=tune.TuneConfig(
@@ -237,7 +241,7 @@ def tune_hyperparameters():
                 num_samples=ssp.NUM_SAMPLES,
             ),
             run_config=RunConfig(
-            storage_path=cfg.OPTIMIZATION.OUTPUT_ROOT,  # Change this to any folder
+            storage_path=os.path.join(current_folder, cfg.OPTIMIZATION.OUTPUT_ROOT),
             name=run_folder_name
             ),
             param_space=search_space,
@@ -259,7 +263,8 @@ def tune_hyperparameters():
             "final_validation_accuracy": best_result.metrics["accuracy"],
             "seed": seed
         }
-        json_path = os.path.join(cfg.OPTIMIZATION.OUTPUT_ROOT, run_folder_name)
+        json_path = os.path.join("./classification/training", cfg.OPTIMIZATION.OUTPUT_ROOT)
+        json_path = os.path.join(json_path, run_folder_name)
         json_path = os.path.join(json_path, "raytune_results.json")
         with open(json_path, "w") as f:
             json.dump(best_trial_results, f, indent=4)
