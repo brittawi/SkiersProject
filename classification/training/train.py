@@ -36,20 +36,19 @@ def main():
     print("Loading Train and validation data...")
     train_val_data = []
     labels = []
-    for file in glob.glob(cfg.DATASET.ROOT_PATH + '/*.json'):
-        # TODO make json load function
-        with open(file, 'r') as f:
-            data_json = json.load(f)
-            
-        for cycle in data_json.values():
-            # Extract joint data as (num_joints, time_steps)
-            cycle_data = [np.array(cycle[joint], dtype=np.float32) for joint in cfg.DATA_PRESET.CHOOSEN_JOINTS]
+    file = os.path.join(cfg.DATASET.ROOT_PATH, cfg.DATASET.TRAIN_FILE_NAME)
+    with open(file, 'r') as f:
+        data_json = json.load(f)
+        
+    for cycle in data_json.values():
+        # Extract joint data as (num_joints, time_steps)
+        cycle_data = [np.array(cycle[joint], dtype=np.float32) for joint in cfg.DATA_PRESET.CHOOSEN_JOINTS]
 
-            # Stack into a (num_joints, time_steps) tensor
-            cycle_tensor = np.stack(cycle_data)  # Shape: (num_joints, time_steps)
+        # Stack into a (num_joints, time_steps) tensor
+        cycle_tensor = np.stack(cycle_data)  # Shape: (num_joints, time_steps)
 
-            train_val_data.append(cycle_tensor)
-            labels.append(cycle["Label"])
+        train_val_data.append(cycle_tensor)
+        labels.append(cycle["Label"])
     
     # create train and val dataloaders for crossvalidation
     
