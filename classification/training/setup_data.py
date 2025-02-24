@@ -1,6 +1,7 @@
 # Split data into train and test set
 from utils import *
 from sklearn.model_selection import train_test_split
+import re
 
 path = "../cycle_splits/labeled_data"
 test_size = 0.1
@@ -17,7 +18,8 @@ def main():
             data_json = json.load(f)
             # Loop through the cycles in each json file
             for cycle in data_json.values():
-                cycle["video"] = os.path.basename(file)
+                #cycle["video"] = os.path.basename(file)
+                cycle["video"] = "".join(re.findall(r"\d+", os.path.basename(file)))
                 data.append(cycle)
 
 
