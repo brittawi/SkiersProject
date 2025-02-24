@@ -1,8 +1,8 @@
 DATASET:
   TRAIN_SIZE : 0.8
   VAL_SIZE : 0.2
-  ROOT_PATH: "../cycle_splits/labeled_data"
-  ROOT_ABSOLUTE_PATH: "/Users/emillundin/Desktop/Ski_project/SkiersProject/classification/cycle_splits/labeled_data"
+  ROOT_PATH: "../../data/labeled_data"
+  ROOT_ABSOLUTE_PATH: "/Users/emillundin/Desktop/Ski_project/SkiersProject/data/labeled_data"
   FILE_PREFIX: "labeled_cycles_"
   AUG:
     SMOOTHING: 2
