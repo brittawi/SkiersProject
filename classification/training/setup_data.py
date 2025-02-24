@@ -3,7 +3,8 @@ from utils import *
 from sklearn.model_selection import train_test_split
 import re
 
-path = "../cycle_splits/labeled_data"
+path = "../../data/labeled_data"
+out_path = "../../data/split_data"
 test_size = 0.1
 seed = 42
 
@@ -36,9 +37,9 @@ def main():
         test_dict[f"cycle_{i+1}"] = cycle
 
     # Saves the readable dicts
-    with open("train.json", "w") as outfile: 
+    with open(os.path.join(out_path, "train.json"), "w") as outfile: 
         json.dump(train_dict, outfile, indent=4)
-    with open("test.json", "w") as outfile:    
+    with open(os.path.join(out_path,"test.json"), "w") as outfile:    
         json.dump(test_dict, outfile, indent=4)
 
     print("Split complete")
