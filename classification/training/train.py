@@ -1,18 +1,18 @@
 # Train file for MLP and LSTM
-import yaml
 import torch
-#from easydict import EasyDict as edict
-import easydict
+from torch.utils.data import DataLoader
 from utils import update_config
 import glob
 import json
 from sklearn.model_selection import KFold
-import numpy as np
-from utils import *
-from nets import LSTMNet, SimpleMLP
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
-import matplotlib.pyplot as plt
+import datetime
+import os
+from ...utils.preprocess_signals import preprocess_data
+from ...utils.CustomDataset import CustomDataset
+from ...utils.training_utils import *
+from ...utils.plotting import plot_avg_std_combined
 
 # TODO just for checking
 plotting = False
@@ -50,8 +50,8 @@ def main():
     # create train and val dataloaders for crossvalidation
     
     ## Initialize KFold (5 splits)
-    # TODO seed! -> Use first in train list of seeds?(Added)
     # TODO check test size in config!
+    # TODO put into function?
     kf = KFold(n_splits=cfg.TRAIN.K_FOLDS, shuffle=True, random_state=cfg.TRAIN.SEEDS[0])
     # loop through folds to create dataloaders
     fold_loaders = []

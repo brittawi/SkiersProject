@@ -4,11 +4,6 @@ import cv2
 import matplotlib.pyplot as plt
 from dtaidistance import dtw, dtw_visualisation
 
-def load_cycles(file_path):
-    with open(file_path, 'r') as f:
-        data = json.load(f)
-    return data
-
 def compute_angle(p1, p2, p3):
     """Computes the angle between three points."""
     v1 = np.array(p1) - np.array(p2)

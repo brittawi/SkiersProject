@@ -1,5 +1,5 @@
-from utils import *
-from ..classification.training import nets
+from utils.load_json import load_json
+from utils.dtw import compare_selected_cycles
 
 def main():
     # TODO put in config file?! 
@@ -19,7 +19,7 @@ def main():
     #file_path = "../classification/cycle_splits/labeled_data/labeled_cycles_38.json" # front gear 3, cycle 5
     cycle_to_compare = "Cycle 5"
     video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_0018_cut.mp4"  # Path to the corresponding video file
-    data = load_cycles(file_path)
+    data = load_json(file_path)
     user_data = data.get(cycle_to_compare)
     
     # Load expert data
@@ -27,7 +27,7 @@ def main():
     expert_video_paths = [r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_0017_cut.mp4",
                    r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_0009.mp4",
                    r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_0018_cut.mp4"]
-    expert_data = load_cycles(expert_path)
+    expert_data = load_json(expert_path)
 
     # Define joint triplets for angle comparisons
     joint_triplets = [("RHip", "RKnee", "RAnkle"), ("LHip", "LKnee", "LAnkle"), ("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
