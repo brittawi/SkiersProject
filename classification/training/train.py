@@ -1,11 +1,16 @@
 # Train file for MLP and LSTM
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
+
+# Ensure project root is in sys.path
+# Need to go two paths up here
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
+    
 import torch
 from torch.utils.data import DataLoader
-from utils.config import update_config
 import glob
 import json
 from sklearn.model_selection import KFold
@@ -14,9 +19,9 @@ import numpy as np
 from datetime import datetime
 from utils.preprocess_signals import preprocess_data
 from utils.CustomDataset import CustomDataset
-from utils.plotting import plot_avg_std_combined
 from utils.training_utils import *
-
+from utils.plotting import plot_avg_std_combined
+from utils.config import update_config
 
 # TODO just for checking
 plotting = False
