@@ -1,10 +1,12 @@
 # Split data into train and test set
-from utils import *
 from sklearn.model_selection import train_test_split
 import re
+import json
+import os
+import glob
 
-path = "../../data/labeled_data"
-out_path = "../../data/split_data"
+path = "./data/labeled_data"
+out_path = "./data/split_data"
 test_size = 0.1
 seed = 42
 
@@ -19,8 +21,18 @@ def main():
             data_json = json.load(f)
             # Loop through the cycles in each json file
             for cycle in data_json.values():
-                #cycle["video"] = os.path.basename(file)
-                cycle["video"] = "".join(re.findall(r"\d+", os.path.basename(file)))
+                #cycle["Video"] = os.path.basename(file)
+                #cycle["Video"] = "".join(re.findall(r"\d+", os.path.basename(file)))
+                
+                # filter out id and cut if there
+                match = re.search(r'(\d+)(?:_cut)?', os.path.basename(file))
+                if match:
+                    result = match.group(1)
+                    if '_cut' in os.path.basename(file):
+                        result += '_cut'
+                    cycle["Video"] = result
+                else:
+                    raise ValueError("Filename does not contain ID")
                 data.append(cycle)
 
 
@@ -32,9 +44,9 @@ def main():
 
     # create dict to make readable
     for i, cycle in enumerate(train):
-        train_dict[f"cycle_{i+1}"] = cycle
+        train_dict[f"Cycle {i+1}"] = cycle
     for i, cycle in enumerate(test):
-        test_dict[f"cycle_{i+1}"] = cycle
+        test_dict[f"Cycle {i+1}"] = cycle
 
     # Saves the readable dicts
     with open(os.path.join(out_path, "train.json"), "w") as outfile: 
