@@ -1,5 +1,5 @@
 {
-    "cycle_1": {
+    "Cycle 1": {
         "RAnkle_x": [
             -16.949999999999818,
             -16.230000000000018,
@@ -1683,9 +1683,9 @@
         "Label": "gear2",
         "Start_frame": 26,
         "End_frame": 63,
-        "video": "15"
+        "Video": "15_cut"
     },
-    "cycle_2": {
+    "Cycle 2": {
         "RAnkle_x": [
             -79.73000000000002,
             -71.18999999999983,
@@ -4167,9 +4167,9 @@
         "Label": "gear3",
         "Start_frame": 402,
         "End_frame": 458,
-        "video": "25"
+        "Video": "25"
     },
-    "cycle_3": {
+    "Cycle 3": {
         "RAnkle_x": [
             -21.0863037109375,
             -18.1566162109375,
@@ -6651,9 +6651,9 @@
         "Label": "gear3",
         "Start_frame": 98,
         "End_frame": 154,
-        "video": "16"
+        "Video": "16_cut"
     },
-    "cycle_4": {
+    "Cycle 4": {
         "RAnkle_x": [
             -55.8349609375,
             -55.9266357421875,
@@ -9807,9 +9807,9 @@
         "Label": "unknown",
         "Start_frame": 709,
         "End_frame": 781,
-        "video": "11"
+        "Video": "11"
     },
-    "cycle_5": {
+    "Cycle 5": {
         "RAnkle_x": [
             -49.16046142578125,
             -48.618408203125,
@@ -12543,9 +12543,9 @@
         "Label": "gear3",
         "Start_frame": 499,
         "End_frame": 561,
-        "video": "20"
+        "Video": "20_cut"
     },
-    "cycle_6": {
+    "Cycle 6": {
         "RAnkle_x": [
             -31.29364013671875,
             -30.88958740234375,
@@ -14145,9 +14145,9 @@
         "Label": "gear2",
         "Start_frame": 95,
         "End_frame": 130,
-        "video": "33"
+        "Video": "33"
     },
-    "cycle_7": {
+    "Cycle 7": {
         "RAnkle_x": [
             -36.43408203125,
             -36.7020263671875,
@@ -16167,9 +16167,9 @@
         "Label": "gear4",
         "Start_frame": 251,
         "End_frame": 296,
-        "video": "20"
+        "Video": "20_cut"
     },
-    "cycle_8": {
+    "Cycle 8": {
         "RAnkle_x": [
             -18.49000000000001,
             -17.039999999999964,
@@ -17811,9 +17811,9 @@
         "Label": "gear2",
         "Start_frame": 81,
         "End_frame": 117,
-        "video": "17"
+        "Video": "17_cut"
     },
-    "cycle_9": {
+    "Cycle 9": {
         "RAnkle_x": [
             -71.46999999999991,
             -69.90000000000009,
@@ -20421,9 +20421,9 @@
         "Label": "gear3",
         "Start_frame": 485,
         "End_frame": 544,
-        "video": "38"
+        "Video": "38"
     },
-    "cycle_10": {
+    "Cycle 10": {
         "RAnkle_x": [
             -5.3400000000001455,
             -10.6400000000001,
@@ -21519,9 +21519,9 @@
         "Label": "gear2",
         "Start_frame": 135,
         "End_frame": 158,
-        "video": "54"
+        "Video": "54_cut"
     },
-    "cycle_11": {
+    "Cycle 11": {
         "RAnkle_x": [
             -44.51999999999987,
             -43.08000000000004,
@@ -24213,9 +24213,9 @@
         "Label": "gear3",
         "Start_frame": 626,
         "End_frame": 687,
-        "video": "25"
+        "Video": "25"
     },
-    "cycle_12": {
+    "Cycle 12": {
         "LAnkle_x": [
             -18.53936767578125,
             -18.45184326171875,
@@ -26193,9 +26193,9 @@
         "Label": "unknown",
         "Start_frame": 223,
         "End_frame": 267,
-        "video": "53"
+        "Video": "53"
     },
-    "cycle_13": {
+    "Cycle 13": {
         "RAnkle_x": [
             -25.37999999999988,
             -25.37000000000012,
@@ -27795,9 +27795,9 @@
         "Label": "gear2",
         "Start_frame": 56,
         "End_frame": 91,
-        "video": "18"
+        "Video": "18_cut"
     },
-    "cycle_14": {
+    "Cycle 14": {
         "RAnkle_x": [
             -27.670000000000073,
             -25.089999999999918,
@@ -29355,9 +29355,9 @@
         "Label": "gear2",
         "Start_frame": 91,
         "End_frame": 125,
-        "video": "18"
+        "Video": "18_cut"
     },
-    "cycle_15": {
+    "Cycle 15": {
         "RAnkle_x": [
             -17.59999999999991,
             -17.3900000000001,
@@ -32259,9 +32259,9 @@
         "Label": "gear3",
         "Start_frame": 726,
         "End_frame": 792,
-        "video": "17"
+        "Video": "17_cut"
     },
-    "cycle_16": {
+    "Cycle 16": {
         "RAnkle_x": [
             -60.53509521484375,
             -60.5582275390625,
@@ -34743,9 +34743,9 @@
         "Label": "gear3",
         "Start_frame": 493,
         "End_frame": 549,
-        "video": "42"
+        "Video": "42"
     },
-    "cycle_17": {
+    "Cycle 17": {
         "RAnkle_x": [
             -41.34000000000003,
             -39.799999999999955,
@@ -37437,9 +37437,9 @@
         "Label": "gear3",
         "Start_frame": 600,
         "End_frame": 661,
-        "video": "09"
+        "Video": "09"
     },
-    "cycle_18": {
+    "Cycle 18": {
         "RAnkle_x": [
             -14.290000000000191,
             -15.480000000000018,
@@ -40215,9 +40215,9 @@
         "Label": "gear3",
         "Start_frame": 524,
         "End_frame": 587,
-        "video": "15"
+        "Video": "15_cut"
     },
-    "cycle_19": {
+    "Cycle 19": {
         "RAnkle_x": [
             -39.069999999999936,
             -38.48000000000013,
@@ -41901,9 +41901,9 @@
         "Label": "gear2",
         "Start_frame": 19,
         "End_frame": 56,
-        "video": "18"
+        "Video": "18_cut"
     },
-    "cycle_20": {
+    "Cycle 20": {
         "RAnkle_x": [
             -27.1396484375,
             -27.5386962890625,
@@ -44301,9 +44301,9 @@
         "Label": "unknown",
         "Start_frame": 792,
         "End_frame": 846,
-        "video": "34"
+        "Video": "34"
     },
-    "cycle_21": {
+    "Cycle 21": {
         "RAnkle_x": [
             -14.009999999999991,
             -13.360000000000127,
@@ -46911,9 +46911,9 @@
         "Label": "gear3",
         "Start_frame": 549,
         "End_frame": 608,
-        "video": "17"
+        "Video": "17_cut"
     },
-    "cycle_22": {
+    "Cycle 22": {
         "RAnkle_x": [
             16.620000000000005,
             18.659999999999968,
@@ -49059,9 +49059,9 @@
         "Label": "gear3",
         "Start_frame": 370,
         "End_frame": 418,
-        "video": "54"
+        "Video": "54_cut"
     },
-    "cycle_23": {
+    "Cycle 23": {
         "RAnkle_x": [
             46.430000000000064,
             47.55000000000007,
@@ -51417,9 +51417,9 @@
         "Label": "gear3",
         "Start_frame": 470,
         "End_frame": 523,
-        "video": "54"
+        "Video": "54_cut"
     },
-    "cycle_24": {
+    "Cycle 24": {
         "RAnkle_x": [
             -18.92950439453125,
             -19.09130859375,
@@ -53985,9 +53985,9 @@
         "Label": "gear3",
         "Start_frame": 362,
         "End_frame": 420,
-        "video": "33"
+        "Video": "33"
     },
-    "cycle_25": {
+    "Cycle 25": {
         "RAnkle_x": [
             -54.98333740234375,
             -54.50323486328125,
@@ -56259,9 +56259,9 @@
         "Label": "unknown",
         "Start_frame": 731,
         "End_frame": 782,
-        "video": "27"
+        "Video": "27"
     },
-    "cycle_26": {
+    "Cycle 26": {
         "RAnkle_x": [
             -19.120849609375,
             -20.6488037109375,
@@ -58029,9 +58029,9 @@
         "Label": "gear2",
         "Start_frame": 185,
         "End_frame": 224,
-        "video": "21"
+        "Video": "21_cut"
     },
-    "cycle_27": {
+    "Cycle 27": {
         "RAnkle_x": [
             -22.1400000000001,
             -20.279999999999973,
@@ -59631,9 +59631,9 @@
         "Label": "gear2",
         "Start_frame": 75,
         "End_frame": 110,
-        "video": "43"
+        "Video": "43"
     },
-    "cycle_28": {
+    "Cycle 28": {
         "RAnkle_x": [
             -10.28466796875,
             -10.6561279296875,
@@ -62283,9 +62283,9 @@
         "Label": "gear3",
         "Start_frame": 156,
         "End_frame": 216,
-        "video": "19"
+        "Video": "19_cut"
     },
-    "cycle_29": {
+    "Cycle 29": {
         "RAnkle_x": [
             -30.32373046875,
             -30.38421630859375,
@@ -65145,9 +65145,9 @@
         "Label": "gear3",
         "Start_frame": 653,
         "End_frame": 718,
-        "video": "33"
+        "Video": "33"
     },
-    "cycle_30": {
+    "Cycle 30": {
         "RAnkle_x": [
             -45.76999999999998,
             -46.129999999999995,
@@ -67881,9 +67881,9 @@
         "Label": "gear3",
         "Start_frame": 354,
         "End_frame": 416,
-        "video": "09"
+        "Video": "09"
     },
-    "cycle_31": {
+    "Cycle 31": {
         "RAnkle_x": [
             -28.9114990234375,
             -29.8359375,
@@ -69861,9 +69861,9 @@
         "Label": "gear4",
         "Start_frame": 296,
         "End_frame": 340,
-        "video": "20"
+        "Video": "20_cut"
     },
-    "cycle_32": {
+    "Cycle 32": {
         "RAnkle_x": [
             -30.269999999999982,
             -30.980000000000018,
@@ -71589,9 +71589,9 @@
         "Label": "gear2",
         "Start_frame": 34,
         "End_frame": 72,
-        "video": "22"
+        "Video": "22_cut"
     },
-    "cycle_33": {
+    "Cycle 33": {
         "RAnkle_x": [
             -55.51999999999998,
             -53.090000000000146,
@@ -74157,9 +74157,9 @@
         "Label": "gear3",
         "Start_frame": 192,
         "End_frame": 250,
-        "video": "38"
+        "Video": "38"
     },
-    "cycle_34": {
+    "Cycle 34": {
         "RAnkle_x": [
             -26.60662841796875,
             -26.41552734375,
@@ -75759,6 +75759,6 @@
         "Label": "unknown",
         "Start_frame": 45,
         "End_frame": 80,
-        "video": "32"
+        "Video": "32"
     }
 }

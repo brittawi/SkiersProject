@@ -3,8 +3,8 @@ from sklearn.metrics import precision_score, recall_score, f1_score, confusion_m
 import numpy as np
 import os
 import random
-from nets import LSTMNet, SimpleMLP
-from focal_loss import FocalLoss 
+from utils.nets import LSTMNet, SimpleMLP
+from utils.focal_loss import FocalLoss 
 
 
 METRICS_NAMES = ["train_losses",
