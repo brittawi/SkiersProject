@@ -51,6 +51,9 @@ def training(train_loader, net, criterion, optimizer, device, network_type):
     all_labels = []
     all_predictions = []
     
+    # setting model to training => bug fix (https://discuss.pytorch.org/t/cudnn-rnn-backward-can-only-be-called-in-training-mode/37622)
+    net.train()
+    
     for i, data in enumerate(train_loader, 0):
         # get the inputs; data is a list of [inputs, labels]
         inputs, labels = data
