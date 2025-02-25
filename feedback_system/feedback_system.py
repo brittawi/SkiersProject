@@ -18,6 +18,7 @@ def main():
     
     # Step 3: Classify user cycles
     # Load Model
+    
 
     # Step 4: Based on classification use DTW
     
