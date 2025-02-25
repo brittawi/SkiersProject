@@ -2,6 +2,7 @@
 import sys
 import os
 
+
 # Ensure project root is in sys.path
 # Need to go two paths up here
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -16,7 +17,6 @@ from sklearn.model_selection import KFold
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 from datetime import datetime
-import os
 from utils.preprocess_signals import preprocess_data
 from utils.CustomDataset import CustomDataset
 from utils.training_utils import *
@@ -32,7 +32,7 @@ def main():
     
     # Load config 
     print("Loading config...")
-    cfg = update_config("config.yaml")
+    cfg = update_config("./classification/training/config.yaml")
     # check and select device
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     print(f"Device = {device}")
@@ -41,20 +41,19 @@ def main():
     print("Loading Train and validation data...")
     train_val_data = []
     labels = []
-    for file in glob.glob(cfg.DATASET.ROOT_PATH + '/*.json'):
-        # TODO make json load function
-        with open(file, 'r') as f:
-            data_json = json.load(f)
-            
-        for cycle in data_json.values():
-            # Extract joint data as (num_joints, time_steps)
-            cycle_data = [np.array(cycle[joint], dtype=np.float32) for joint in cfg.DATA_PRESET.CHOOSEN_JOINTS]
+    file = os.path.join(cfg.DATASET.ROOT_PATH, cfg.DATASET.TRAIN_FILE_NAME)
+    with open(file, 'r') as f:
+        data_json = json.load(f)
+        
+    for cycle in data_json.values():
+        # Extract joint data as (num_joints, time_steps)
+        cycle_data = [np.array(cycle[joint], dtype=np.float32) for joint in cfg.DATA_PRESET.CHOOSEN_JOINTS]
 
-            # Stack into a (num_joints, time_steps) tensor
-            cycle_tensor = np.stack(cycle_data)  # Shape: (num_joints, time_steps)
+        # Stack into a (num_joints, time_steps) tensor
+        cycle_tensor = np.stack(cycle_data)  # Shape: (num_joints, time_steps)
 
-            train_val_data.append(cycle_tensor)
-            labels.append(cycle["Label"])
+        train_val_data.append(cycle_tensor)
+        labels.append(cycle["Label"])
     
     # create train and val dataloaders for crossvalidation
     
