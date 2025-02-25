@@ -123,6 +123,7 @@ def compare_selected_cycles(expert_data, cycle, joint_triplets, user_video, vide
             closest_cycle = expert_cycle
             #dtw_results = {f"{cycle1_key} vs {cycle2_key} (Multivariate DTW)": dist}
     
+    # TODO direction is only there for test purposes
     print(f"Choosen expert cyle direction: {closest_cycle['Direction']}, gear: {closest_cycle['Label']}")
     print(f"User cycle label: {cycle['Label']}")
     
@@ -135,7 +136,7 @@ def compare_selected_cycles(expert_data, cycle, joint_triplets, user_video, vide
     expert_start_frame = closest_cycle.get("Start_frame")
     
     # get video path
-    expert_video = os.path.join(video_path, "DJI_00" + closest_cycle.get("video") + ".mp4")
+    expert_video = os.path.join(video_path, "DJI_00" + closest_cycle.get("Video") + ".mp4")
     
     if visualize:
         overlay_frames_loop(user_video, expert_video, path, user_start_frame, expert_start_frame, series_user, series_expert)

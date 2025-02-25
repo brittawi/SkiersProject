@@ -1,5 +1,5 @@
 {
-    "cycle_1": {
+    "Cycle 1": {
         "RAnkle_x": [
             -79.73000000000002,
             -71.18999999999983,
@@ -2484,7 +2484,7 @@
         "video": "25",
         "Direction":"front"
     },
-    "cycle_2": {
+    "Cycle 2": {
         "RAnkle_x": [
             -49.16046142578125,
             -48.618408203125,
@@ -5218,10 +5218,10 @@
         "Label": "gear3",
         "Start_frame": 499,
         "End_frame": 561,
-        "video": "20",
+        "Video": "20_cut",
         "Direction":"left"
     },
-    "cycle_3": {
+    "Cycle 3": {
         "RAnkle_x": [
             -17.59999999999991,
             -17.3900000000001,
@@ -8123,7 +8123,7 @@
         "Label": "gear3",
         "Start_frame": 726,
         "End_frame": 792,
-        "video": "17",
+        "Video": "17_cut",
         "Direction": "right"
     }
 }
