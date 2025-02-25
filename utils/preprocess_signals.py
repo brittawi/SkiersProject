@@ -39,6 +39,7 @@ def smooth_signal(signal, sigma=2):
     """Apply Gaussian low-pass filter to smooth the signal."""
     return gaussian_filter1d(signal, sigma=sigma, mode="nearest")
 
+
 def normalize_per_timestamp(train_val_data, mean, std):
     """
     Normalizes data per timestamp and per joint.
