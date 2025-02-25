@@ -57,7 +57,6 @@ def extract_keypoint_series(cycle_data, joints):
 # function to extract frame from video
 def extract_frame(video_path, frame_idx):
     """Extracts and returns a specific frame from a video file."""
-    print(video_path)
     cap = cv2.VideoCapture(video_path)
     cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
     ret, frame = cap.read()
