@@ -22,7 +22,6 @@ from utils.nets import LSTMNet, SimpleMLP
 
 # TODO OPTIMIZE
 # TODO Scheduler
-# TODO Not reproducible anymore
 
 def load_dataset(cfg, current_folder):
     train_val_data = []
@@ -62,7 +61,7 @@ def create_dataloaders(config, cfg, train_val_data, labels):
     val_dataset = CustomDataset(val_data, val_labels, cfg.DATA_PRESET.LABELS)
     # create dataloaders
 
-    train_loader = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=True, num_workers=0)
+    train_loader = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=False, num_workers=0)
     val_loader = DataLoader(val_dataset, batch_size=config["batch_size"], shuffle=False, num_workers=0)
 
     return train_loader, val_loader
@@ -86,7 +85,8 @@ def initialize_net(cfg, input_channels, output, config):
         
     return net
 
-def train_func(config, cfg, current_folder):
+def train_func(config, cfg, current_folder, seed):
+    set_seed(seed)
     # Select device (CUDA, MPS, or CPU)
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
 
@@ -231,7 +231,7 @@ def tune_hyperparameters():
         
         tuner = tune.Tuner(
             tune.with_resources(
-                tune.with_parameters(train_func, cfg=cfg, current_folder=current_folder),
+                tune.with_parameters(train_func, cfg=cfg, current_folder=current_folder, seed=seed),
                 resources={"cpu": 4, "gpu": 0}
             ),
             tune_config=tune.TuneConfig(

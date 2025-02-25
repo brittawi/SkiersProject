@@ -26,7 +26,7 @@ NETWORK:
     DROPOUT:
       - 0.2
       - 0.5
-MULTIPLE_SEEDS: False
+MULTIPLE_SEEDS: true
 SEEDS:
   - 42
   - 2

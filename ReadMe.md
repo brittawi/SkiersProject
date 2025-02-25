@@ -359,7 +359,7 @@ TODO not sure if we even need this
 
 ## TODO
 - [ ] Feedback system
-- [ ] In classification load from train/test.json instead labeled_cycles
+
 
 
 ## References
