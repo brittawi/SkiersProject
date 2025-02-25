@@ -45,6 +45,7 @@ def main():
     with open(file, 'r') as f:
         data_json = json.load(f)
         
+        
     for cycle in data_json.values():
         # Extract joint data as (num_joints, time_steps)
         cycle_data = [np.array(cycle[joint], dtype=np.float32) for joint in cfg.DATA_PRESET.CHOOSEN_JOINTS]
@@ -70,7 +71,17 @@ def main():
         X_val, y_val = ([train_val_data[i] for i in val_index], [labels[i] for i in val_index])
         
         # prepocess data based on train set
-        X_train, X_val, _, _, _ = preprocess_data(cfg, X_train, X_val, y_train, fold, plotting)
+        X_train, X_val, train_mean, train_std, train_max_length = preprocess_data(cfg, X_train, X_val, y_train, fold, plotting)
+        
+        # params that need to be saved with the statedict for later use
+        custom_params = {
+            "train_mean" : train_mean,
+            "train_std" : train_std,
+            "train_max_length" : train_max_length,
+            "normalization" : cfg.DATASET.AUG.NORMALIZATION,
+            "norm_type" : cfg.DATASET.AUG.get('NORM_TYPE', "full_signal"),
+            "smoothing" : cfg.DATASET.AUG.SMOOTHING
+        }
         
         # create Datasets
         print("Creating Datasets...")
@@ -81,8 +92,8 @@ def main():
         train_loader = DataLoader(train_dataset, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=True)
         val_loader = DataLoader(val_dataset, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=False)
 
-        # Store loaders for this fold
-        fold_loaders.append((train_loader, val_loader))
+        # Store loaders for this fold and custom params which contain the mean and std for the train set
+        fold_loaders.append((train_loader, val_loader, custom_params))
     
 
     output_channels = len(cfg.DATA_PRESET.LABELS.keys())

@@ -127,8 +127,10 @@ def validation(val_loader, net, criterion, device, network_type):
         for i, data in enumerate(val_loader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
+            print(inputs.shape)
             if network_type == "mlp":
                 inputs = inputs.view(inputs.size(0), -1)
+                print(inputs.shape)
             inputs = inputs.to(device)
             labels = labels.to(device)
             outputs = net(inputs)
@@ -159,7 +161,7 @@ def validation(val_loader, net, criterion, device, network_type):
     
     return avg_val_loss, epoch_accuracy, precision, recall, f1, conf_matrix
 
-def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_loader, device, fold, start_time):
+def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_loader, device, fold, start_time, custom_params):
     """
     Trains and validates the model across multiple epochs. Saves the model weights based on lowest validation accuracy. 
 
@@ -174,6 +176,7 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
     - device (torch.device): Device to run the model on (CPU or GPU).
     - fold (int): Current cross validation fold. 
     - start_time (str): Start time as string for saving models.
+    - custom_params (dict): Parameters that need to be saved with the state dict like mean of train set.
 
     Returns:
     - results (dict): Dictionary storing loss, accuracy, precision, recall, and F1-score for each epoch.
@@ -216,7 +219,7 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
         # Check early stopping based on validation loss
         if epoch_val_loss < best_val_loss:
             best_val_loss = epoch_val_loss
-            save_model(net, cfg, fold, seed, start_time)
+            save_model(net, cfg, fold, seed, start_time, custom_params)
             print(f"Model saved at epoch {epoch+1}")
             counter = 0  # Reset patience counter
             best_val_cm = val_conf_matrix
@@ -231,7 +234,7 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
     print('Finished Training')
     return results, best_train_cm, best_val_cm
 
-def save_model(net, cfg, fold, seed, start_time):
+def save_model(net, cfg, fold, seed, start_time, custom_params):
     """
     Saves the model weights in a structured folder based on fold and seed.
 
@@ -241,6 +244,7 @@ def save_model(net, cfg, fold, seed, start_time):
     - fold (int): Current cross-validation fold.
     - seed (int): Random seed for reproducibility.
     - start_time (str): Time for timestamping model creation.
+    - custom_params (dict): Parameters that need to be saved with the state dict like mean of train set.
     """
 
     # Define the folder structure
@@ -254,7 +258,11 @@ def save_model(net, cfg, fold, seed, start_time):
     model_path = os.path.join(fold_dir, model_filename)
 
     # Save the model state dictionary
-    torch.save(net.state_dict(), model_path)
+    #torch.save(net.state_dict(), model_path)
+    torch.save({
+        "state_dict": net.state_dict(),
+        "custom_params" : custom_params
+    }, model_path)
 
 def cross_validation(cfg, fold_loaders, output_channels, device, start_time):
     """
@@ -262,10 +270,11 @@ def cross_validation(cfg, fold_loaders, output_channels, device, start_time):
 
     Parameters:
     - cfg (Config): Configuration object containing training settings.
-    - fold_loaders (list): List of (train_loader, val_loader) tuples for each fold.
+    - fold_loaders (list): List of (train_loader, val_loader, custom_params) tuples for each fold and custom params per fold as a dict.
     - output_channels (int): Number of output classes.
     - device (torch.device): Device to run the model on (CPU or GPU).
     - start_time (str): Time used for timestamping saved models/folder structure. 
+    - custom_params (dict): Parameters that need to be saved with the state dict like mean of train set.
 
     Returns:
     - all_results (list): List of dictionaries storing results for each fold and seed.
@@ -277,12 +286,15 @@ def cross_validation(cfg, fold_loaders, output_channels, device, start_time):
     best_train_cms = []
     best_val_cms = []
     
-    for fold, (train_loader, val_loader) in enumerate(fold_loaders):
+    for fold, (train_loader, val_loader, custom_params) in enumerate(fold_loaders):
         print(f"\n>>> Training on Fold {fold+1} <<<\n")
         if cfg.TRAIN.NETWORK.NETWORKTYPE == "lstm":
             input_channels = train_loader.dataset.data.shape[1]
         elif cfg.TRAIN.NETWORK.NETWORKTYPE == "mlp":
             input_channels = train_loader.dataset.data.shape[1] * train_loader.dataset.data.shape[2]
+            
+        custom_params["input_channels"] = input_channels
+        custom_params["output_channels"] = output_channels
         
         # Initialize a new model for each fold
         for seed in cfg.TRAIN.SEEDS:
@@ -311,7 +323,8 @@ def cross_validation(cfg, fold_loaders, output_channels, device, start_time):
                                                                     val_loader,
                                                                     device,
                                                                     fold,
-                                                                    start_time
+                                                                    start_time,
+                                                                    custom_params
                                                                     )
             
             # Store results
