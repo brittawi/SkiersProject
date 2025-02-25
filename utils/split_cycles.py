@@ -101,11 +101,13 @@ def split_into_cycles(file_path, visualize=False):
     data_split_by_cycles = {} 
     cycle = 1   
     while current_min_index < len(min_indices) - 1:  # Ensure at least two minima
+        start_frame = frames[min_indices[current_min_index]]
         cycle_values_for_joints = {}
         for joint, values in keypoint_values.items():
             cycle_vals = values[min_indices[current_min_index] : min_indices[current_min_index + 1] + 1]
             cycle_values_for_joints[joint] = cycle_vals
             
+        cycle_values_for_joints["Start_frame"] = start_frame    
         data_split_by_cycles[f"Cycle {cycle}"] = cycle_values_for_joints
         cycle += 1
         current_min_index += 1
