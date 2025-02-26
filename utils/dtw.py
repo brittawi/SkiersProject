@@ -57,7 +57,6 @@ def extract_keypoint_series(cycle_data, joints):
 # function to extract frame from video
 def extract_frame(video_path, frame_idx):
     """Extracts and returns a specific frame from a video file."""
-    print(video_path)
     cap = cv2.VideoCapture(video_path)
     cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
     ret, frame = cap.read()
@@ -122,9 +121,9 @@ def compare_selected_cycles(expert_data, cycle, joint_triplets, user_video, vide
             closest_cycle = expert_cycle
             #dtw_results = {f"{cycle1_key} vs {cycle2_key} (Multivariate DTW)": dist}
     
-    # TODO direction is only there for test purposes
-    print(f"Choosen expert cyle direction: {closest_cycle['Direction']}, gear: {closest_cycle['Label']}")
-    print(f"User cycle label: {cycle['Label']}")
+    # # TODO direction is only there for test purposes
+    # print(f"Choosen expert cyle direction: {closest_cycle['Direction']}, gear: {closest_cycle['Label']}")
+    # print(f"User cycle label: {cycle['Label']}")
     
     # compute dtw for closest cycle
     series_expert, frames_expert = extract_signals(closest_cycle, joint_triplets)

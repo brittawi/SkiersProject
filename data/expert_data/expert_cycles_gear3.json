@@ -2481,7 +2481,7 @@
         "Label": "gear3",
         "Start_frame": 402,
         "End_frame": 458,
-        "video": "25",
+        "Video": "25",
         "Direction":"front"
     },
     "Cycle 2": {
