@@ -1,0 +1,3 @@
+__pycache__/
+
+alphapose/detector/yolo/data/yolov3-spp.weights

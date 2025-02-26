@@ -9,7 +9,7 @@ import torch
 import torch.multiprocessing as mp
 
 from alphapose.alphapose.utils.transforms import get_func_heatmap_to_coord
-from alphapose.alphapose.utils.pPose_nms import pose_nms, write_json
+from alphapose.alphapose.utils.pPose_nms import pose_nms, write_json, get_json
 
 DEFAULT_VIDEO_SAVE_OPT = {
     'savepath': 'examples/res/1.mp4',
@@ -33,7 +33,7 @@ class DataWriter():
         self.save_video = save_video
         self.heatmap_to_coord = get_func_heatmap_to_coord(cfg)
         self.video_name = video_name[:-4]
-        self.final_result = []
+        self.final_result = None
         # initialize the queue used to store frames read from
         # the video file
         if opt.sp:
@@ -109,7 +109,8 @@ class DataWriter():
                     self.output_path = os.path.join(self.opt.outputpath, output_file)
                 else:
                     self.output_path = None
-                self.final_result = final_result
+                json_result = get_json(final_result, for_eval=self.opt.eval)
+                self.final_result = json_result
                 return
             
             # image channel RGB->BGR

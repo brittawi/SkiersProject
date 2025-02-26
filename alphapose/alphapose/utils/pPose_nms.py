@@ -655,6 +655,49 @@ def PCK_match_fullbody(pick_pred, pred_score, all_preds, ref_dist):
     num_match_keypoints = (num_match_keypoints_body + num_match_keypoints_face + num_match_keypoints_hand) / mask.sum() / 2 * kp_nums
     return num_match_keypoints
 
+# TODO only works for one format!
+def get_json(all_results, for_eval=False):
+    '''
+    all_result: result dict of predictions
+    '''
+    json_results = []
+    for im_res in all_results:
+        im_name = im_res['imgname']
+        for human in im_res['result']:
+            keypoints = []
+            result = {}
+            if for_eval:
+                result['image_id'] = int(os.path.basename(im_name).split('.')[0].split('_')[-1])
+            else:
+                result['image_id'] = os.path.basename(im_name)
+            result['category_id'] = 1
+
+            kp_preds = human['keypoints']
+            kp_scores = human['kp_score']
+            pro_scores = human['proposal_score']
+            for n in range(kp_scores.shape[0]):
+                keypoints.append(float(kp_preds[n, 0]))
+                keypoints.append(float(kp_preds[n, 1]))
+                keypoints.append(float(kp_scores[n]))
+            result['keypoints'] = keypoints
+            result['score'] = float(pro_scores)
+            if 'box' in human.keys():
+                result['box'] = human['box']
+            #pose track results by PoseFlow
+            if 'idx' in human.keys():
+                result['idx'] = human['idx']
+            
+            # 3d pose
+            if 'pred_xyz_jts' in human.keys():
+                pred_xyz_jts = human['pred_xyz_jts']
+                pred_xyz_jts = pred_xyz_jts.cpu().numpy().tolist()
+                result['pred_xyz_jts'] = pred_xyz_jts
+
+            json_results.append(result)
+    
+    #return json.dumps(json_results)
+    return json_results
+
 
 def write_json(all_results, outputpath, form=None, for_eval=False, outputfile='alphapose-results.json'):
     '''

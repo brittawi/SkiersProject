@@ -127,10 +127,8 @@ def validation(val_loader, net, criterion, device, network_type):
         for i, data in enumerate(val_loader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
-            print(inputs.shape)
             if network_type == "mlp":
                 inputs = inputs.view(inputs.size(0), -1)
-                print(inputs.shape)
             inputs = inputs.to(device)
             labels = labels.to(device)
             outputs = net(inputs)
