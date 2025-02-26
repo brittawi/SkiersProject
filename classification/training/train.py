@@ -80,8 +80,20 @@ def main():
             "train_max_length" : train_max_length,
             "normalization" : cfg.DATASET.AUG.NORMALIZATION,
             "norm_type" : cfg.DATASET.AUG.get('NORM_TYPE', "full_signal"),
-            "smoothing" : cfg.DATASET.AUG.SMOOTHING
+            "smoothing" : cfg.DATASET.AUG.SMOOTHING,
+            "choosen_joints" : cfg.DATA_PRESET.CHOOSEN_JOINTS,
+            "labels" : cfg.DATA_PRESET.LABELS
         }
+        
+        net_type = cfg.TRAIN.NETWORK.get('NETWORKTYPE', "mlp")
+        if net_type.lower() == "mlp":
+            custom_params["hidden1"] = cfg.TRAIN.NETWORK.MLP.HIDDEN_1
+            custom_params["hidden2"] = cfg.TRAIN.NETWORK.MLP.HIDDEN_2
+        else:
+            custom_params["hidden_size"] = cfg.TRAIN.NETWORK.LSTM.HIDDEN_SIZE
+            custom_params["num_layers"] = cfg.TRAIN.NETWORK.LSTM.NUM_LAYERS
+            custom_params["dropout"] = cfg.TRAIN.NETWORK.LSTM.DROPOUT
+            
         
         # create Datasets
         print("Creating Datasets...")
