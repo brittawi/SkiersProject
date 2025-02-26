@@ -6,7 +6,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 
 from utils.load_data import load_json
-from utils.dtw import compare_selected_cycles
+from utils.dtw import compare_selected_cycles, extract_multivariate_series
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
 from utils.split_cycles import split_into_cycles
@@ -178,6 +178,7 @@ def main():
         dtw_comparisons = compare_selected_cycles(expert_data, cycle, joints, INPUT_VIDEO, video_path, visualize=False)
 
         # Step 5: Give feedback
+        from dtaidistance import dtw
         """
         Plan:
         Have angle from user, start with single signal
@@ -187,6 +188,40 @@ def main():
             path = dtw.warping_path(series_user, series_expert, use_ndim=True)
         Plot?
         """
+        sample_cycle_series, frames_user = extract_multivariate_series(cycle, joint_triplets)
+
+        # TODO JUST FOR PLOTTING REMOVE LATER
+        import matplotlib.pyplot as plt
+        # Extract the array and the list from the tuple
+        data_array, x_values = sample_cycle_series, frames_user
+
+        # Create the plot
+        plt.figure(figsize=(10, 6))
+        for i in range(data_array.shape[1]):
+            plt.plot(x_values, data_array[:, i], label=f'Line {i+1}')
+
+        plt.xlabel('X values')
+        plt.ylabel('Y values')
+        plt.title('Plot of Array Values vs X List')
+        plt.legend()
+        # Save the plot to a file
+        plt.savefig('data/array_vs_list_plot.png')
+
+        closest_cycle = {}
+        best_dist = float("inf")
+        for _, expert_cycle in expert_data.items():
+        
+            series_expert, frames_expert = extract_multivariate_series(expert_cycle, joint_triplets)
+            print(len(series_expert))
+            print(len(sample_cycle_series))
+            dist = dtw.distance(sample_cycle_series, series_expert, use_ndim=True)
+            if dist < best_dist:
+                best_dist = dist
+                closest_cycle = expert_cycle
+        series_expert, frames_expert = extract_multivariate_series(closest_cycle, joint_triplets)
+        path = dtw.warping_path(sample_cycle_series, series_expert, use_ndim=True)
+        
+
 
 
  
