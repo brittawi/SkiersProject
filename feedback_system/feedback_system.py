@@ -19,9 +19,9 @@ import numpy as np
 # Type of network that we want to use for the classification
 NETWORK_TYPE = "MLP"
 # Model path where we want to load the model from
-MODEL_PATH = "./classification/training/runs/saved_models/run_2025_02_25_15_55_mlp/fold_1/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
+MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "38"
+ID = "19_cut"
 INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # path to where all videos are stored
@@ -150,7 +150,6 @@ def main():
             continue
         else:
             print(f"The system cannot give feedback for {predicted_label}")
-            # TODO does this work??
             continue
         
         expert_data = load_json(expert_path)
