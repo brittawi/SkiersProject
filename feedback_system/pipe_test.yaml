@@ -1,0 +1,12 @@
+  
+VIDEO_PATH: E:\alphapose\AlphaPose\examples\demo\DJI_0015_cut.MP4
+ALPHA_ARGS:
+  SAVE_VIDEO: false
+  VIS_FAST: true
+  CFG_PATH: alphapose\configs\256x192_res50_lr1e-3_1x.yaml
+  WEIGHTS_PATH: alphapose\pretrained_models\final_DPG_iter_2.pth
+  GPUS: "0"
+  OUTPUT_PATH: ""
+  SHOWBOX: False
+  FORMAT: COCO
+  SAVE_JSON: False
