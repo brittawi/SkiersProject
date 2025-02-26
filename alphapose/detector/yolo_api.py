@@ -34,7 +34,13 @@ class YOLODetector(BaseDetector):
         self.detector_cfg = cfg
         self.detector_opt = opt
         self.model_cfg = cfg.get('CONFIG', 'alphapose/detector/yolo/cfg/yolov3-spp.cfg')
-        self.model_weights = cfg.get('WEIGHTS', 'alphapose/detector/yolo/data/yolov3-spp.weights')
+        
+        # Changed this to set custom path to weights:
+        #_____
+        self.model_weights = opt.yolo_weight_path
+        #self.model_weights = cfg.get('WEIGHTS', 'alphapose/detector/yolo/data/yolov3-spp.weights')
+        #_____
+        
         self.inp_dim = cfg.get('INP_DIM', 608)
         self.nms_thres = cfg.get('NMS_THRES', 0.6)
         self.confidence = 0.3 if (False if not hasattr(opt, 'tracking') else opt.tracking) else cfg.get('CONFIDENCE', 0.05)

@@ -324,6 +324,7 @@ def run_inference(args_cfg):
         format = args_cfg.ALPHA_ARGS.get("FORMAT", '') or "coco"
         eval = False
         save_json = args_cfg.ALPHA_ARGS.SAVE_JSON
+        yolo_weight_path = args_cfg.ALPHA_ARGS.YOLO_WEIGHT_PATH
     
     args = Args()
 

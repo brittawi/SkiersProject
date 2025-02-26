@@ -4,7 +4,8 @@ ALPHA_ARGS:
   SAVE_VIDEO: false
   VIS_FAST: true
   CFG_PATH: alphapose\configs\256x192_res50_lr1e-3_1x.yaml
-  WEIGHTS_PATH: alphapose\pretrained_models\final_DPG_iter_2.pth
+  WEIGHTS_PATH: E:\SkiProject\pretrained_models\final_DPG_iter_2.pth
+  YOLO_WEIGHT_PATH: E:\SkiProject\pretrained_models/yolov3-spp.weights
   GPUS: "0"
   OUTPUT_PATH: ""
   SHOWBOX: False
@@ -16,7 +17,6 @@ CLS_GEAR:
 DTW:
   VIS_VID_PATH: C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData
   VIS_VIDEO: true
-  
   CHOOSEN_JOINT: RAnkle
   CHOOSEN_REF: Hip
   CHOOSEN_DIM: x
