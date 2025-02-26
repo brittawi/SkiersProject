@@ -22,11 +22,14 @@ NETWORK_TYPE = "MLP"
 # Model path where we want to load the model from
 MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "19_cut"
-INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
-INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
+ID = "18_cut"
+# INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
+# INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
+INPUT_PATH = os.path.join("E:\SkiProject\AnnotationsByUs", ID[:2] + ".json")
+INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
 # path to where all videos are stored
-video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
+# video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
+video_path = r"E:\SkiProject\Cut_videos"
 
 def main():
     # TODO put in config file?!
@@ -41,10 +44,11 @@ def main():
     print(f"Device = {device}")
     
     # Step 1: Get Keypoints from AlphaPose TODO
-    print("Loading config...")
-    run_args = update_config("./feedback_system/pipe_test.yaml") # TODO Testing set up fix for full pipeline
-    output_path, results_list = run_inference(run_args)
-    # TODO Convert output to similar to CVAT?
+    if False:
+        print("Loading config...")
+        run_args = update_config("./feedback_system/pipe_test.yaml") # TODO Testing set up fix for full pipeline
+        output_path, results_list = run_inference(run_args)
+        # TODO Convert output to similar to CVAT?
 
     
     # Step 2: Split into cycles
@@ -171,9 +175,20 @@ def main():
         # send in data in json format
         cycle = cycle_data[f"Cycle {i+1}"]
         
-        dtw_comparisons = compare_selected_cycles(expert_data, cycle, joints, INPUT_VIDEO, video_path, visualize=True)
+        dtw_comparisons = compare_selected_cycles(expert_data, cycle, joints, INPUT_VIDEO, video_path, visualize=False)
 
         # Step 5: Give feedback
+        """
+        Plan:
+        Have angle from user, start with single signal
+        Get best matching expert signal with DTW
+            Use frames (time steps) from compare_slected_cycles?
+            Use this:
+            path = dtw.warping_path(series_user, series_expert, use_ndim=True)
+        Plot?
+        """
+
+
  
     
     
