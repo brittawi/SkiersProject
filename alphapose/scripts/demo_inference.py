@@ -4,6 +4,10 @@ import os
 import platform
 import sys
 import time
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 sys.path.insert(0, 'E:/SkiProject/SkiersProject/alphapose')
 
 import numpy as np
