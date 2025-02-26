@@ -4,7 +4,8 @@ import os
 import platform
 import sys
 import time
-sys.path.insert(0, 'E:/SkiProject/SkiersProject/alphapose')
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, project_root)
 
 import numpy as np
 import torch
