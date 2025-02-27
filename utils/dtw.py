@@ -3,6 +3,7 @@ import cv2
 import matplotlib.pyplot as plt
 from dtaidistance import dtw, dtw_visualisation
 import os
+from utils.preprocess_signals import smooth_signal
 
 def compute_angle(p1, p2, p3):
     """Computes the angle between three points."""
@@ -41,14 +42,23 @@ def extract_multivariate_series(cycle_data, joint_triplets):
         frames.append(i)
     return np.array(all_angles), frames
 
-def extract_keypoint_series(cycle_data, joints):
+def extract_keypoint_series(cycle_data, joints, sigma=2):
+    
+    smoothed_cycle_data = {}
+    # apply smoothing first
+    if sigma > 0:
+        for joint, series in cycle_data.items():
+            if joint.replace("_x", "").replace("_y", "") in joints:
+                smoothed_series = smooth_signal(series, sigma)
+                smoothed_cycle_data[joint] = smoothed_series
+                          
     all_keypoints = []
     frames = []
-    for i in range(len(cycle_data[joints[0] + "_x"])):
+    for i in range(len(smoothed_cycle_data[joints[0] + "_x"])):
         keypoints = []
         for joint in joints:
-            keypoints.append(cycle_data[joint + "_x"][i])
-            keypoints.append(cycle_data[joint + "_y"][i])
+            keypoints.append(smoothed_cycle_data[joint + "_x"][i])
+            keypoints.append(smoothed_cycle_data[joint + "_y"][i])
         all_keypoints.append(keypoints)
         frames.append(i)
     return np.array(all_keypoints), frames
