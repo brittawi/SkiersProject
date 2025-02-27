@@ -80,7 +80,6 @@ def overlay_frames_loop(user_video, expert_video, path, cycle1_start_frame, cycl
         if f1 is not None and f2 is not None:
             overlay = cv2.addWeighted(f1, 0.5, f2, 0.5, 0)
             overlay = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
-            
             cv2.putText(overlay, f"Frame 1: {frame1}, angle: {series1[frame1]}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             cv2.putText(overlay, f"Frame 2: {frame2}, angle: {series2[frame2]}", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             
