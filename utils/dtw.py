@@ -12,59 +12,6 @@ def compute_angle(p1, p2, p3):
     norm_product = np.linalg.norm(v1) * np.linalg.norm(v2)
     return np.arccos(dot_product / norm_product) * (180.0 / np.pi)
 
-def compute_angle_between_lines(p1, p2, p3, p4):
-    """Computes the angle between two lines formed by points (p1, p2) and (p3, p4)."""
-    # Compute direction vectors for the two lines
-    v1 = np.array([p2[0] - p1[0], p2[1] - p1[1]])  # Vector from p1 to p2
-    v2 = np.array([p4[0] - p3[0], p4[1] - p3[1]])  # Vector from p3 to p4
-
-    # Compute the dot product and magnitudes of the vectors
-    dot_product = np.dot(v1, v2)
-    magnitude_v1 = np.linalg.norm(v1)
-    magnitude_v2 = np.linalg.norm(v2)
-
-    # Calculate the angle using the dot product formula: cos(theta) = dot(v1, v2) / (|v1| * |v2|)
-    cos_theta = dot_product / (magnitude_v1 * magnitude_v2)
-
-    # Return the angle in radians, use np.clip to handle floating point errors
-    angle = np.arccos(np.clip(cos_theta, -1.0, 1.0))
-    return np.degrees(angle)  # Convert to degrees if needed
-
-def extract_multivariate_series_for_lines(cycle_data, line_joint_quadruplets):
-    """Extracts multivariate time-series data for the angles between lines formed by four joints from a cycle."""
-    all_angles = []
-    frames = []
-    for i in range(len(cycle_data[line_joint_quadruplets[0][0] + "_x"])):
-        angles = []
-        for joint1, joint2, joint3, joint4 in line_joint_quadruplets:
-            p1 = (cycle_data[joint1 + "_x"][i], cycle_data[joint1 + "_y"][i])
-            p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
-            p3 = (cycle_data[joint3 + "_x"][i], cycle_data[joint3 + "_y"][i])
-            p4 = (cycle_data[joint4 + "_x"][i], cycle_data[joint4 + "_y"][i])
-            angles.append(compute_angle_between_lines(p1, p2, p3, p4))
-        all_angles.append(angles)
-        frames.append(i)
-    return np.array(all_angles), frames
-
-def calculate_differences(list1, list2, index_pairs):
-    """
-    Calculates the differences between values in list1 and list2 using the given index pairs.
-
-    Args:
-    list1 (list): The first list of values.
-    list2 (list): The second list of values.
-    index_pairs (list of tuples): List of tuples where each tuple (i, j) corresponds to 
-                                  comparing list1[i] with list2[j].
-
-    Returns:
-    list: A list of differences (list1[i] - list2[j]) for each pair (i, j).
-    """
-    differences = []
-    for i, j in index_pairs:
-        difference = list1[i] - list2[j]
-        differences.append(difference)
-    return differences
-
 # TODO do not need anymore I think?! For single signal
 def extract_angle_series(cycle_data, joint1, joint2, joint3):
     """Extracts time-series data for an angle between three joints from a cycle."""

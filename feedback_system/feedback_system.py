@@ -6,11 +6,13 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 
 from utils.load_data import load_json
-from utils.dtw import compare_selected_cycles, extract_multivariate_series, extract_angle_series, extract_multivariate_series_for_lines, calculate_differences, extract_frame
+from utils.dtw import compare_selected_cycles, extract_frame
+from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_lines_and_text
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
 from utils.split_cycles import split_into_cycles
 from utils.preprocess_signals import *
+from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
 
 import torch
@@ -31,21 +33,6 @@ INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
 # path to where all videos are stored
 # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 video_path = r"E:\SkiProject\Cut_videos"
-
-# TODO Move to utils/dtw
-def get_line_points(user_cycle, joints_list, frame, expert_cycle = None):
-    points = []
-    for joints in joints_list:
-        #TODO Get ref from cfg/other way?
-        for joint in joints:
-            if expert_cycle == None:
-                p_x = int(user_cycle.get(joint + "_x")[frame] + user_cycle.get("Hip_x_ref")[frame])
-                p_y = int(user_cycle.get(joint + "_y")[frame] + user_cycle.get("Hip_y_ref")[frame])
-            else:
-                p_x = int(expert_cycle.get(joint + "_x")[frame] + user_cycle.get("Hip_x_ref")[frame])
-                p_y = int(expert_cycle.get(joint + "_y")[frame] + user_cycle.get("Hip_y_ref")[frame])
-            points.append((p_x,p_y))
-    return points
 
 def main():
     # TODO put in config file?!
@@ -210,31 +197,6 @@ def main():
         Start with parallel shoulder and hip lines
         """
 
-        # Feedback angle
-
-        # sample_cycle_series, frames_user = extract_angle_series(cycle, joint_triplets)
-
-        # # TODO JUST FOR PLOTTING REMOVE LATER
-        import matplotlib.pyplot as plt
-        # # Extract the array and the list from the tuple
-        # data_array, x_values = sample_cycle_series, frames_user
-
-        # # Create the plot
-        # plt.figure(figsize=(10, 6))
-        # for i in range(data_array.shape[1]):
-        #     plt.plot(x_values, data_array[:, i], label=f'Line {i+1}')
-
-        # plt.xlabel('X values')
-        # plt.ylabel('Y values')
-        # plt.title('Plot of Array Values vs X List')
-        # plt.legend()
-        # # Save the plot to a file
-        # plt.savefig('output/array_vs_list_plot.png')
-
-
-        # #print(path)
-        # print(len(path))
-
         # Joint 1 and 2 create one line, joint 3 and 4 another line. 
         shoulder_hip_joints = [("RShoulder", "LShoulder", "RHip", "LHip")]
 
@@ -244,81 +206,55 @@ def main():
         
         # Match using DTW and calculate difference in angle between the lines
         diff_user_expert = calculate_differences(user_lines, expert_lines, path)
-
         # Flatten because it is in shape [array([value]), [array([value]), ...]
         diff_user_expert = [item[0] for item in diff_user_expert]
 
+        #TODO set param?
+        print(np.mean(diff_user_expert))
+        lean_threshold = 0.5
+        if np.abs(np.mean(diff_user_expert)) > lean_threshold:
+            print("You lean too much with your shoulders, stay up straight!")
+
+
         # Plotting
-        plt.figure(figsize=(10, 6))
-        plt.plot(diff_user_expert, linestyle='-', color='b', label='Values')
-        plt.title('Difference between user and expert with DTW')
-        plt.xlabel('Index')
-        plt.ylabel('Value')
-        plt.legend()
-        plt.savefig('output/diff_shoulder_hips.png')
-        plt.close()
+        # TODO make parameter?
+        if True:
+            plot_lines(
+                'output/diff_shoulder_hips.png', 
+                'Difference between user and expert with DTW', 
+                'Time step', 
+                'Angle (Degrees)', 
+                diff_user_expert,  # Positional argument for *line_data
+                labels=['Difference between user and expert'], 
+                colors=['b'])
 
-        plt.figure(figsize=(10, 6))
-        plt.plot(user_lines, linestyle='-', label='User')
-        plt.plot(expert_lines, linestyle='-', label='Expert')
+            plot_lines(
+                'output/user_shoulder_hips.png',
+                'Plot of Array Data', 
+                'Time step', 
+                'Angle (Degrees)',  
+                user_lines,  # Positional argument for *line_data
+                expert_lines,  # Additional positional argument for *line_data
+                labels=['User', 'Expert'])
 
-        plt.title('Plot of Array Data')
-        plt.xlabel('Index')
-        plt.ylabel('Value')
-        plt.legend()
-        plt.savefig('output/user_shoulder_hips.png')
-
+        
         user_start_frame = cycle.get("Start_frame")
-        expert_start_frame = expert_cycle.get("Start_frame")
-        print("User start frame: ", user_start_frame, " Expert start frame:", expert_start_frame)
-
-        # TODO Can get from compare_selected_cycles()
-        # TODO Do not need?
-        expert_video = os.path.join(video_path, "DJI_00" + expert_cycle.get("Video") + ".mp4")
-        """
-        Get user video frame
-        Plot user line of shoulder + hips
-        Overlay and also plot line of expert shoulder + hips
-        """   
+        # Loops through the DTW match pair and shows lines on user video
         for i, (frame1, frame2) in enumerate(path):
             user_frame = extract_frame(INPUT_VIDEO, frame1 + user_start_frame)
-            # TODO Fix this colour conversion
+            # TODO Make this a parameter?
+            if True:
+                expert_start_frame = expert_cycle.get("Start_frame")
+                expert_video = os.path.join(video_path, "DJI_00" + expert_cycle.get("Video") + ".mp4")
+                expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
+                user_frame = cv2.addWeighted(user_frame, 0.5, expert_frame, 0.5, 0)
+            # TODO Fix this colour conversion?
             user_frame = cv2.cvtColor(user_frame, cv2.COLOR_RGB2BGR)
             
-            # Draw the lines on the skier
-            user_points = get_line_points(cycle, shoulder_hip_joints, frame1)
-            cv2.line(user_frame, user_points[0], user_points[1], color=(255, 0, 0), thickness=2) # Line first pair
-            cv2.line(user_frame, user_points[2], user_points[3], color=(255, 0, 0), thickness=2) # Line second pair
-            expert_points = get_line_points(cycle, shoulder_hip_joints, frame2, expert_cycle)
-            cv2.line(user_frame, expert_points[0], expert_points[1], color=(255, 255, 0), thickness=2) # Line first pair
-            cv2.line(user_frame, expert_points[2], expert_points[3], color=(255, 255, 0), thickness=2) # Line second pair
-
-            # Write degree of parallel lines
-            text_origin = (int(cycle.get("Hip_x_ref")[frame1]), int(cycle.get("Hip_y_ref")[frame1]))
-            # Text offset from origin point
-            x_offset = 30
-            y_offset = 20
-            # Get the sizes of the text boxes
-            (text_width_user, text_height_user), _ = cv2.getTextSize("User angle between shoulder/hip:" + str(user_lines[frame1][0]), cv2.FONT_HERSHEY_PLAIN, 1, 1)
-            (text_width_expert, text_height_expert), _ = cv2.getTextSize("Expert angle between shoulder/hip:" +str(expert_lines[frame2][0]), cv2.FONT_HERSHEY_PLAIN, 1, 1)
-            (text_width_diff, text_height_diff), _ = cv2.getTextSize("Difference:" +str(diff_user_expert[i]), cv2.FONT_HERSHEY_PLAIN, 1, 1)
-
-            # Draw background rectangles for the text (adjust size for better fit)
-            cv2.rectangle(user_frame, (text_origin[0] + x_offset, text_origin[1] - text_height_user - 5), 
-                        (text_origin[0] + x_offset + text_width_user + 5, text_origin[1] + 5), (0, 0, 0), -1)  # Black box for user text
-            cv2.rectangle(user_frame, (text_origin[0] + x_offset, text_origin[1] + y_offset - text_height_expert - 5), 
-                        (text_origin[0] + x_offset + text_width_expert + 5, text_origin[1] + y_offset + 5), (0, 0, 0), -1)  # Black box for expert text
-            cv2.rectangle(user_frame, (text_origin[0] + x_offset, text_origin[1] - y_offset - text_height_diff - 5), 
-                        (text_origin[0] + x_offset + text_width_diff + 5, text_origin[1] - y_offset + 5), (0, 0, 0), -1)  # Black box for difference text
-            cv2.putText(user_frame, "User angle between shoulder/hip: " + str(user_lines[frame1][0]), (text_origin[0] + x_offset, text_origin[1]), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0))
-            cv2.putText(user_frame, "Expert angle between shoulder/hip: " + str(expert_lines[frame2][0]), (text_origin[0] + x_offset, text_origin[1] + y_offset), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0))
-            cv2.putText(user_frame, "Difference: " + str(diff_user_expert[i]), (text_origin[0] + x_offset, text_origin[1] - y_offset), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 0))
-
+            user_frame = draw_lines_and_text(user_frame, cycle, shoulder_hip_joints, frame1, frame2, expert_cycle, 
+                                      user_lines, expert_lines, diff_user_expert, i)
 
             cv2.imshow("User video", user_frame)
-            
-             
-
         
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break

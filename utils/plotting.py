@@ -150,3 +150,33 @@ def plot_avg_std_combined(metrics_dict, cfg, start_time, show_plots=False):
 #     plt.legend()
 #     plt.grid()
 #     plt.show()
+
+def plot_lines(output_path, title, xlabel, ylabel, *line_data, labels=None, colors=None):
+    """
+    Plots multiple lines in a single figure. Used for showing DTW 
+
+    Parameters:
+    - output_path: The file path to save the plot.
+    - title: Title of the plot.
+    - xlabel: Label for the x-axis.
+    - ylabel: Label for the y-axis.
+    - *line_data: Variable number of arrays to be plotted.
+    - labels: Optional list of labels for each line.
+    - colors: Optional list of colors for each line.
+    """
+    plt.figure(figsize=(10, 6))
+    
+    # Plot each line provided in *line_data
+    for i, data in enumerate(line_data):
+        label = labels[i] if labels else f'Line {i + 1}'
+        color = colors[i] if colors else None
+        plt.plot(data, linestyle='-', label=label, color=color)
+    
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend()
+    
+    # Save the figure
+    plt.savefig(output_path)
+    plt.close()
