@@ -187,6 +187,10 @@ def main():
             Use this:
             path = dtw.warping_path(series_user, series_expert, use_ndim=True)
         Plot?
+        Filter if error is only one frame/time step
+        Convert angles into specific feedback
+        Get direction from dtw, in future classify before
+        Check if angle from user is off from expert by thershold and show user
         """
         sample_cycle_series, frames_user = extract_multivariate_series(cycle, joint_triplets)
 
@@ -220,7 +224,7 @@ def main():
                 closest_cycle = expert_cycle
         series_expert, frames_expert = extract_multivariate_series(closest_cycle, joint_triplets)
         path = dtw.warping_path(sample_cycle_series, series_expert, use_ndim=True)
-        
+        print(path)
 
 
 
