@@ -20,20 +20,21 @@ import torch
 import numpy as np
 import cv2
 
-# TODO put in different config??
-# Type of network that we want to use for the classification
-NETWORK_TYPE = "MLP"
-# Model path where we want to load the model from
-MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
-# TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
+# # TODO put in different config??
+# # Type of network that we want to use for the classification
+# NETWORK_TYPE = "MLP"
+# # Model path where we want to load the model from
+# MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
+# # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
 ID = "38"
-# INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
-# INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
+# # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
+# # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 INPUT_PATH = os.path.join("E:\SkiProject\AnnotationsByUs", ID[:2] + ".json")
-INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
-# path to where all videos are stored
-# video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
-video_path = r"E:\SkiProject\Cut_videos"
+# INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
+# # path to where all videos are stored
+# # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
+# video_path = r"E:\SkiProject\Cut_videos"
+testing_with_inference = False
 
 def main():
     
@@ -42,19 +43,26 @@ def main():
     print(f"Device = {device}")
     
     # Step 1: Get Keypoints from AlphaPose 
-    if False:
-        print("Loading config...")
-        run_args = update_config("./feedback_system/pipe_test.yaml") # TODO Testing set up fix for full pipeline
+    
+    print("Loading config...")
+    run_args = update_config("./feedback_system/pipe_test.yaml") # TODO Testing set up fix for full pipeline
+    if testing_with_inference:
         output_path, results_list = run_inference(run_args)
         
-    # Convert keypoint data to coco format
-    coco_data = halpe26_to_coco(results_list)
+        # Convert keypoint data to coco format
+        coco_data = halpe26_to_coco(results_list)
     
+        
+        
+        
+    else:
+        coco_data = load_json(INPUT_PATH)
+
     # Step 2: Split into cycles
-    input_data = []
     print("Splitting the data into cycles...")
     cycle_data = split_into_cycles(coco_data, run_args, visualize=False)
     
+
     # Load the checkpoint to the model as we need it for certain data
     print("Loading Model...")
     checkpoint = torch.load(run_args.CLS_GEAR.MODEL_PATH, map_location=device)
@@ -64,6 +72,7 @@ def main():
     custom_params = checkpoint["custom_params"]
     
     # convert to numpy arrays and stack them together
+    input_data = []
     for cycle in cycle_data.values():
 
         # Extract joint data as (num_joints, time_steps)
@@ -170,7 +179,7 @@ def main():
         # send in data in json format
         cycle = cycle_data[f"Cycle {i+1}"]
         
-        dtw_comparisons, path, expert_cycle = compare_selected_cycles(expert_data, cycle, joints, INPUT_VIDEO, video_path, visualize=False)
+        dtw_comparisons, path, expert_cycle = compare_selected_cycles(expert_data, cycle, joints, run_args.VIDEO_PATH, run_args.DTW.VIS_VID_PATH, visualize=False)
         # TODO try DTW with smoothed signals?
         dtw_comparisons = compare_selected_cycles(expert_data, cycle, joints, run_args.VIDEO_PATH, run_args.DTW.VIS_VID_PATH, visualize=run_args.DTW.VIS_VIDEO)
 
@@ -186,8 +195,8 @@ def main():
             joints_lines = [("LAnkle", "LKnee", "Hip", "Neck")]
 
         # Get the lines 
-        user_lines, _ = extract_multivariate_series_for_lines(cycle, joints_lines)
-        expert_lines, _ = extract_multivariate_series_for_lines(expert_cycle, joints_lines)
+        user_lines, _ = extract_multivariate_series_for_lines(cycle, joints_lines, run_args)
+        expert_lines, _ = extract_multivariate_series_for_lines(expert_cycle, joints_lines, run_args)
         
         # Match using DTW and calculate difference in angle between the lines
         diff_user_expert = calculate_differences(user_lines, expert_lines, path)
@@ -205,7 +214,7 @@ def main():
         # TODO make parameter?
         if True:
             plot_lines(
-                'output/diff_shoulder_hips.png', 
+                f'output/diff_shoulder_hips_{i}.png', 
                 'Difference between user and expert with DTW', 
                 'Time step', 
                 'Angle (Degrees)', 
@@ -214,7 +223,7 @@ def main():
                 colors=['b'])
 
             plot_lines(
-                'output/user_shoulder_hips.png',
+                f'output/user_shoulder_hips_{i}.png',
                 'Plot of Array Data', 
                 'Time step', 
                 'Angle (Degrees)',  
@@ -226,18 +235,18 @@ def main():
         user_start_frame = cycle.get("Start_frame")
         # Loops through the DTW match pair and shows lines on user video
         for i, (frame1, frame2) in enumerate(path):
-            user_frame = extract_frame(INPUT_VIDEO, frame1 + user_start_frame)
+            user_frame = extract_frame(run_args.VIDEO_PATH, frame1 + user_start_frame)
             # TODO Make this a parameter?
             if True:
                 expert_start_frame = expert_cycle.get("Start_frame")
-                expert_video = os.path.join(video_path, "DJI_00" + expert_cycle.get("Video") + ".mp4")
+                expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
                 expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
                 user_frame = cv2.addWeighted(user_frame, 0.5, expert_frame, 0.5, 0)
             # TODO Fix this colour conversion?
             user_frame = cv2.cvtColor(user_frame, cv2.COLOR_RGB2BGR)
             
             user_frame = draw_lines_and_text(user_frame, cycle, joints_lines, frame1, frame2, expert_cycle, 
-                                      user_lines, expert_lines, diff_user_expert, i)
+                                      user_lines, expert_lines, diff_user_expert, i, run_args)
 
             cv2.imshow("User video", user_frame)
         
@@ -249,11 +258,6 @@ def main():
 
 
 
-
-
- 
-    
-    
 
 if __name__ == '__main__':
     main()

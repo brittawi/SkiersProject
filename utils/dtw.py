@@ -42,8 +42,7 @@ def extract_multivariate_series(cycle_data, joint_triplets):
         frames.append(i)
     return np.array(all_angles), frames
 
-def extract_keypoint_series(cycle_data, joints, sigma=2):
-    
+def smooth_cycle(cycle_data, joints, sigma=2):
     smoothed_cycle_data = {}
     # apply smoothing first
     if sigma > 0:
@@ -51,7 +50,10 @@ def extract_keypoint_series(cycle_data, joints, sigma=2):
             if joint.replace("_x", "").replace("_y", "") in joints:
                 smoothed_series = smooth_signal(series, sigma)
                 smoothed_cycle_data[joint] = smoothed_series
-                          
+    return smoothed_cycle_data
+
+def extract_keypoint_series(cycle_data, joints, sigma=2):
+    smoothed_cycle_data = smooth_cycle(cycle_data, joints, sigma)
     all_keypoints = []
     frames = []
     for i in range(len(smoothed_cycle_data[joints[0] + "_x"])):

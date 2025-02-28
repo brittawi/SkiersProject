@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+from utils.dtw import smooth_cycle
 
 def compute_angle_between_lines(p1, p2, p3, p4):
     """Computes the angle between two lines formed by points (p1, p2) and (p3, p4)."""
@@ -19,10 +20,14 @@ def compute_angle_between_lines(p1, p2, p3, p4):
     angle = np.arccos(np.clip(cos_theta, -1.0, 1.0))
     return np.degrees(angle)  # Convert to degrees if needed
 
-def extract_multivariate_series_for_lines(cycle_data, line_joint_quadruplets):
+def extract_multivariate_series_for_lines(cycle_data, line_joint_quadruplets, run_args):
     """Extracts multivariate time-series data for the angles between lines formed by four joints from a cycle."""
     all_angles = []
     frames = []
+    # TODO Make option?
+    joints_list = [joint for tuple_joints in line_joint_quadruplets for joint in tuple_joints]
+    cycle_data = smooth_cycle(cycle_data, joints_list, sigma=run_args.DTW.SIGMA_VALUE)
+    
     for i in range(len(cycle_data[line_joint_quadruplets[0][0] + "_x"])):
         angles = []
         for joint1, joint2, joint3, joint4 in line_joint_quadruplets:
@@ -32,12 +37,12 @@ def extract_multivariate_series_for_lines(cycle_data, line_joint_quadruplets):
             # p3 = (cycle_data[joint3 + "_x"][i], cycle_data[joint3 + "_y"][i])
             # p4 = (cycle_data[joint4 + "_x"][i], cycle_data[joint4 + "_y"][i])
 
-            if joint1 == "Hip":
+            if joint1 == run_args.DTW.CHOOSEN_REF:
                 p1 = (cycle_data[joint1 + "_x_ref"][i], cycle_data[joint1 + "_y_ref"][i])
             else:
                 p1 = (cycle_data[joint1 + "_x"][i], cycle_data[joint1 + "_y"][i])
             p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
-            if joint3 == "Hip":
+            if joint3 == run_args.DTW.CHOOSEN_REF:
                 p3 = (cycle_data[joint3 + "_x_ref"][i], cycle_data[joint3 + "_y_ref"][i])
             else:
                 p3 = (cycle_data[joint3 + "_x"][i], cycle_data[joint3 + "_y"][i])
@@ -66,7 +71,7 @@ def calculate_differences(list1, list2, index_pairs):
         differences.append(difference)
     return differences
 
-def get_line_points(user_cycle, joints_list, frame1, frame2, expert_cycle = None):
+def get_line_points(user_cycle, joints_list, frame1, frame2, run_args, expert_cycle = None):
     points = []
     for joints in joints_list:
         #TODO Get ref from cfg/other way?
@@ -74,7 +79,7 @@ def get_line_points(user_cycle, joints_list, frame1, frame2, expert_cycle = None
             x_suffix = "_x"
             y_suffix = "_y"
             # TODO Fix because only ref in json
-            if joint == "Hip":
+            if joint == run_args.DTW.CHOOSEN_REF:
                 x_suffix += "_ref"
                 y_suffix += "_ref"
                 if expert_cycle == None:
@@ -100,7 +105,7 @@ def get_line_points(user_cycle, joints_list, frame1, frame2, expert_cycle = None
     return points
 
 def draw_lines_and_text(user_frame, cycle, shoulder_hip_joints, frame1, frame2, expert_cycle, 
-                             user_lines, expert_lines, diff_user_expert, i):
+                             user_lines, expert_lines, diff_user_expert, i, run_args):
     """
     Draws lines on the skier and annotates user and expert shoulder/hip angles along with their difference.
 
@@ -120,8 +125,8 @@ def draw_lines_and_text(user_frame, cycle, shoulder_hip_joints, frame1, frame2, 
     - user_frame: The frame with drawn lines and text.
     """
     # Get line points for user and expert
-    user_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2)
-    expert_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2, expert_cycle)
+    user_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2, run_args)
+    expert_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2, run_args, expert_cycle)
 
     # Draw user lines (blue)
     cv2.line(user_frame, user_points[0], user_points[1], color=(255, 0, 0), thickness=2)  # First pair
