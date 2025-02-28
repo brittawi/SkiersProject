@@ -151,6 +151,7 @@ def main():
         # send in data in json format
         cycle = cycle_data[f"Cycle {i+1}"]
         
+        # TODO try DTW with smoothed signals?
         dtw_comparisons = compare_selected_cycles(expert_data, cycle, joints, run_args.VIDEO_PATH, run_args.DTW.VIS_VID_PATH, visualize=run_args.DTW.VIS_VIDEO)
 
         # Step 5: Give feedback
