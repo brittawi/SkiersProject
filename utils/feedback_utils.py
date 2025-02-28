@@ -94,8 +94,8 @@ def get_line_points(user_cycle, joints_list, frame1, frame2, expert_cycle = None
                     # TODO Make this a param/overlay exper skier or draw lines on only user
                     # p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + user_cycle.get("Hip_x_ref")[frame1])
                     # p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + user_cycle.get("Hip_y_ref")[frame1])
-                    p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + expert_cycle.get("Hip_x_ref")[frame1])
-                    p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + expert_cycle.get("Hip_y_ref")[frame1])
+                    p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + expert_cycle.get("Hip_x_ref")[frame2])
+                    p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + expert_cycle.get("Hip_y_ref")[frame2])
             points.append((p_x,p_y))
     return points
 
@@ -122,7 +122,6 @@ def draw_lines_and_text(user_frame, cycle, shoulder_hip_joints, frame1, frame2, 
     # Get line points for user and expert
     user_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2)
     expert_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2, expert_cycle)
-    print(user_points, expert_points)
 
     # Draw user lines (blue)
     cv2.line(user_frame, user_points[0], user_points[1], color=(255, 0, 0), thickness=2)  # First pair

@@ -25,11 +25,11 @@ NETWORK_TYPE = "MLP"
 # Model path where we want to load the model from
 MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "17"
+ID = "38"
 # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 INPUT_PATH = os.path.join("E:\SkiProject\AnnotationsByUs", ID[:2] + ".json")
-INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + "_cut.mp4"
+INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
 # path to where all videos are stored
 # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 video_path = r"E:\SkiProject\Cut_videos"
@@ -181,21 +181,6 @@ def main():
         dtw_comparisons, path, expert_cycle = compare_selected_cycles(expert_data, cycle, joints, INPUT_VIDEO, video_path, visualize=False)
 
         # Step 5: Give feedback
-        """
-        Plan:
-        Have angle from user, start with single signal
-        Get best matching expert signal with DTW
-            Use frames (time steps) from compare_slected_cycles?
-            Use this:
-            path = dtw.warping_path(series_user, series_expert, use_ndim=True)
-        Plot?
-        Filter if error is only one frame/time step
-        Convert angles into specific feedback
-        Get direction from dtw, in future classify before
-        Check if angle from user is off from expert by thershold and show user
-
-        Start with parallel shoulder and hip lines
-        """
 
         direction = expert_cycle.get("Direction")
         if direction == "front":
@@ -219,7 +204,7 @@ def main():
         lean_threshold = 0.5
         print(np.mean(diff_user_expert))
         if np.abs(np.mean(diff_user_expert)) > lean_threshold:
-            print("You lean too much with your shoulders, stay up straight!")
+            print("Not parallel shoulder and hips")
 
 
         # Plotting
@@ -264,7 +249,6 @@ def main():
         
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
-        break
     
     cv2.destroyAllWindows()
 
