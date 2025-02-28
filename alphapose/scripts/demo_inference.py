@@ -4,11 +4,8 @@ import os
 import platform
 import sys
 import time
-
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
-sys.path.insert(0, 'E:/SkiProject/SkiersProject/alphapose')
+sys.path.insert(0, project_root)
 
 import numpy as np
 import torch
@@ -327,6 +324,7 @@ def run_inference(args_cfg):
         format = args_cfg.ALPHA_ARGS.get("FORMAT", '') or "coco"
         eval = False
         save_json = args_cfg.ALPHA_ARGS.SAVE_JSON
+        yolo_weight_path = args_cfg.ALPHA_ARGS.YOLO_WEIGHT_PATH
     
     args = Args()
 

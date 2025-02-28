@@ -6,16 +6,34 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 
 from utils.load_data import load_json
-from utils.dtw import compare_selected_cycles
+from utils.dtw import compare_selected_cycles, extract_frame
+from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_lines_and_text
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
 from utils.split_cycles import split_into_cycles
 from utils.preprocess_signals import *
 from utils.annotation_format import halpe26_to_coco
+from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
 
 import torch
 import numpy as np
+import cv2
+
+# TODO put in different config??
+# Type of network that we want to use for the classification
+NETWORK_TYPE = "MLP"
+# Model path where we want to load the model from
+MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
+# TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
+ID = "38"
+# INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
+# INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
+INPUT_PATH = os.path.join("E:\SkiProject\AnnotationsByUs", ID[:2] + ".json")
+INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
+# path to where all videos are stored
+# video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
+video_path = r"E:\SkiProject\Cut_videos"
 
 def main():
     
@@ -24,10 +42,11 @@ def main():
     print(f"Device = {device}")
     
     # Step 1: Get Keypoints from AlphaPose 
-    print("Loading config...")
-    run_args = update_config("./feedback_system/pipe_test.yaml") # TODO Testing set up fix for full pipeline
-    output_path, results_list = run_inference(run_args)
-    
+    if False:
+        print("Loading config...")
+        run_args = update_config("./feedback_system/pipe_test.yaml") # TODO Testing set up fix for full pipeline
+        output_path, results_list = run_inference(run_args)
+        
     # Convert keypoint data to coco format
     coco_data = halpe26_to_coco(results_list)
     
@@ -151,10 +170,87 @@ def main():
         # send in data in json format
         cycle = cycle_data[f"Cycle {i+1}"]
         
+        dtw_comparisons, path, expert_cycle = compare_selected_cycles(expert_data, cycle, joints, INPUT_VIDEO, video_path, visualize=False)
         # TODO try DTW with smoothed signals?
         dtw_comparisons = compare_selected_cycles(expert_data, cycle, joints, run_args.VIDEO_PATH, run_args.DTW.VIS_VID_PATH, visualize=run_args.DTW.VIS_VIDEO)
 
         # Step 5: Give feedback
+
+        direction = expert_cycle.get("Direction")
+        if direction == "front":
+            # Joint 1 and 2 create one line, joint 3 and 4 another line. 
+            joints_lines = [("RShoulder", "LShoulder", "RHip", "LHip")]
+        elif direction == "left":
+            joints_lines = [("RAnkle", "RKnee", "Hip", "Neck")]
+        elif direction == "right":
+            joints_lines = [("LAnkle", "LKnee", "Hip", "Neck")]
+
+        # Get the lines 
+        user_lines, _ = extract_multivariate_series_for_lines(cycle, joints_lines)
+        expert_lines, _ = extract_multivariate_series_for_lines(expert_cycle, joints_lines)
+        
+        # Match using DTW and calculate difference in angle between the lines
+        diff_user_expert = calculate_differences(user_lines, expert_lines, path)
+        # Flatten because it is in shape [array([value]), [array([value]), ...]
+        diff_user_expert = [item[0] for item in diff_user_expert]
+
+        #TODO set param?
+        lean_threshold = 0.5
+        print(np.mean(diff_user_expert))
+        if np.abs(np.mean(diff_user_expert)) > lean_threshold:
+            print("Not parallel shoulder and hips")
+
+
+        # Plotting
+        # TODO make parameter?
+        if True:
+            plot_lines(
+                'output/diff_shoulder_hips.png', 
+                'Difference between user and expert with DTW', 
+                'Time step', 
+                'Angle (Degrees)', 
+                diff_user_expert,  # Positional argument for *line_data
+                labels=['Difference between user and expert'], 
+                colors=['b'])
+
+            plot_lines(
+                'output/user_shoulder_hips.png',
+                'Plot of Array Data', 
+                'Time step', 
+                'Angle (Degrees)',  
+                user_lines,  # Positional argument for *line_data
+                expert_lines,  # Additional positional argument for *line_data
+                labels=['User', 'Expert'])
+
+        
+        user_start_frame = cycle.get("Start_frame")
+        # Loops through the DTW match pair and shows lines on user video
+        for i, (frame1, frame2) in enumerate(path):
+            user_frame = extract_frame(INPUT_VIDEO, frame1 + user_start_frame)
+            # TODO Make this a parameter?
+            if True:
+                expert_start_frame = expert_cycle.get("Start_frame")
+                expert_video = os.path.join(video_path, "DJI_00" + expert_cycle.get("Video") + ".mp4")
+                expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
+                user_frame = cv2.addWeighted(user_frame, 0.5, expert_frame, 0.5, 0)
+            # TODO Fix this colour conversion?
+            user_frame = cv2.cvtColor(user_frame, cv2.COLOR_RGB2BGR)
+            
+            user_frame = draw_lines_and_text(user_frame, cycle, joints_lines, frame1, frame2, expert_cycle, 
+                                      user_lines, expert_lines, diff_user_expert, i)
+
+            cv2.imshow("User video", user_frame)
+        
+            if cv2.waitKey(0) & 0xFF == ord('q'):
+                break
+    
+    cv2.destroyAllWindows()
+
+
+
+
+
+
  
     
     

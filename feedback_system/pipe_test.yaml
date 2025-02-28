@@ -5,6 +5,8 @@ ALPHA_ARGS:
   VIS_FAST: true
   CFG_PATH: alphapose\configs\256x192_res50_lr1e-3_1x.yaml
   WEIGHTS_PATH: C:\Users\britt\AlphaPose\pretrained_models\fine_tuned_12_videos.pth
+  WEIGHTS_PATH: E:\SkiProject\pretrained_models\final_DPG_iter_2.pth
+  YOLO_WEIGHT_PATH: E:\SkiProject\pretrained_models/yolov3-spp.weights
   GPUS: "0"
   OUTPUT_PATH: ""
   SHOWBOX: False
