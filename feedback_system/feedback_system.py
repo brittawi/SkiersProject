@@ -26,7 +26,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "38"
+ID = "17_cut"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 INPUT_PATH = os.path.join("E:\SkiProject\AnnotationsByUs", ID[:2] + ".json")
@@ -51,9 +51,6 @@ def main():
         
         # Convert keypoint data to coco format
         coco_data = halpe26_to_coco(results_list)
-    
-        
-        
         
     else:
         coco_data = load_json(INPUT_PATH)
@@ -61,7 +58,6 @@ def main():
     # Step 2: Split into cycles
     print("Splitting the data into cycles...")
     cycle_data = split_into_cycles(coco_data, run_args, visualize=False)
-    
 
     # Load the checkpoint to the model as we need it for certain data
     print("Loading Model...")
@@ -189,6 +185,7 @@ def main():
         if direction == "front":
             # Joint 1 and 2 create one line, joint 3 and 4 another line. 
             joints_lines = [("RShoulder", "LShoulder", "RHip", "LHip")]
+            joint_angles = [("")]
         elif direction == "left":
             joints_lines = [("RAnkle", "RKnee", "Hip", "Neck")]
         elif direction == "right":
@@ -235,12 +232,13 @@ def main():
         user_start_frame = cycle.get("Start_frame")
         # Loops through the DTW match pair and shows lines on user video
         for i, (frame1, frame2) in enumerate(path):
-            user_frame = extract_frame(run_args.VIDEO_PATH, frame1 + user_start_frame)
+            user_frame = extract_frame(run_args.VIDEO_PATH, frame1 + user_start_frame - 2)
             # TODO Make this a parameter?
             if True:
                 expert_start_frame = expert_cycle.get("Start_frame")
+                print(expert_start_frame)
                 expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
-                expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
+                expert_frame = extract_frame(expert_video, frame2 + expert_start_frame - 2)
                 user_frame = cv2.addWeighted(user_frame, 0.5, expert_frame, 0.5, 0)
             # TODO Fix this colour conversion?
             user_frame = cv2.cvtColor(user_frame, cv2.COLOR_RGB2BGR)
@@ -254,9 +252,6 @@ def main():
                 break
     
     cv2.destroyAllWindows()
-
-
-
 
 
 if __name__ == '__main__':

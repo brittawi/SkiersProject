@@ -26,8 +26,10 @@ def extract_multivariate_series_for_lines(cycle_data, line_joint_quadruplets, ru
     frames = []
     # TODO Make option?
     joints_list = [joint for tuple_joints in line_joint_quadruplets for joint in tuple_joints]
+    print(joints_list)
+    print(cycle_data.keys())
     cycle_data = smooth_cycle(cycle_data, joints_list, sigma=run_args.DTW.SIGMA_VALUE)
-    
+    print(cycle_data.keys())
     for i in range(len(cycle_data[line_joint_quadruplets[0][0] + "_x"])):
         angles = []
         for joint1, joint2, joint3, joint4 in line_joint_quadruplets:
@@ -89,8 +91,8 @@ def get_line_points(user_cycle, joints_list, frame1, frame2, run_args, expert_cy
                     # TODO Make this a param/overlay exper skier or draw lines on only user
                     # p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + user_cycle.get("Hip_x_ref")[frame1])
                     # p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + user_cycle.get("Hip_y_ref")[frame1])
-                    p_x = int(expert_cycle.get("Hip_x_ref")[frame1])
-                    p_y = int(expert_cycle.get("Hip_y_ref")[frame1])
+                    p_x = int(expert_cycle.get("Hip_x_ref")[frame2])
+                    p_y = int(expert_cycle.get("Hip_y_ref")[frame2])
             else:
                 if expert_cycle == None:
                     p_x = int(user_cycle.get(joint + x_suffix)[frame1] + user_cycle.get("Hip_x_ref")[frame1])
