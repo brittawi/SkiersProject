@@ -25,11 +25,11 @@ NETWORK_TYPE = "MLP"
 # Model path where we want to load the model from
 MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "38"
+ID = "17"
 # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 INPUT_PATH = os.path.join("E:\SkiProject\AnnotationsByUs", ID[:2] + ".json")
-INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
+INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + "_cut.mp4"
 # path to where all videos are stored
 # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 video_path = r"E:\SkiProject\Cut_videos"
@@ -197,12 +197,18 @@ def main():
         Start with parallel shoulder and hip lines
         """
 
-        # Joint 1 and 2 create one line, joint 3 and 4 another line. 
-        shoulder_hip_joints = [("RShoulder", "LShoulder", "RHip", "LHip")]
+        direction = expert_cycle.get("Direction")
+        if direction == "front":
+            # Joint 1 and 2 create one line, joint 3 and 4 another line. 
+            joints_lines = [("RShoulder", "LShoulder", "RHip", "LHip")]
+        elif direction == "left":
+            joints_lines = [("RAnkle", "RKnee", "Hip", "Neck")]
+        elif direction == "right":
+            joints_lines = [("LAnkle", "LKnee", "Hip", "Neck")]
 
         # Get the lines 
-        user_lines, _ = extract_multivariate_series_for_lines(cycle, shoulder_hip_joints)
-        expert_lines, _ = extract_multivariate_series_for_lines(expert_cycle, shoulder_hip_joints)
+        user_lines, _ = extract_multivariate_series_for_lines(cycle, joints_lines)
+        expert_lines, _ = extract_multivariate_series_for_lines(expert_cycle, joints_lines)
         
         # Match using DTW and calculate difference in angle between the lines
         diff_user_expert = calculate_differences(user_lines, expert_lines, path)
@@ -210,8 +216,8 @@ def main():
         diff_user_expert = [item[0] for item in diff_user_expert]
 
         #TODO set param?
-        print(np.mean(diff_user_expert))
         lean_threshold = 0.5
+        print(np.mean(diff_user_expert))
         if np.abs(np.mean(diff_user_expert)) > lean_threshold:
             print("You lean too much with your shoulders, stay up straight!")
 
@@ -251,13 +257,14 @@ def main():
             # TODO Fix this colour conversion?
             user_frame = cv2.cvtColor(user_frame, cv2.COLOR_RGB2BGR)
             
-            user_frame = draw_lines_and_text(user_frame, cycle, shoulder_hip_joints, frame1, frame2, expert_cycle, 
+            user_frame = draw_lines_and_text(user_frame, cycle, joints_lines, frame1, frame2, expert_cycle, 
                                       user_lines, expert_lines, diff_user_expert, i)
 
             cv2.imshow("User video", user_frame)
         
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
+        break
     
     cv2.destroyAllWindows()
 

@@ -26,9 +26,21 @@ def extract_multivariate_series_for_lines(cycle_data, line_joint_quadruplets):
     for i in range(len(cycle_data[line_joint_quadruplets[0][0] + "_x"])):
         angles = []
         for joint1, joint2, joint3, joint4 in line_joint_quadruplets:
-            p1 = (cycle_data[joint1 + "_x"][i], cycle_data[joint1 + "_y"][i])
+            # TODO Change json to add Hip_x/Hip_y (the reference realtive too)
+            # p1 = (cycle_data[joint1 + "_x"][i], cycle_data[joint1 + "_y"][i])
+            # p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
+            # p3 = (cycle_data[joint3 + "_x"][i], cycle_data[joint3 + "_y"][i])
+            # p4 = (cycle_data[joint4 + "_x"][i], cycle_data[joint4 + "_y"][i])
+
+            if joint1 == "Hip":
+                p1 = (cycle_data[joint1 + "_x_ref"][i], cycle_data[joint1 + "_y_ref"][i])
+            else:
+                p1 = (cycle_data[joint1 + "_x"][i], cycle_data[joint1 + "_y"][i])
             p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
-            p3 = (cycle_data[joint3 + "_x"][i], cycle_data[joint3 + "_y"][i])
+            if joint3 == "Hip":
+                p3 = (cycle_data[joint3 + "_x_ref"][i], cycle_data[joint3 + "_y_ref"][i])
+            else:
+                p3 = (cycle_data[joint3 + "_x"][i], cycle_data[joint3 + "_y"][i])
             p4 = (cycle_data[joint4 + "_x"][i], cycle_data[joint4 + "_y"][i])
             angles.append(compute_angle_between_lines(p1, p2, p3, p4))
         all_angles.append(angles)
@@ -59,15 +71,31 @@ def get_line_points(user_cycle, joints_list, frame1, frame2, expert_cycle = None
     for joints in joints_list:
         #TODO Get ref from cfg/other way?
         for joint in joints:
-            if expert_cycle == None:
-                p_x = int(user_cycle.get(joint + "_x")[frame1] + user_cycle.get("Hip_x_ref")[frame1])
-                p_y = int(user_cycle.get(joint + "_y")[frame1] + user_cycle.get("Hip_y_ref")[frame1])
+            x_suffix = "_x"
+            y_suffix = "_y"
+            # TODO Fix because only ref in json
+            if joint == "Hip":
+                x_suffix += "_ref"
+                y_suffix += "_ref"
+                if expert_cycle == None:
+                    p_x = int(user_cycle.get("Hip_x_ref")[frame1])
+                    p_y = int(user_cycle.get("Hip_y_ref")[frame1])
+                else:
+                    # TODO Make this a param/overlay exper skier or draw lines on only user
+                    # p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + user_cycle.get("Hip_x_ref")[frame1])
+                    # p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + user_cycle.get("Hip_y_ref")[frame1])
+                    p_x = int(expert_cycle.get("Hip_x_ref")[frame1])
+                    p_y = int(expert_cycle.get("Hip_y_ref")[frame1])
             else:
-                # TODO Make this a param/overlay exper skier or draw lines on only user
-                # p_x = int(expert_cycle.get(joint + "_x")[frame2] + user_cycle.get("Hip_x_ref")[frame1])
-                # p_y = int(expert_cycle.get(joint + "_y")[frame2] + user_cycle.get("Hip_y_ref")[frame1])
-                p_x = int(expert_cycle.get(joint + "_x")[frame2] + expert_cycle.get("Hip_x_ref")[frame1])
-                p_y = int(expert_cycle.get(joint + "_y")[frame2] + expert_cycle.get("Hip_y_ref")[frame1])
+                if expert_cycle == None:
+                    p_x = int(user_cycle.get(joint + x_suffix)[frame1] + user_cycle.get("Hip_x_ref")[frame1])
+                    p_y = int(user_cycle.get(joint + y_suffix)[frame1] + user_cycle.get("Hip_y_ref")[frame1])
+                else:
+                    # TODO Make this a param/overlay exper skier or draw lines on only user
+                    # p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + user_cycle.get("Hip_x_ref")[frame1])
+                    # p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + user_cycle.get("Hip_y_ref")[frame1])
+                    p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + expert_cycle.get("Hip_x_ref")[frame1])
+                    p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + expert_cycle.get("Hip_y_ref")[frame1])
             points.append((p_x,p_y))
     return points
 
@@ -94,6 +122,7 @@ def draw_lines_and_text(user_frame, cycle, shoulder_hip_joints, frame1, frame2, 
     # Get line points for user and expert
     user_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2)
     expert_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2, expert_cycle)
+    print(user_points, expert_points)
 
     # Draw user lines (blue)
     cv2.line(user_frame, user_points[0], user_points[1], color=(255, 0, 0), thickness=2)  # First pair
