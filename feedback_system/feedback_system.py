@@ -6,7 +6,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 
 from utils.load_data import load_json
-from utils.dtw import compare_selected_cycles, extract_frame, extract_frame_second
+from utils.dtw import compare_selected_cycles, extract_frame, extract_frame_imageio, extract_frame_ffmpeg
 from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_lines_and_text
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
@@ -237,14 +237,14 @@ def main():
         # Loops through the DTW match pair and shows lines on user video
         print(path)
         for i, (frame1, frame2) in enumerate(path):
-            user_frame = extract_frame_second(run_args.VIDEO_PATH, frame1 + user_start_frame)
+            user_frame = extract_frame_ffmpeg(run_args.VIDEO_PATH, frame1 + user_start_frame)
             print("LShoulder:", cycle["LShoulder_x"][frame1])
             print("LShoulder expert:", expert_cycle["LShoulder_x"][frame2])
             # # TODO Make this a parameter?
             # if True:
             expert_start_frame = expert_cycle.get("Start_frame")
             expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
-            expert_frame = extract_frame_second(expert_video, frame2 + expert_start_frame)
+            expert_frame = extract_frame_ffmpeg(expert_video, frame2 + expert_start_frame)
             
             # draw lines on to each frame
             user_points = get_line_points(cycle, joints_lines, frame1, frame2, run_args)

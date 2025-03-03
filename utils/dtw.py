@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from dtaidistance import dtw, dtw_visualisation
 import os
 from utils.preprocess_signals import smooth_signal
+import imageio
+import subprocess
 
 def compute_angle(p1, p2, p3):
     """Computes the angle between three points."""
@@ -100,6 +102,40 @@ def extract_frame_second(video_path, frame_idx):
 
     cap.release()
     return frame  # Returns the frame (BGR format)
+
+def extract_frame_imageio(video_path, frame_idx):
+    """Extracts a frame using imageio (alternative to OpenCV)."""
+    frame_idx = frame_idx-1
+    
+    print("extracting frame: ", frame_idx)
+    vid = imageio.get_reader(video_path, "ffmpeg")
+    
+    try:
+        frame = vid.get_data(frame_idx)  # Get exact frame
+        return frame
+    except IndexError:
+        print(f"Error: Frame {frame_idx} out of range.")
+        return None
+    
+def extract_frame_ffmpeg(video_path, frame_idx):
+    """Extracts a specific frame using ffmpeg and loads it with OpenCV."""
+    
+    output_file = "temp_frame.jpg"
+    
+    # FFmpeg command to extract a single frame
+    command = [
+        "ffmpeg", "-i", video_path,  # Input video
+        "-vf", f"select=eq(n\,{frame_idx})",  # Select frame by index
+        "-vsync", "vfr", output_file,  # Avoid duplicated frames
+        "-y"  # Overwrite existing file
+    ]
+    
+    subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    # Read the image using OpenCV
+    frame = cv2.imread(output_file)
+    
+    return frame if frame is not None else None
 
 # function to overlay 2 frames
 def overlay_frames_loop(user_video, expert_video, path, cycle1_start_frame, cycle2_start_frame, series1, series2):

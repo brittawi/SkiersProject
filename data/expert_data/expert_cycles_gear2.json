@@ -4509,7 +4509,7 @@
                 56.51999999999998
             ],
             "Label": "gear2",
-            "Start_frame": 1,
+            "Start_frame": 135,
             "End_frame": 161,
             "Direction": "front",
             "Video": "40"
