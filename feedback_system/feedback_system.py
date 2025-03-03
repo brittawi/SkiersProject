@@ -232,24 +232,74 @@ def main():
         user_start_frame = cycle.get("Start_frame")
         # Loops through the DTW match pair and shows lines on user video
         print(path)
+        # for i, (frame1, frame2) in enumerate(path):
+        #     user_frame = extract_frame(run_args.VIDEO_PATH, frame1 + user_start_frame)
+        #     print(frame1, frame2)
+        #     # TODO Make this a parameter?
+        #     if True:
+        #         expert_start_frame = expert_cycle.get("Start_frame")
+        #         print("Experti video start frame", expert_start_frame)
+        #         expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
+        #         expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
+        #         print("Expert video frame:", frame2 + expert_start_frame)
+        #         user_frame = cv2.addWeighted(user_frame, 00, expert_frame, 1, 0)
+        #     # TODO Fix this colour conversion?
+        #     user_frame = cv2.cvtColor(user_frame, cv2.COLOR_RGB2BGR)
+            
+        #     user_frame = draw_lines_and_text(user_frame, cycle, joints_lines, frame1, frame2, expert_cycle, 
+        #                               user_lines, expert_lines, diff_user_expert, i, run_args)
+
+        #     cv2.imshow("User video", user_frame)
+        
+        #     if cv2.waitKey(0) & 0xFF == ord('q'):
+        #         break
+                # Loops through the DTW match pair and shows lines on user video
+        print(path)
         for i, (frame1, frame2) in enumerate(path):
             user_frame = extract_frame(run_args.VIDEO_PATH, frame1 + user_start_frame)
-            print(frame1, frame2)
-            # TODO Make this a parameter?
-            if True:
-                expert_start_frame = expert_cycle.get("Start_frame")
-                print("Experti video start frame", expert_start_frame)
-                expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
-                expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
-                print("Expert video frame:", frame2 + expert_start_frame)
-                user_frame = cv2.addWeighted(user_frame, 00, expert_frame, 1, 0)
-            # TODO Fix this colour conversion?
-            user_frame = cv2.cvtColor(user_frame, cv2.COLOR_RGB2BGR)
+            print("LShoulder:", cycle["LShoulder_x"][frame1])
+            print("LShoulder expert:", expert_cycle["LShoulder_x"][frame2])
+            # # TODO Make this a parameter?
+            # if True:
+            expert_start_frame = expert_cycle.get("Start_frame")
+            expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
+            expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
             
-            user_frame = draw_lines_and_text(user_frame, cycle, joints_lines, frame1, frame2, expert_cycle, 
-                                      user_lines, expert_lines, diff_user_expert, i, run_args)
+            # draw lines on to each frame
+            user_points = get_line_points(cycle, joints_lines, frame1, frame2, run_args)
+            expert_points = get_line_points(cycle, joints_lines, frame1, frame2, run_args, expert_cycle)
 
-            cv2.imshow("User video", user_frame)
+            radius = 2
+            # Draw user lines (blue)
+            # cv2.line(user_frame, user_points[0], user_points[1], color=(255, 0, 0), thickness=2)  # First pair
+            # cv2.line(user_frame, user_points[2], user_points[3], color=(255, 0, 0), thickness=2)  # Second pair
+            for point in user_points:
+                cv2.circle(user_frame, point, radius=radius, color=(0, 0, 255), thickness=-1)
+
+            # Draw expert lines (yellow)
+            # cv2.line(expert_frame, expert_points[0] , expert_points[1], color=(255, 255, 0), thickness=2)  # First pair
+            # cv2.line(expert_frame, expert_points[2] , expert_points[3], color=(255, 255, 0), thickness=2)  # Second pair
+            for point in expert_points:
+                cv2.circle(expert_frame, point, radius=radius, color=(0, 0, 255), thickness=-1)
+            
+            #user_frame = cv2.vconcat([user_frame, expert_frame])
+            
+            #user_frame = cv2.resize(user_frame, None, fx=0.5, fy=0.5)
+            
+            # # Save the frame as an image
+            # save_path = os.path.join(output_dir, f"frame_{i:04d}.png")
+            # cv2.imwrite(save_path, user_frame)
+            # print(f"Saved: {save_path}")
+    
+            cv2.imshow("User video", expert_frame)
+            #user_frame = cv2.addWeighted(user_frame, 0.5, expert_frame, 0.5, 0)
+            # TODO Fix this colour conversion?
+            # user_frame = cv2.cvtColor(user_frame, cv2.COLOR_RGB2BGR)
+            
+            # user_frame = draw_lines_and_text(user_frame, cycle, joints_lines, frame1, frame2, expert_cycle, 
+            #                           user_lines, expert_lines, diff_user_expert, i, run_args)
+
+            #cv2.imshow("User video", user_frame)
         
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
