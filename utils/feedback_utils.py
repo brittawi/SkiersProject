@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from utils.dtw import smooth_cycle
+from utils.dtw import smooth_cycle, compute_angle
 
 def compute_angle_between_lines(p1, p2, p3, p4):
     """Computes the angle between two lines formed by points (p1, p2) and (p3, p4)."""
@@ -26,19 +26,12 @@ def extract_multivariate_series_for_lines(cycle_data, line_joint_quadruplets, ru
     frames = []
     # TODO Make option?
     joints_list = [joint for tuple_joints in line_joint_quadruplets for joint in tuple_joints]
-    print(joints_list)
-    print(cycle_data.keys())
-    cycle_data = smooth_cycle(cycle_data, joints_list, sigma=run_args.DTW.SIGMA_VALUE)
-    print(cycle_data.keys())
+    if run_args.DTW.GAUS_FILTER:
+        cycle_data = smooth_cycle(cycle_data, joints_list, sigma=run_args.DTW.SIGMA_VALUE)
     for i in range(len(cycle_data[line_joint_quadruplets[0][0] + "_x"])):
         angles = []
         for joint1, joint2, joint3, joint4 in line_joint_quadruplets:
-            # TODO Change json to add Hip_x/Hip_y (the reference realtive too)
-            # p1 = (cycle_data[joint1 + "_x"][i], cycle_data[joint1 + "_y"][i])
-            # p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
-            # p3 = (cycle_data[joint3 + "_x"][i], cycle_data[joint3 + "_y"][i])
-            # p4 = (cycle_data[joint4 + "_x"][i], cycle_data[joint4 + "_y"][i])
-
+            # TODO Change json to add Hip_x/Hip_y (the reference realtive too)?
             if joint1 == run_args.DTW.CHOOSEN_REF:
                 p1 = (cycle_data[joint1 + "_x_ref"][i], cycle_data[joint1 + "_y_ref"][i])
             else:
@@ -73,7 +66,40 @@ def calculate_differences(list1, list2, index_pairs):
         differences.append(difference)
     return differences
 
-def get_line_points(user_cycle, joints_list, frame1, frame2, run_args, expert_cycle = None):
+# def get_line_points(user_cycle, joints_list, frame1, frame2, run_args, expert_cycle = None):
+#     points = []
+#     for joints in joints_list:
+#         #TODO Get ref from cfg/other way?
+#         for joint in joints:
+#             x_suffix = "_x"
+#             y_suffix = "_y"
+#             # TODO Fix because only ref in json
+#             if joint == run_args.DTW.CHOOSEN_REF:
+#                 x_suffix += "_ref"
+#                 y_suffix += "_ref"
+#                 if expert_cycle == None:
+#                     p_x = int(user_cycle.get("Hip_x_ref")[frame1])
+#                     p_y = int(user_cycle.get("Hip_y_ref")[frame1])
+#                 else:
+#                     # TODO Make this a param/overlay exper skier or draw lines on only user
+#                     # p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + user_cycle.get("Hip_x_ref")[frame1])
+#                     # p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + user_cycle.get("Hip_y_ref")[frame1])
+#                     p_x = int(expert_cycle.get("Hip_x_ref")[frame2])
+#                     p_y = int(expert_cycle.get("Hip_y_ref")[frame2])
+#             else:
+#                 if expert_cycle == None:
+#                     p_x = int(user_cycle.get(joint + x_suffix)[frame1] + user_cycle.get("Hip_x_ref")[frame1])
+#                     p_y = int(user_cycle.get(joint + y_suffix)[frame1] + user_cycle.get("Hip_y_ref")[frame1])
+#                 else:
+#                     # TODO Make this a param/overlay exper skier or draw lines on only user
+#                     # p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + user_cycle.get("Hip_x_ref")[frame1])
+#                     # p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + user_cycle.get("Hip_y_ref")[frame1])
+#                     p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + expert_cycle.get("Hip_x_ref")[frame2])
+#                     p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + expert_cycle.get("Hip_y_ref")[frame2])
+#             points.append((p_x,p_y))
+#     return points
+
+def get_line_points(cycle, joints_list, frame, run_args):
     points = []
     for joints in joints_list:
         #TODO Get ref from cfg/other way?
@@ -84,25 +110,11 @@ def get_line_points(user_cycle, joints_list, frame1, frame2, run_args, expert_cy
             if joint == run_args.DTW.CHOOSEN_REF:
                 x_suffix += "_ref"
                 y_suffix += "_ref"
-                if expert_cycle == None:
-                    p_x = int(user_cycle.get("Hip_x_ref")[frame1])
-                    p_y = int(user_cycle.get("Hip_y_ref")[frame1])
-                else:
-                    # TODO Make this a param/overlay exper skier or draw lines on only user
-                    # p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + user_cycle.get("Hip_x_ref")[frame1])
-                    # p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + user_cycle.get("Hip_y_ref")[frame1])
-                    p_x = int(expert_cycle.get("Hip_x_ref")[frame2])
-                    p_y = int(expert_cycle.get("Hip_y_ref")[frame2])
+                p_x = int(cycle.get("Hip_x_ref")[frame])
+                p_y = int(cycle.get("Hip_y_ref")[frame])
             else:
-                if expert_cycle == None:
-                    p_x = int(user_cycle.get(joint + x_suffix)[frame1] + user_cycle.get("Hip_x_ref")[frame1])
-                    p_y = int(user_cycle.get(joint + y_suffix)[frame1] + user_cycle.get("Hip_y_ref")[frame1])
-                else:
-                    # TODO Make this a param/overlay exper skier or draw lines on only user
-                    # p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + user_cycle.get("Hip_x_ref")[frame1])
-                    # p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + user_cycle.get("Hip_y_ref")[frame1])
-                    p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + expert_cycle.get("Hip_x_ref")[frame2])
-                    p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + expert_cycle.get("Hip_y_ref")[frame2])
+                p_x = int(cycle.get(joint + x_suffix)[frame] + cycle.get("Hip_x_ref")[frame])
+                p_y = int(cycle.get(joint + y_suffix)[frame] + cycle.get("Hip_y_ref")[frame])
             points.append((p_x,p_y))
     return points
 
@@ -169,3 +181,98 @@ def draw_lines_and_text(user_frame, cycle, shoulder_hip_joints, frame1, frame2, 
     cv2.putText(user_frame, diff_text, (text_origin[0] + x_offset, text_origin[1] - y_offset), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
     return user_frame
+
+def draw_joint_lines(joints_lines, frame, points, l_color=(0,255,0), p_color=(0,0,255), l_thickness = 2, p_radius = 2):
+    for i in range(len(joints_lines)):
+        j = i*4
+        cv2.line(frame, points[0+j], points[1+j], color=l_color, thickness=l_thickness)  # First pair
+        cv2.line(frame, points[2+j], points[3+j], color=l_color, thickness=l_thickness)  # Second pair
+        for point in points:
+            cv2.circle(frame, point, radius=p_radius, color=p_color, thickness=-1)
+
+def calc_draw_angle(pt1, pt2, pt3):
+    v1 = np.array(pt1) - np.array(pt2)
+    v2 = np.array(pt3) - np.array(pt2)
+    start_angle = int(np.degrees(np.arctan2(v1[1], v1[0]))) % 360
+    end_angle = int(np.degrees(np.arctan2(v2[1], v2[0]))) % 360
+    return start_angle, end_angle
+    
+def calc_angle_diff(start_angle, end_angle):
+    angle_diff = end_angle - start_angle
+    # If the difference is more than 180 degrees, swap the direction for the shortest arc
+    if angle_diff > 180:
+        angle_diff -= 360  # Taking the shorter path by going in the reverse direction
+    elif angle_diff < -180:
+        angle_diff += 360
+    return angle_diff
+
+def draw_joint_angles(joint_angles, frame, points, l_color=(0,255,0), p_color=(0,0,255), l_thickness = 2, p_radius = 2, e_radius = 10):
+    for i in range(len(joint_angles)):
+        j = i*3
+        cv2.line(frame, points[0+j], points[1+j], color=l_color, thickness=l_thickness)  # First pair
+        cv2.line(frame, points[1+j], points[2+j], color=l_color, thickness=l_thickness)  # Second pair
+        for point in points:
+            cv2.circle(frame, point, radius=p_radius, color=p_color, thickness=-1)
+        start_angle, end_angle = calc_draw_angle(points[0+j], points[1+j], points[2+j])
+        angle_diff = calc_angle_diff(start_angle, end_angle)
+        if angle_diff > 0:
+            cv2.ellipse(frame, points[1+j], (e_radius, e_radius), 0, start_angle, start_angle + angle_diff, l_color, l_thickness)
+        else:
+            cv2.ellipse(frame, points[1+j], (e_radius, e_radius), 0, end_angle, end_angle - angle_diff, l_color, l_thickness)
+
+
+def draw_table(frame, joint_angles, user_angle, expert_angle, match):
+    height, width, _ = frame.shape
+    rows = len(joint_angles)
+    cols = 5
+    # cell_width = width // cols
+    # cell_height = height // rows
+    cell_width = 350
+    cell_height = 60
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 2
+    font_thickness = 2
+    text_color = (255, 255, 255)
+
+    # table_data = [
+    #     ['Angle', 'User', 'Expert', 'Difference', 'Header5'],
+    #     ['Row1Col1', 'Row1Col2', 'Row1Col3', 'Row1Col4', 'Row1Col5'],
+    #     ['Row2Col1', 'Row2Col2', 'Row2Col3', 'Row2Col4', 'Row2Col5'],
+    #     ['Row3Col1', 'Row3Col2', 'Row3Col3', 'Row3Col4', 'Row3Col5'],
+    #     ['Row4Col1', 'Row4Col2', 'Row4Col3', 'Row4Col4', 'Row4Col5']
+    # ]
+
+    table_data = [['Angle', 'User', 'Expert', 'Difference', 'Header5']]
+    for angle in joint_angles:
+        row = []
+        row.append(str(angle))
+        p1, p2, p3 = user_angle[match[0]]
+        print (p1, p2, p3)
+        row.append(str(compute_angle(p1, p2, p3)))
+        e1, e2, e3 = expert_angle[match[1]]
+        row.append(str(compute_angle(e1, e2, e3)))
+        row.append("")
+        row.append("")
+        table_data.append(row)
+
+    print(table_data)
+
+    for row in range(rows):
+        for col in range(cols):
+             # Top-left corner (x1, y1) and bottom-right corner (x2, y2) for each cell
+                top_left = (col * cell_width, row * cell_height)
+                bottom_right = ((col + 1) * cell_width, (row + 1) * cell_height)
+                
+                # Draw rectangle (cell border)
+                cv2.rectangle(frame, top_left, bottom_right, (0, 0, 0), 2)  # Black border
+                
+                # Add text to the cell (centered)
+                text = table_data[row][col]
+                (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, font_thickness)
+                text_x = top_left[0] + (cell_width - text_width) // 2
+                text_y = top_left[1] + (cell_height + text_height) // 2
+                cv2.putText(frame, text, (text_x, text_y), font, font_scale, text_color, font_thickness)
+    return frame
+
+

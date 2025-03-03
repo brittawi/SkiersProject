@@ -1,5 +1,5 @@
   
-VIDEO_PATH: E:\SkiProject\Cut_videos\DJI_0038.MP4
+VIDEO_PATH: E:\SkiProject\Cut_videos\DJI_0044.MP4
 ALPHA_ARGS:
   SAVE_VIDEO: false
   VIS_FAST: true
@@ -20,5 +20,6 @@ DTW:
   CHOOSEN_JOINT: RAnkle
   CHOOSEN_REF: Hip
   CHOOSEN_DIM: x
+  GAUS_FILTER: True
   SIGMA_VALUE: 2 
   ORDER: 22
