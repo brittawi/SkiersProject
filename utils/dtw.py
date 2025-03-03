@@ -69,14 +69,37 @@ def extract_keypoint_series(cycle_data, joints, sigma=2):
 # function to extract frame from video
 def extract_frame(video_path, frame_idx):
     """Extracts and returns a specific frame from a video file."""
+    # minus 1 because frames start at 0 but image id starts at 1
+    print("extracting frame: ", frame_idx-20)
     cap = cv2.VideoCapture(video_path)
-    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx-20)
     ret, frame = cap.read()
     cap.release()
     if ret:
         return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     else:
         return None
+    
+def extract_frame_second(video_path, frame_idx):
+    """Extracts a specific frame by reading the video sequentially."""
+    frame_idx = frame_idx-1
+    print("extracting frame: ", frame_idx)
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        print("Error: Cannot open video file.")
+        return None
+
+    current_frame = 0
+    while current_frame <= frame_idx:
+        ret, frame = cap.read()
+        if not ret:
+            print(f"Error: Frame {frame_idx} could not be read.")
+            cap.release()
+            return None
+        current_frame += 1
+
+    cap.release()
+    return frame  # Returns the frame (BGR format)
 
 # function to overlay 2 frames
 def overlay_frames_loop(user_video, expert_video, path, cycle1_start_frame, cycle2_start_frame, series1, series2):

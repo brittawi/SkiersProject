@@ -6,7 +6,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 
 from utils.load_data import load_json
-from utils.dtw import compare_selected_cycles, extract_frame
+from utils.dtw import compare_selected_cycles, extract_frame, extract_frame_second
 from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_lines_and_text
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
@@ -15,6 +15,7 @@ from utils.preprocess_signals import *
 from utils.annotation_format import halpe26_to_coco
 from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
+from utils.feedback_utils import get_line_points
 
 import torch
 import numpy as np
@@ -29,7 +30,7 @@ import cv2
 ID = "38"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
-INPUT_PATH = os.path.join("E:\SkiProject\AnnotationsByUs", ID[:2] + ".json")
+INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
 # INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
 # # path to where all videos are stored
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
@@ -51,10 +52,7 @@ def main():
         
         # Convert keypoint data to coco format
         coco_data = halpe26_to_coco(results_list)
-    
-        
-        
-        
+ 
     else:
         coco_data = load_json(INPUT_PATH)
 
@@ -174,81 +172,115 @@ def main():
         # TODO to compare cycles we can either input joint triplets, then we need to set use_keypoints to false
         # otherwise we can input joints, then it will use raw keypoints for DTW
         joint_triplets = [("RHip", "RKnee", "RAnkle"), ("LHip", "LKnee", "LAnkle"), ("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
-        joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist"]
+        #joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist"]
+        joints = ["RHip", "LHip", "RShoulder", "LShoulder"]
         
         # send in data in json format
         cycle = cycle_data[f"Cycle {i+1}"]
         
         dtw_comparisons, path, expert_cycle = compare_selected_cycles(expert_data, cycle, joints, run_args.VIDEO_PATH, run_args.DTW.VIS_VID_PATH, visualize=False)
-        # TODO try DTW with smoothed signals?
-        dtw_comparisons = compare_selected_cycles(expert_data, cycle, joints, run_args.VIDEO_PATH, run_args.DTW.VIS_VID_PATH, visualize=run_args.DTW.VIS_VIDEO)
-
+       
         # Step 5: Give feedback
-
         direction = expert_cycle.get("Direction")
         if direction == "front":
             # Joint 1 and 2 create one line, joint 3 and 4 another line. 
-            joints_lines = [("RShoulder", "LShoulder", "RHip", "LHip")]
+            #joints_lines = [("RShoulder", "LShoulder", "RHip", "LHip")]
+            joints_lines = [("RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist")]
         elif direction == "left":
             joints_lines = [("RAnkle", "RKnee", "Hip", "Neck")]
         elif direction == "right":
             joints_lines = [("LAnkle", "LKnee", "Hip", "Neck")]
 
         # Get the lines 
-        user_lines, _ = extract_multivariate_series_for_lines(cycle, joints_lines, run_args)
-        expert_lines, _ = extract_multivariate_series_for_lines(expert_cycle, joints_lines, run_args)
+        # user_lines, _ = extract_multivariate_series_for_lines(cycle, joints_lines, run_args)
+        # expert_lines, _ = extract_multivariate_series_for_lines(expert_cycle, joints_lines, run_args)
         
         # Match using DTW and calculate difference in angle between the lines
-        diff_user_expert = calculate_differences(user_lines, expert_lines, path)
+        #diff_user_expert = calculate_differences(user_lines, expert_lines, path)
         # Flatten because it is in shape [array([value]), [array([value]), ...]
-        diff_user_expert = [item[0] for item in diff_user_expert]
+        #diff_user_expert = [item[0] for item in diff_user_expert]
 
         #TODO set param?
-        lean_threshold = 0.5
-        print(np.mean(diff_user_expert))
-        if np.abs(np.mean(diff_user_expert)) > lean_threshold:
-            print("Not parallel shoulder and hips")
+        # lean_threshold = 0.5
+        # print(np.mean(diff_user_expert))
+        # if np.abs(np.mean(diff_user_expert)) > lean_threshold:
+        #     print("Not parallel shoulder and hips")
 
 
         # Plotting
         # TODO make parameter?
-        if True:
-            plot_lines(
-                f'output/diff_shoulder_hips_{i}.png', 
-                'Difference between user and expert with DTW', 
-                'Time step', 
-                'Angle (Degrees)', 
-                diff_user_expert,  # Positional argument for *line_data
-                labels=['Difference between user and expert'], 
-                colors=['b'])
+        # if True:
+        #     plot_lines(
+        #         f'data/output/diff_shoulder_hips_{i}.png', 
+        #         'Difference between user and expert with DTW', 
+        #         'Time step', 
+        #         'Angle (Degrees)', 
+        #         diff_user_expert,  # Positional argument for *line_data
+        #         labels=['Difference between user and expert'], 
+        #         colors=['b'])
 
-            plot_lines(
-                f'output/user_shoulder_hips_{i}.png',
-                'Plot of Array Data', 
-                'Time step', 
-                'Angle (Degrees)',  
-                user_lines,  # Positional argument for *line_data
-                expert_lines,  # Additional positional argument for *line_data
-                labels=['User', 'Expert'])
+        #     plot_lines(
+        #         f'data/output/user_shoulder_hips_{i}.png',
+        #         'Plot of Array Data', 
+        #         'Time step', 
+        #         'Angle (Degrees)',  
+        #         user_lines,  # Positional argument for *line_data
+        #         expert_lines,  # Additional positional argument for *line_data
+        #         labels=['User', 'Expert'])
 
         
         user_start_frame = cycle.get("Start_frame")
+        
+        output_dir = "output_frames"
+        os.makedirs(output_dir, exist_ok=True)
+        
         # Loops through the DTW match pair and shows lines on user video
+        print(path)
         for i, (frame1, frame2) in enumerate(path):
-            user_frame = extract_frame(run_args.VIDEO_PATH, frame1 + user_start_frame)
-            # TODO Make this a parameter?
-            if True:
-                expert_start_frame = expert_cycle.get("Start_frame")
-                expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
-                expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
-                user_frame = cv2.addWeighted(user_frame, 0.5, expert_frame, 0.5, 0)
-            # TODO Fix this colour conversion?
-            user_frame = cv2.cvtColor(user_frame, cv2.COLOR_RGB2BGR)
+            user_frame = extract_frame_second(run_args.VIDEO_PATH, frame1 + user_start_frame)
+            print("LShoulder:", cycle["LShoulder_x"][frame1])
+            print("LShoulder expert:", expert_cycle["LShoulder_x"][frame2])
+            # # TODO Make this a parameter?
+            # if True:
+            expert_start_frame = expert_cycle.get("Start_frame")
+            expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
+            expert_frame = extract_frame_second(expert_video, frame2 + expert_start_frame)
             
-            user_frame = draw_lines_and_text(user_frame, cycle, joints_lines, frame1, frame2, expert_cycle, 
-                                      user_lines, expert_lines, diff_user_expert, i, run_args)
+            # draw lines on to each frame
+            user_points = get_line_points(cycle, joints_lines, frame1, frame2, run_args)
+            expert_points = get_line_points(cycle, joints_lines, frame1, frame2, run_args, expert_cycle)
 
-            cv2.imshow("User video", user_frame)
+            radius = 2
+            # Draw user lines (blue)
+            # cv2.line(user_frame, user_points[0], user_points[1], color=(255, 0, 0), thickness=2)  # First pair
+            # cv2.line(user_frame, user_points[2], user_points[3], color=(255, 0, 0), thickness=2)  # Second pair
+            for point in user_points:
+                cv2.circle(user_frame, point, radius=radius, color=(0, 0, 255), thickness=-1)
+
+            # Draw expert lines (yellow)
+            # cv2.line(expert_frame, expert_points[0] , expert_points[1], color=(255, 255, 0), thickness=2)  # First pair
+            # cv2.line(expert_frame, expert_points[2] , expert_points[3], color=(255, 255, 0), thickness=2)  # Second pair
+            for point in expert_points:
+                cv2.circle(expert_frame, point, radius=radius, color=(0, 0, 255), thickness=-1)
+            
+            #user_frame = cv2.vconcat([user_frame, expert_frame])
+            
+            #user_frame = cv2.resize(user_frame, None, fx=0.5, fy=0.5)
+            
+            # # Save the frame as an image
+            # save_path = os.path.join(output_dir, f"frame_{i:04d}.png")
+            # cv2.imwrite(save_path, user_frame)
+            # print(f"Saved: {save_path}")
+    
+            cv2.imshow("User video", expert_frame)
+            #user_frame = cv2.addWeighted(user_frame, 0.5, expert_frame, 0.5, 0)
+            # TODO Fix this colour conversion?
+            # user_frame = cv2.cvtColor(user_frame, cv2.COLOR_RGB2BGR)
+            
+            # user_frame = draw_lines_and_text(user_frame, cycle, joints_lines, frame1, frame2, expert_cycle, 
+            #                           user_lines, expert_lines, diff_user_expert, i, run_args)
+
+            #cv2.imshow("User video", user_frame)
         
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break

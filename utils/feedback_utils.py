@@ -71,7 +71,9 @@ def calculate_differences(list1, list2, index_pairs):
         differences.append(difference)
     return differences
 
-def get_line_points(user_cycle, joints_list, frame1, frame2, run_args, expert_cycle = None):
+def get_line_points(user_cycle, joints_list, frame1, frame2, run_args, expert_cycle = False):
+    print("frame1", frame1)
+    print("frame2", frame2)
     points = []
     for joints in joints_list:
         #TODO Get ref from cfg/other way?
@@ -82,25 +84,28 @@ def get_line_points(user_cycle, joints_list, frame1, frame2, run_args, expert_cy
             if joint == run_args.DTW.CHOOSEN_REF:
                 x_suffix += "_ref"
                 y_suffix += "_ref"
-                if expert_cycle == None:
-                    p_x = int(user_cycle.get("Hip_x_ref")[frame1])
-                    p_y = int(user_cycle.get("Hip_y_ref")[frame1])
+                if not expert_cycle:
+                    p_x = round(user_cycle.get("Hip_x_ref")[frame1])
+                    p_y = round(user_cycle.get("Hip_y_ref")[frame1])
                 else:
                     # TODO Make this a param/overlay exper skier or draw lines on only user
                     # p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + user_cycle.get("Hip_x_ref")[frame1])
                     # p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + user_cycle.get("Hip_y_ref")[frame1])
-                    p_x = int(expert_cycle.get("Hip_x_ref")[frame1])
-                    p_y = int(expert_cycle.get("Hip_y_ref")[frame1])
+                    # TODO bug?? frame 1 instead of 2?!
+                    p_x = round(expert_cycle.get("Hip_x_ref")[frame2])
+                    p_y = round(expert_cycle.get("Hip_y_ref")[frame2])
             else:
-                if expert_cycle == None:
-                    p_x = int(user_cycle.get(joint + x_suffix)[frame1] + user_cycle.get("Hip_x_ref")[frame1])
-                    p_y = int(user_cycle.get(joint + y_suffix)[frame1] + user_cycle.get("Hip_y_ref")[frame1])
+                if not expert_cycle:
+                    p_x = round(user_cycle.get(joint + x_suffix)[frame1] + user_cycle.get("Hip_x_ref")[frame1])
+                    p_y = round(user_cycle.get(joint + y_suffix)[frame1] + user_cycle.get("Hip_y_ref")[frame1])
                 else:
                     # TODO Make this a param/overlay exper skier or draw lines on only user
                     # p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + user_cycle.get("Hip_x_ref")[frame1])
                     # p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + user_cycle.get("Hip_y_ref")[frame1])
-                    p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + expert_cycle.get("Hip_x_ref")[frame2])
-                    p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + expert_cycle.get("Hip_y_ref")[frame2])
+                    p_x = round(expert_cycle.get(joint + x_suffix)[frame2] + expert_cycle.get("Hip_x_ref")[frame2])
+                    p_y = round(expert_cycle.get(joint + y_suffix)[frame2] + expert_cycle.get("Hip_y_ref")[frame2])
+            #if joint == "LShoulder_x":
+            print(joint, "px, py", p_x, p_y)
             points.append((p_x,p_y))
     return points
 
@@ -126,15 +131,19 @@ def draw_lines_and_text(user_frame, cycle, shoulder_hip_joints, frame1, frame2, 
     """
     # Get line points for user and expert
     user_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2, run_args)
+    print(user_points)
     expert_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2, run_args, expert_cycle)
+    print(expert_points)
 
     # Draw user lines (blue)
     cv2.line(user_frame, user_points[0], user_points[1], color=(255, 0, 0), thickness=2)  # First pair
     cv2.line(user_frame, user_points[2], user_points[3], color=(255, 0, 0), thickness=2)  # Second pair
 
     # Draw expert lines (yellow)
-    cv2.line(user_frame, expert_points[0], expert_points[1], color=(255, 255, 0), thickness=2)  # First pair
-    cv2.line(user_frame, expert_points[2], expert_points[3], color=(255, 255, 0), thickness=2)  # Second pair
+    expert_points[0] = (expert_points[0][0] + int(user_frame.shape[1]/2), expert_points[0][1])
+    expert_points[2] = (expert_points[2][0] + int(user_frame.shape[1]/2), expert_points[2][0])
+    cv2.line(user_frame, expert_points[0] , expert_points[1], color=(255, 255, 0), thickness=2)  # First pair
+    cv2.line(user_frame, expert_points[2] , expert_points[3], color=(255, 255, 0), thickness=2)  # Second pair
 
     # Origin point for text (using hip reference point)
     text_origin = (int(cycle.get("Hip_x_ref")[frame1]), int(cycle.get("Hip_y_ref")[frame1]))
