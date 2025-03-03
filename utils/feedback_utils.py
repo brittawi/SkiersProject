@@ -66,6 +66,16 @@ def calculate_differences(list1, list2, index_pairs):
         differences.append(difference)
     return differences
 
+def calculate_similarity(user, expert, index_pairs):
+    """
+    Calculates the similarity between two values in a list, how similar exper value is to user
+    """
+    similarities = []
+    for i, j in index_pairs:
+        sim = user [i] / expert[j]
+        similarities.append(sim)
+    return similarities
+
 # def get_line_points(user_cycle, joints_list, frame1, frame2, run_args, expert_cycle = None):
 #     points = []
 #     for joints in joints_list:
@@ -118,69 +128,69 @@ def get_line_points(cycle, joints_list, frame, run_args):
             points.append((p_x,p_y))
     return points
 
-def draw_lines_and_text(user_frame, cycle, shoulder_hip_joints, frame1, frame2, expert_cycle, 
-                             user_lines, expert_lines, diff_user_expert, i, run_args):
-    """
-    Draws lines on the skier and annotates user and expert shoulder/hip angles along with their difference.
+# def draw_lines_and_text(user_frame, cycle, shoulder_hip_joints, frame1, frame2, expert_cycle, 
+#                              user_lines, expert_lines, diff_user_expert, i, run_args):
+#     """
+#     Draws lines on the skier and annotates user and expert shoulder/hip angles along with their difference.
 
-    Parameters:
-    - user_frame: The frame on which the lines and text will be drawn.
-    - cycle: Data related to the user's cycle.
-    - shoulder_hip_joints: Joints information for the shoulder and hips.
-    - frame1: Frame index for the user data.
-    - frame2: Frame index for the expert data.
-    - expert_cycle: Data related to the expert's cycle.
-    - user_lines: Array of user shoulder/hip angles.
-    - expert_lines: Array of expert shoulder/hip angles.
-    - diff_user_expert: Difference between user and expert angles.
-    - i: The current index in the difference array.
+#     Parameters:
+#     - user_frame: The frame on which the lines and text will be drawn.
+#     - cycle: Data related to the user's cycle.
+#     - shoulder_hip_joints: Joints information for the shoulder and hips.
+#     - frame1: Frame index for the user data.
+#     - frame2: Frame index for the expert data.
+#     - expert_cycle: Data related to the expert's cycle.
+#     - user_lines: Array of user shoulder/hip angles.
+#     - expert_lines: Array of expert shoulder/hip angles.
+#     - diff_user_expert: Difference between user and expert angles.
+#     - i: The current index in the difference array.
 
-    Returns:
-    - user_frame: The frame with drawn lines and text.
-    """
-    # Get line points for user and expert
-    user_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2, run_args)
-    expert_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2, run_args, expert_cycle)
+#     Returns:
+#     - user_frame: The frame with drawn lines and text.
+#     """
+#     # Get line points for user and expert
+#     user_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2, run_args)
+#     expert_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2, run_args, expert_cycle)
 
-    # Draw user lines (blue)
-    cv2.line(user_frame, user_points[0], user_points[1], color=(255, 0, 0), thickness=2)  # First pair
-    cv2.line(user_frame, user_points[2], user_points[3], color=(255, 0, 0), thickness=2)  # Second pair
+#     # Draw user lines (blue)
+#     cv2.line(user_frame, user_points[0], user_points[1], color=(255, 0, 0), thickness=2)  # First pair
+#     cv2.line(user_frame, user_points[2], user_points[3], color=(255, 0, 0), thickness=2)  # Second pair
 
-    # Draw expert lines (yellow)
-    cv2.line(user_frame, expert_points[0], expert_points[1], color=(255, 255, 0), thickness=2)  # First pair
-    cv2.line(user_frame, expert_points[2], expert_points[3], color=(255, 255, 0), thickness=2)  # Second pair
+#     # Draw expert lines (yellow)
+#     cv2.line(user_frame, expert_points[0], expert_points[1], color=(255, 255, 0), thickness=2)  # First pair
+#     cv2.line(user_frame, expert_points[2], expert_points[3], color=(255, 255, 0), thickness=2)  # Second pair
 
-    # Origin point for text (using hip reference point)
-    text_origin = (int(cycle.get("Hip_x_ref")[frame1]), int(cycle.get("Hip_y_ref")[frame1]))
+#     # Origin point for text (using hip reference point)
+#     text_origin = (int(cycle.get("Hip_x_ref")[frame1]), int(cycle.get("Hip_y_ref")[frame1]))
 
-    # Offsets for text placement
-    x_offset = 30
-    y_offset = 20
+#     # Offsets for text placement
+#     x_offset = 30
+#     y_offset = 20
 
-    # Text content (angles and difference)
-    user_text = "User angle between shoulder/hip: " + str(user_lines[frame1][0])
-    expert_text = "Expert angle between shoulder/hip: " + str(expert_lines[frame2][0])
-    diff_text = "Difference: " + str(diff_user_expert[i])
+#     # Text content (angles and difference)
+#     user_text = "User angle between shoulder/hip: " + str(user_lines[frame1][0])
+#     expert_text = "Expert angle between shoulder/hip: " + str(expert_lines[frame2][0])
+#     diff_text = "Difference: " + str(diff_user_expert[i])
 
-    # Get the sizes of the text boxes
-    (text_width_user, text_height_user), _ = cv2.getTextSize(user_text, cv2.FONT_HERSHEY_PLAIN, 1, 1)
-    (text_width_expert, text_height_expert), _ = cv2.getTextSize(expert_text, cv2.FONT_HERSHEY_PLAIN, 1, 1)
-    (text_width_diff, text_height_diff), _ = cv2.getTextSize(diff_text, cv2.FONT_HERSHEY_PLAIN, 1, 1)
+#     # Get the sizes of the text boxes
+#     (text_width_user, text_height_user), _ = cv2.getTextSize(user_text, cv2.FONT_HERSHEY_PLAIN, 1, 1)
+#     (text_width_expert, text_height_expert), _ = cv2.getTextSize(expert_text, cv2.FONT_HERSHEY_PLAIN, 1, 1)
+#     (text_width_diff, text_height_diff), _ = cv2.getTextSize(diff_text, cv2.FONT_HERSHEY_PLAIN, 1, 1)
 
-    # Draw background rectangles for the text (with a slight padding for better fit)
-    cv2.rectangle(user_frame, (text_origin[0] + x_offset, text_origin[1] - text_height_user - 5), 
-                  (text_origin[0] + x_offset + text_width_user + 5, text_origin[1] + 5), (0, 0, 0), -1)  # User text
-    cv2.rectangle(user_frame, (text_origin[0] + x_offset, text_origin[1] + y_offset - text_height_expert - 5), 
-                  (text_origin[0] + x_offset + text_width_expert + 5, text_origin[1] + y_offset + 5), (0, 0, 0), -1)  # Expert text
-    cv2.rectangle(user_frame, (text_origin[0] + x_offset, text_origin[1] - y_offset - text_height_diff - 5), 
-                  (text_origin[0] + x_offset + text_width_diff + 5, text_origin[1] - y_offset + 5), (0, 0, 0), -1)  # Difference text
+#     # Draw background rectangles for the text (with a slight padding for better fit)
+#     cv2.rectangle(user_frame, (text_origin[0] + x_offset, text_origin[1] - text_height_user - 5), 
+#                   (text_origin[0] + x_offset + text_width_user + 5, text_origin[1] + 5), (0, 0, 0), -1)  # User text
+#     cv2.rectangle(user_frame, (text_origin[0] + x_offset, text_origin[1] + y_offset - text_height_expert - 5), 
+#                   (text_origin[0] + x_offset + text_width_expert + 5, text_origin[1] + y_offset + 5), (0, 0, 0), -1)  # Expert text
+#     cv2.rectangle(user_frame, (text_origin[0] + x_offset, text_origin[1] - y_offset - text_height_diff - 5), 
+#                   (text_origin[0] + x_offset + text_width_diff + 5, text_origin[1] - y_offset + 5), (0, 0, 0), -1)  # Difference text
 
-    # Draw the text onto the frame
-    cv2.putText(user_frame, user_text, (text_origin[0] + x_offset, text_origin[1]), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0))
-    cv2.putText(user_frame, expert_text, (text_origin[0] + x_offset, text_origin[1] + y_offset), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0))
-    cv2.putText(user_frame, diff_text, (text_origin[0] + x_offset, text_origin[1] - y_offset), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
+#     # Draw the text onto the frame
+#     cv2.putText(user_frame, user_text, (text_origin[0] + x_offset, text_origin[1]), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0))
+#     cv2.putText(user_frame, expert_text, (text_origin[0] + x_offset, text_origin[1] + y_offset), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0))
+#     cv2.putText(user_frame, diff_text, (text_origin[0] + x_offset, text_origin[1] - y_offset), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
 
-    return user_frame
+#     return user_frame
 
 def draw_joint_lines(joints_lines, frame, points, l_color=(0,255,0), p_color=(0,0,255), l_thickness = 2, p_radius = 2):
     for i in range(len(joints_lines)):
@@ -221,19 +231,29 @@ def draw_joint_angles(joint_angles, frame, points, l_color=(0,255,0), p_color=(0
             cv2.ellipse(frame, points[1+j], (e_radius, e_radius), 0, end_angle, end_angle - angle_diff, l_color, l_thickness)
 
 
-def draw_table(frame, joint_angles, user_angle, expert_angle, match):
+def draw_table(frame, angles_tuple, lines_tuple, match, iter):
+
+    # Unpack tuples
+    joint_angles, user_angles, expert_angles, diff_angles, sim_angles = angles_tuple
+    joint_lines, user_lines, expert_lines, diff_lines, sim_lines = lines_tuple
+
     height, width, _ = frame.shape
-    rows = len(joint_angles)
+    rows = 0
+    if len(joint_angles) > 0:
+        rows += len(joint_angles) + 1 # +1 for header
+    if len(joint_lines) > 0:
+        rows += len(joint_lines) + 1 # +1 for header
     cols = 5
-    # cell_width = width // cols
-    # cell_height = height // rows
-    cell_width = 350
-    cell_height = 60
+    cell_width = int(width*0.9 // cols)
+    cell_height = height // 20
+    # cell_width = 380
+    # cell_height = 60
 
     font = cv2.FONT_HERSHEY_SIMPLEX
-    font_scale = 2
+    font_scale = 0.8
     font_thickness = 2
     text_color = (255, 255, 255)
+    border_colour = (255, 255, 255)
 
     # table_data = [
     #     ['Angle', 'User', 'Expert', 'Difference', 'Header5'],
@@ -243,36 +263,56 @@ def draw_table(frame, joint_angles, user_angle, expert_angle, match):
     #     ['Row4Col1', 'Row4Col2', 'Row4Col3', 'Row4Col4', 'Row4Col5']
     # ]
 
-    table_data = [['Angle', 'User', 'Expert', 'Difference', 'Header5']]
-    for angle in joint_angles:
+    table_data = [['Angles', 'User', 'Expert', 'Difference', 'Similarity (%)']]
+    for i, angle in enumerate(joint_angles):
         row = []
         row.append(str(angle))
-        p1, p2, p3 = user_angle[match[0]]
-        print (p1, p2, p3)
-        row.append(str(compute_angle(p1, p2, p3)))
-        e1, e2, e3 = expert_angle[match[1]]
-        row.append(str(compute_angle(e1, e2, e3)))
-        row.append("")
-        row.append("")
+        row.append(f"{user_angles[match[0]][i]:.2f}")
+        row.append(f"{expert_angles[match[1]][i]:.2f}")
+        row.append(f"{diff_angles[iter][i]:.2f}")
+        row.append(f"{sim_angles[iter][i]:.2%}")
         table_data.append(row)
 
-    print(table_data)
+    table_data.append(['Lines', 'User', 'Expert', 'Difference', 'Similarity (%)'])
+    for i, lines in enumerate(joint_lines):
+        row = []
+        row.append(str(lines))
+        row.append(f"{user_lines[match[0]][i]:.2f}")
+        row.append(f"{expert_lines[match[1]][i]:.2f}")
+        row.append(f"{diff_lines[iter][i]:.2f}")
+        row.append(f"{sim_lines[iter][i]:.2%}")
+        table_data.append(row)
+
 
     for row in range(rows):
         for col in range(cols):
-             # Top-left corner (x1, y1) and bottom-right corner (x2, y2) for each cell
+            # Top-left corner (x1, y1) and bottom-right corner (x2, y2) for each cell
+            if col == 0: # Making first one wider
                 top_left = (col * cell_width, row * cell_height)
-                bottom_right = ((col + 1) * cell_width, (row + 1) * cell_height)
+                bottom_right = ((col + 1) * cell_width + int(cell_width*0.5), (row + 1) * cell_height)
+            else:
+                top_left = (col * cell_width + int(cell_width*0.5), row * cell_height)
+                bottom_right = ((col + 1) * cell_width + int(cell_width*0.5), (row + 1) * cell_height)
+            # if col == 1:
+            #     top_left = (col * cell_width + int(cell_width*0.5), row * cell_height)
+            #     bottom_right = ((col + 1) * cell_width, (row + 1) * cell_height)
+            # else:
+            #     top_left = (col * cell_width, row * cell_height)
+            #     bottom_right = ((col + 1) * cell_width, (row + 1) * cell_height)
                 
-                # Draw rectangle (cell border)
-                cv2.rectangle(frame, top_left, bottom_right, (0, 0, 0), 2)  # Black border
-                
-                # Add text to the cell (centered)
-                text = table_data[row][col]
-                (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, font_thickness)
+            # Draw rectangle (cell border)
+            cv2.rectangle(frame, top_left, bottom_right, border_colour, 2)  # Black border
+            
+            # Add text to the cell (centered)
+            text = table_data[row][col]
+            (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, font_thickness)
+            if col == 0:
+                text_x = top_left[0] + (cell_width + int(cell_width*0.5) - text_width) // 2
+                text_y = top_left[1] + (cell_height + text_height) // 2
+            else:
                 text_x = top_left[0] + (cell_width - text_width) // 2
                 text_y = top_left[1] + (cell_height + text_height) // 2
-                cv2.putText(frame, text, (text_x, text_y), font, font_scale, text_color, font_thickness)
+            cv2.putText(frame, text, (text_x, text_y), font, font_scale, text_color, font_thickness)
     return frame
 
 

@@ -7,7 +7,7 @@ if project_root not in sys.path:
 
 from utils.load_data import load_json
 from utils.dtw import compare_selected_cycles, extract_frame, extract_multivariate_series
-from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, get_line_points, draw_joint_lines, draw_joint_angles, draw_table
+from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, calculate_similarity, get_line_points, draw_joint_lines, draw_joint_angles, draw_table
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
 from utils.split_cycles import split_into_cycles
@@ -181,8 +181,9 @@ def main():
 
         # Step 5: Give feedback
         """
+        TODO:
         Match DTW and plot -> not absolute timestamps
-
+        Look at distance between keypoints (eg feet)
         
         """
         direction = expert_cycle.get("Direction")
@@ -190,6 +191,7 @@ def main():
             # Joint 1 and 2 create one line, joint 3 and 4 another line. 
             joints_lines = [("RShoulder", "LShoulder", "RHip", "LHip"), ("LElbow", "LShoulder", "RElbow", "RShoulder")]
             joint_angles = []
+            #TODO
             joint_distances = []
         elif direction == "left":
             joints_lines = [("RAnkle", "RKnee", "Hip", "Neck")]
@@ -207,15 +209,14 @@ def main():
         expert_angles, _ = extract_multivariate_series(expert_cycle, joint_angles, run_args)
         
         # Match using DTW and calculate difference in angle between the lines
-        diff_user_expert = calculate_differences(user_lines, expert_lines, path)
+        diff_lines = calculate_differences(user_lines, expert_lines, path)
+        sim_lines = calculate_similarity(user_lines, expert_lines, path)
         # Flatten because it is in shape [array([value]), [array([value]), ...]
-        diff_user_expert = [item[0] for item in diff_user_expert]
+        #diff_lines = [item[0] for item in diff_lines]
 
-        diff_user_exper_angles = calculate_differences(user_angles, expert_angles, path)
+        diff_angles = calculate_differences(user_angles, expert_angles, path)
+        sim_angles = calculate_similarity(user_angles, expert_angles, path)
 
-
-        print(user_angles, expert_angles)
-        print(path)
 
         # Plotting
         # TODO make parameter?
@@ -225,7 +226,7 @@ def main():
                 'Difference between user and expert with DTW', 
                 'Time step', 
                 'Angle (Degrees)', 
-                diff_user_exper_angles,  # Positional argument for *line_data
+                diff_angles,  # Positional argument for *line_data
                 labels=['Difference between user and expert'], 
                 colors=['b'])
 
@@ -275,7 +276,11 @@ def main():
             height, width, channels = user_frame.shape
             empty_image = np.zeros((height*2,width,channels), np.uint8)
 
-            info_image = draw_table(empty_image, joint_angles, user_angles, expert_angles, (frame1, frame2))
+            info_image = draw_table(empty_image, 
+                                    (joint_angles, user_angles, expert_angles, diff_angles, sim_angles),
+                                    (joints_lines, user_lines, expert_lines, diff_lines, sim_lines),
+                                    (frame1, frame2), 
+                                    i)
 
 
             stacked_frame = cv2.vconcat([user_frame, expert_frame])
@@ -287,9 +292,7 @@ def main():
         
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
-
         break
-    
     cv2.destroyAllWindows()
 
 
