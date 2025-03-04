@@ -198,7 +198,7 @@ def main():
             joint_angles = [("RHip", "RKnee", "RAnkle")]
         elif direction == "right":
             #joints_lines = [("LAnkle", "LKnee", "Hip", "Neck"), ("LElbow", "LWrist", "RAnkle", "RKnee")]
-            joint_angles = [("LHip", "LKnee", "LAnkle"), ("RHip", "RKnee", "RAnkle"), ("LAnkle", "LHeel", "LBigToe")]
+            joint_angles = [("LHip", "LKnee", "LAnkle"), ("RHip", "RKnee", "RAnkle"), ("LAnkle", "LHeel", "LBigToe"), ("LWrist", "LElbow", "LShoulder")]
             joints_lines = [("LAnkle", "LKnee", "Hip", "Neck")]
             #joint_angles = [("LHip", "LKnee", "LAnkle")]
 
