@@ -76,38 +76,6 @@ def calculate_similarity(user, expert, index_pairs):
         similarities.append(sim)
     return similarities
 
-# def get_line_points(user_cycle, joints_list, frame1, frame2, run_args, expert_cycle = None):
-#     points = []
-#     for joints in joints_list:
-#         #TODO Get ref from cfg/other way?
-#         for joint in joints:
-#             x_suffix = "_x"
-#             y_suffix = "_y"
-#             # TODO Fix because only ref in json
-#             if joint == run_args.DTW.CHOOSEN_REF:
-#                 x_suffix += "_ref"
-#                 y_suffix += "_ref"
-#                 if expert_cycle == None:
-#                     p_x = int(user_cycle.get("Hip_x_ref")[frame1])
-#                     p_y = int(user_cycle.get("Hip_y_ref")[frame1])
-#                 else:
-#                     # TODO Make this a param/overlay exper skier or draw lines on only user
-#                     # p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + user_cycle.get("Hip_x_ref")[frame1])
-#                     # p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + user_cycle.get("Hip_y_ref")[frame1])
-#                     p_x = int(expert_cycle.get("Hip_x_ref")[frame2])
-#                     p_y = int(expert_cycle.get("Hip_y_ref")[frame2])
-#             else:
-#                 if expert_cycle == None:
-#                     p_x = int(user_cycle.get(joint + x_suffix)[frame1] + user_cycle.get("Hip_x_ref")[frame1])
-#                     p_y = int(user_cycle.get(joint + y_suffix)[frame1] + user_cycle.get("Hip_y_ref")[frame1])
-#                 else:
-#                     # TODO Make this a param/overlay exper skier or draw lines on only user
-#                     # p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + user_cycle.get("Hip_x_ref")[frame1])
-#                     # p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + user_cycle.get("Hip_y_ref")[frame1])
-#                     p_x = int(expert_cycle.get(joint + x_suffix)[frame2] + expert_cycle.get("Hip_x_ref")[frame2])
-#                     p_y = int(expert_cycle.get(joint + y_suffix)[frame2] + expert_cycle.get("Hip_y_ref")[frame2])
-#             points.append((p_x,p_y))
-#     return points
 
 def get_line_points(cycle, joints_list, frame, run_args):
     points = []
@@ -127,70 +95,6 @@ def get_line_points(cycle, joints_list, frame, run_args):
                 p_y = int(cycle.get(joint + y_suffix)[frame] + cycle.get("Hip_y_ref")[frame])
             points.append((p_x,p_y))
     return points
-
-# def draw_lines_and_text(user_frame, cycle, shoulder_hip_joints, frame1, frame2, expert_cycle, 
-#                              user_lines, expert_lines, diff_user_expert, i, run_args):
-#     """
-#     Draws lines on the skier and annotates user and expert shoulder/hip angles along with their difference.
-
-#     Parameters:
-#     - user_frame: The frame on which the lines and text will be drawn.
-#     - cycle: Data related to the user's cycle.
-#     - shoulder_hip_joints: Joints information for the shoulder and hips.
-#     - frame1: Frame index for the user data.
-#     - frame2: Frame index for the expert data.
-#     - expert_cycle: Data related to the expert's cycle.
-#     - user_lines: Array of user shoulder/hip angles.
-#     - expert_lines: Array of expert shoulder/hip angles.
-#     - diff_user_expert: Difference between user and expert angles.
-#     - i: The current index in the difference array.
-
-#     Returns:
-#     - user_frame: The frame with drawn lines and text.
-#     """
-#     # Get line points for user and expert
-#     user_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2, run_args)
-#     expert_points = get_line_points(cycle, shoulder_hip_joints, frame1, frame2, run_args, expert_cycle)
-
-#     # Draw user lines (blue)
-#     cv2.line(user_frame, user_points[0], user_points[1], color=(255, 0, 0), thickness=2)  # First pair
-#     cv2.line(user_frame, user_points[2], user_points[3], color=(255, 0, 0), thickness=2)  # Second pair
-
-#     # Draw expert lines (yellow)
-#     cv2.line(user_frame, expert_points[0], expert_points[1], color=(255, 255, 0), thickness=2)  # First pair
-#     cv2.line(user_frame, expert_points[2], expert_points[3], color=(255, 255, 0), thickness=2)  # Second pair
-
-#     # Origin point for text (using hip reference point)
-#     text_origin = (int(cycle.get("Hip_x_ref")[frame1]), int(cycle.get("Hip_y_ref")[frame1]))
-
-#     # Offsets for text placement
-#     x_offset = 30
-#     y_offset = 20
-
-#     # Text content (angles and difference)
-#     user_text = "User angle between shoulder/hip: " + str(user_lines[frame1][0])
-#     expert_text = "Expert angle between shoulder/hip: " + str(expert_lines[frame2][0])
-#     diff_text = "Difference: " + str(diff_user_expert[i])
-
-#     # Get the sizes of the text boxes
-#     (text_width_user, text_height_user), _ = cv2.getTextSize(user_text, cv2.FONT_HERSHEY_PLAIN, 1, 1)
-#     (text_width_expert, text_height_expert), _ = cv2.getTextSize(expert_text, cv2.FONT_HERSHEY_PLAIN, 1, 1)
-#     (text_width_diff, text_height_diff), _ = cv2.getTextSize(diff_text, cv2.FONT_HERSHEY_PLAIN, 1, 1)
-
-#     # Draw background rectangles for the text (with a slight padding for better fit)
-#     cv2.rectangle(user_frame, (text_origin[0] + x_offset, text_origin[1] - text_height_user - 5), 
-#                   (text_origin[0] + x_offset + text_width_user + 5, text_origin[1] + 5), (0, 0, 0), -1)  # User text
-#     cv2.rectangle(user_frame, (text_origin[0] + x_offset, text_origin[1] + y_offset - text_height_expert - 5), 
-#                   (text_origin[0] + x_offset + text_width_expert + 5, text_origin[1] + y_offset + 5), (0, 0, 0), -1)  # Expert text
-#     cv2.rectangle(user_frame, (text_origin[0] + x_offset, text_origin[1] - y_offset - text_height_diff - 5), 
-#                   (text_origin[0] + x_offset + text_width_diff + 5, text_origin[1] - y_offset + 5), (0, 0, 0), -1)  # Difference text
-
-#     # Draw the text onto the frame
-#     cv2.putText(user_frame, user_text, (text_origin[0] + x_offset, text_origin[1]), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0))
-#     cv2.putText(user_frame, expert_text, (text_origin[0] + x_offset, text_origin[1] + y_offset), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 0))
-#     cv2.putText(user_frame, diff_text, (text_origin[0] + x_offset, text_origin[1] - y_offset), cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255))
-
-#     return user_frame
 
 def draw_joint_lines(joints_lines, frame, points, l_color=(0,255,0), p_color=(0,0,255), l_thickness = 2, p_radius = 2):
     for i in range(len(joints_lines)):
@@ -293,12 +197,6 @@ def draw_table(frame, angles_tuple, lines_tuple, match, iter):
             else:
                 top_left = (col * cell_width + int(cell_width*0.5), row * cell_height)
                 bottom_right = ((col + 1) * cell_width + int(cell_width*0.5), (row + 1) * cell_height)
-            # if col == 1:
-            #     top_left = (col * cell_width + int(cell_width*0.5), row * cell_height)
-            #     bottom_right = ((col + 1) * cell_width, (row + 1) * cell_height)
-            # else:
-            #     top_left = (col * cell_width, row * cell_height)
-            #     bottom_right = ((col + 1) * cell_width, (row + 1) * cell_height)
                 
             # Draw rectangle (cell border)
             cv2.rectangle(frame, top_left, bottom_right, border_colour, 2)  # Black border
@@ -306,7 +204,7 @@ def draw_table(frame, angles_tuple, lines_tuple, match, iter):
             # Add text to the cell (centered)
             text = table_data[row][col]
             (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, font_thickness)
-            if col == 0:
+            if col == 0: # First one wider
                 text_x = top_left[0] + (cell_width + int(cell_width*0.5) - text_width) // 2
                 text_y = top_left[1] + (cell_height + text_height) // 2
             else:
