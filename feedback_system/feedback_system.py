@@ -6,8 +6,8 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 
 from utils.load_data import load_json
-from utils.dtw import compare_selected_cycles, extract_frame
-from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_lines_and_text
+from utils.dtw import compare_selected_cycles, extract_frame, extract_multivariate_series
+from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, calculate_similarity, get_line_points, draw_joint_lines, draw_joint_angles, draw_table
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
 from utils.split_cycles import split_into_cycles
@@ -26,7 +26,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "38"
+ID = "87"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 INPUT_PATH = os.path.join("E:\SkiProject\AnnotationsByUs", ID[:2] + ".json")
@@ -34,7 +34,7 @@ INPUT_PATH = os.path.join("E:\SkiProject\AnnotationsByUs", ID[:2] + ".json")
 # # path to where all videos are stored
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
-testing_with_inference = False
+testing_with_inference = True
 
 def main():
     
@@ -51,9 +51,6 @@ def main():
         
         # Convert keypoint data to coco format
         coco_data = halpe26_to_coco(results_list)
-    
-        
-        
         
     else:
         coco_data = load_json(INPUT_PATH)
@@ -61,7 +58,6 @@ def main():
     # Step 2: Split into cycles
     print("Splitting the data into cycles...")
     cycle_data = split_into_cycles(coco_data, run_args, visualize=False)
-    
 
     # Load the checkpoint to the model as we need it for certain data
     print("Loading Model...")
@@ -184,30 +180,42 @@ def main():
         dtw_comparisons = compare_selected_cycles(expert_data, cycle, joints, run_args.VIDEO_PATH, run_args.DTW.VIS_VID_PATH, visualize=run_args.DTW.VIS_VIDEO)
 
         # Step 5: Give feedback
-
+        """
+        TODO:
+        Match DTW and plot -> not absolute timestamps
+        Look at distance between keypoints (eg feet)
+        
+        """
         direction = expert_cycle.get("Direction")
         if direction == "front":
             # Joint 1 and 2 create one line, joint 3 and 4 another line. 
-            joints_lines = [("RShoulder", "LShoulder", "RHip", "LHip")]
+            joints_lines = [("RShoulder", "LShoulder", "RHip", "LHip"), ("LElbow", "LShoulder", "RElbow", "RShoulder")]
+            joint_angles = []
+            #TODO
+            joint_distances = []
         elif direction == "left":
             joints_lines = [("RAnkle", "RKnee", "Hip", "Neck")]
+            joint_angles = [("RHip", "RKnee", "RAnkle")]
         elif direction == "right":
+            #joints_lines = [("LAnkle", "LKnee", "Hip", "Neck"), ("LElbow", "LWrist", "RAnkle", "RKnee")]
+            joint_angles = [("LHip", "LKnee", "LAnkle"), ("RHip", "RKnee", "RAnkle"), ("LAnkle", "LHeel", "LBigToe"), ("LWrist", "LElbow", "LShoulder")]
             joints_lines = [("LAnkle", "LKnee", "Hip", "Neck")]
+            #joint_angles = [("LHip", "LKnee", "LAnkle")]
 
         # Get the lines 
         user_lines, _ = extract_multivariate_series_for_lines(cycle, joints_lines, run_args)
         expert_lines, _ = extract_multivariate_series_for_lines(expert_cycle, joints_lines, run_args)
+        user_angles, _ = extract_multivariate_series(cycle, joint_angles, run_args)
+        expert_angles, _ = extract_multivariate_series(expert_cycle, joint_angles, run_args)
         
         # Match using DTW and calculate difference in angle between the lines
-        diff_user_expert = calculate_differences(user_lines, expert_lines, path)
+        diff_lines = calculate_differences(user_lines, expert_lines, path)
+        sim_lines = calculate_similarity(user_lines, expert_lines, path)
         # Flatten because it is in shape [array([value]), [array([value]), ...]
-        diff_user_expert = [item[0] for item in diff_user_expert]
+        #diff_lines = [item[0] for item in diff_lines]
 
-        #TODO set param?
-        lean_threshold = 0.5
-        print(np.mean(diff_user_expert))
-        if np.abs(np.mean(diff_user_expert)) > lean_threshold:
-            print("Not parallel shoulder and hips")
+        diff_angles = calculate_differences(user_angles, expert_angles, path)
+        sim_angles = calculate_similarity(user_angles, expert_angles, path)
 
 
         # Plotting
@@ -218,10 +226,11 @@ def main():
                 'Difference between user and expert with DTW', 
                 'Time step', 
                 'Angle (Degrees)', 
-                diff_user_expert,  # Positional argument for *line_data
+                diff_angles,  # Positional argument for *line_data
                 labels=['Difference between user and expert'], 
                 colors=['b'])
 
+        if False:
             plot_lines(
                 f'output/user_shoulder_hips_{i}.png',
                 'Plot of Array Data', 
@@ -230,33 +239,59 @@ def main():
                 user_lines,  # Positional argument for *line_data
                 expert_lines,  # Additional positional argument for *line_data
                 labels=['User', 'Expert'])
+            
+            plot_lines(
+                f'output/user_ankle_knee__hip_{i}.png',
+                'Plot of Array Data', 
+                'Time step', 
+                'Angle (Degrees)',  
+                user_angles,  # Positional argument for *line_data
+                expert_angles,  # Additional positional argument for *line_data
+                labels=['User', 'Expert']
+            )
 
         
         user_start_frame = cycle.get("Start_frame")
-        # Loops through the DTW match pair and shows lines on user video
         for i, (frame1, frame2) in enumerate(path):
             user_frame = extract_frame(run_args.VIDEO_PATH, frame1 + user_start_frame)
-            # TODO Make this a parameter?
-            if True:
-                expert_start_frame = expert_cycle.get("Start_frame")
-                expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
-                expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
-                user_frame = cv2.addWeighted(user_frame, 0.5, expert_frame, 0.5, 0)
-            # TODO Fix this colour conversion?
-            user_frame = cv2.cvtColor(user_frame, cv2.COLOR_RGB2BGR)
+            # # TODO Make this a parameter?
+            # if True:
+            expert_start_frame = expert_cycle.get("Start_frame")
+            expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
+            expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
             
-            user_frame = draw_lines_and_text(user_frame, cycle, joints_lines, frame1, frame2, expert_cycle, 
-                                      user_lines, expert_lines, diff_user_expert, i, run_args)
+            # draw lines on to each frame
+            user_points_lines = get_line_points(cycle, joints_lines, frame1, run_args)
+            expert_points_lines = get_line_points(expert_cycle, joints_lines, frame2, run_args)
+            
+            user_points_angles = get_line_points(cycle, joint_angles, frame1, run_args)
+            expert_points_angles = get_line_points(expert_cycle, joint_angles, frame2, run_args)
 
-            cv2.imshow("User video", user_frame)
+            # Draw lines
+            draw_joint_lines(joints_lines, user_frame, user_points_lines)
+            draw_joint_lines(joints_lines, expert_frame, expert_points_lines, l_color=(200,170,240))
+            draw_joint_angles(joint_angles, user_frame, user_points_angles)
+            draw_joint_angles(joint_angles, expert_frame, expert_points_angles, l_color=(200,170,240))
+
+            height, width, channels = user_frame.shape
+            empty_image = np.zeros((height*2,width,channels), np.uint8)
+
+            info_image = draw_table(empty_image, 
+                                    (joint_angles, user_angles, expert_angles, diff_angles, sim_angles),
+                                    (joints_lines, user_lines, expert_lines, diff_lines, sim_lines),
+                                    (frame1, frame2), 
+                                    i)
+
+            stacked_frame = cv2.vconcat([user_frame, expert_frame])
+            stacked_frame = cv2.hconcat([stacked_frame, info_image])
+
+            resize_frame = cv2.resize(stacked_frame, None, fx=0.5, fy=0.5)
+    
+            cv2.imshow("User video", resize_frame)
         
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
-    
     cv2.destroyAllWindows()
-
-
-
 
 
 if __name__ == '__main__':

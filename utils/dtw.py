@@ -27,10 +27,15 @@ def extract_angle_series(cycle_data, joint1, joint2, joint3):
     return np.array(angles), frames
 
 # function to extract several angles at once
-def extract_multivariate_series(cycle_data, joint_triplets):
+def extract_multivariate_series(cycle_data, joint_triplets, run_args):
     """Extracts multivariate time-series data for multiple angles from a cycle."""
     all_angles = []
     frames = []
+
+    joints_list = [joint for tuple_joints in joint_triplets for joint in tuple_joints]
+    if run_args.DTW.GAUS_FILTER:
+        cycle_data = smooth_cycle(cycle_data, joints_list, sigma=run_args.DTW.SIGMA_VALUE)
+
     for i in range(len(cycle_data[joint_triplets[0][0] + "_x"])):
         angles = []
         for joint1, joint2, joint3 in joint_triplets:
@@ -47,7 +52,10 @@ def smooth_cycle(cycle_data, joints, sigma=2):
     # apply smoothing first
     if sigma > 0:
         for joint, series in cycle_data.items():
-            if joint.replace("_x", "").replace("_y", "") in joints:
+            # Check if the joint is in the joints list if we should smooth
+            joint_base = joint.replace("_x", "").replace("_y", "")
+            joint_ref = joint.replace("_x_ref", "").replace("_y_ref", "") # Need to include reference
+            if joint_base in joints or joint_ref in joints:
                 smoothed_series = smooth_signal(series, sigma)
                 smoothed_cycle_data[joint] = smoothed_series
     return smoothed_cycle_data
@@ -70,11 +78,12 @@ def extract_keypoint_series(cycle_data, joints, sigma=2):
 def extract_frame(video_path, frame_idx):
     """Extracts and returns a specific frame from a video file."""
     cap = cv2.VideoCapture(video_path)
-    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx-2)
     ret, frame = cap.read()
     cap.release()
     if ret:
-        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        #return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        return frame
     else:
         return None
 
