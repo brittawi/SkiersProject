@@ -6,8 +6,8 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 
 from utils.load_data import load_json
-from utils.dtw import compare_selected_cycles, extract_frame, extract_frame_imageio, extract_frame_ffmpeg
-from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_lines_and_text
+from utils.dtw import compare_selected_cycles, extract_frame, extract_frame_imageio, extract_frame_ffmpeg, extract_multivariate_series
+from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_lines, draw_table, calculate_similarity
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
 from utils.split_cycles import split_into_cycles
@@ -27,7 +27,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "87"
+ID = "64"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -190,7 +190,7 @@ def main():
         if direction == "front":
             # Joint 1 and 2 create one line, joint 3 and 4 another line. 
             joints_lines = [("RShoulder", "LShoulder", "RHip", "LHip"), ("LElbow", "LShoulder", "RElbow", "RShoulder")]
-            joint_angles = []
+            joint_angles = [("RHip", "RKnee", "RAnkle")]
             #TODO
             joint_distances = []
         elif direction == "left":
@@ -257,14 +257,13 @@ def main():
         os.makedirs(output_dir, exist_ok=True)
         
         # Loops through the DTW match pair and shows lines on user video
-        print(path)
         for i, (frame1, frame2) in enumerate(path):
-            user_frame = extract_frame(run_args.VIDEO_PATH, frame1 + user_start_frame)
+            user_frame = extract_frame_imageio(run_args.VIDEO_PATH, frame1 + user_start_frame)
             # # TODO Make this a parameter?
             # if True:
             expert_start_frame = expert_cycle.get("Start_frame")
             expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
-            expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
+            expert_frame = extract_frame_imageio(expert_video, frame2 + expert_start_frame)
             
             # draw lines on to each frame
             user_points_lines = get_line_points(cycle, joints_lines, frame1, run_args)
@@ -295,8 +294,9 @@ def main():
     
             cv2.imshow("User video", resize_frame)
         
-            if cv2.waitKey(0) & 0xFF == ord('q'):
+            if cv2.waitKey(10) & 0xFF == ord('q'):
                 break
+        break
     cv2.destroyAllWindows()
 
 
