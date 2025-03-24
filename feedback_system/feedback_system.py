@@ -6,8 +6,8 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 
 from utils.load_data import load_json
-from utils.dtw import compare_selected_cycles, extract_frame, extract_multivariate_series
-from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, calculate_similarity, get_line_points, draw_joint_lines, draw_joint_angles, draw_table
+from utils.dtw import compare_selected_cycles, extract_frame, extract_frame_imageio, extract_frame_ffmpeg
+from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_lines_and_text
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
 from utils.split_cycles import split_into_cycles
@@ -15,6 +15,7 @@ from utils.preprocess_signals import *
 from utils.annotation_format import halpe26_to_coco
 from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
+from utils.feedback_utils import get_line_points
 
 import torch
 import numpy as np
@@ -29,7 +30,7 @@ import cv2
 ID = "87"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
-INPUT_PATH = os.path.join("E:\SkiProject\AnnotationsByUs", ID[:2] + ".json")
+INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
 # INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
 # # path to where all videos are stored
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
@@ -170,15 +171,14 @@ def main():
         # TODO to compare cycles we can either input joint triplets, then we need to set use_keypoints to false
         # otherwise we can input joints, then it will use raw keypoints for DTW
         joint_triplets = [("RHip", "RKnee", "RAnkle"), ("LHip", "LKnee", "LAnkle"), ("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
-        joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist"]
+        #joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist"]
+        joints = ["RHip", "LHip", "RShoulder", "LShoulder"]
         
         # send in data in json format
         cycle = cycle_data[f"Cycle {i+1}"]
         
         dtw_comparisons, path, expert_cycle = compare_selected_cycles(expert_data, cycle, joints, run_args.VIDEO_PATH, run_args.DTW.VIS_VID_PATH, visualize=False)
-        # TODO try DTW with smoothed signals?
-        dtw_comparisons = compare_selected_cycles(expert_data, cycle, joints, run_args.VIDEO_PATH, run_args.DTW.VIS_VID_PATH, visualize=run_args.DTW.VIS_VIDEO)
-
+       
         # Step 5: Give feedback
         """
         TODO:
@@ -252,6 +252,12 @@ def main():
 
         
         user_start_frame = cycle.get("Start_frame")
+        
+        output_dir = "output_frames"
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Loops through the DTW match pair and shows lines on user video
+        print(path)
         for i, (frame1, frame2) in enumerate(path):
             user_frame = extract_frame(run_args.VIDEO_PATH, frame1 + user_start_frame)
             # # TODO Make this a parameter?

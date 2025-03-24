@@ -152,6 +152,7 @@ def plot_avg_std_combined(metrics_dict, cfg, start_time, show_plots=False):
 #     plt.show()
 
 def plot_lines(output_path, title, xlabel, ylabel, *line_data, labels=None, colors=None):
+    
     """
     Plots multiple lines in a single figure. Used for showing DTW 
 
