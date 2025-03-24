@@ -15,7 +15,7 @@ def main():
     # Load config
     run_args = update_config("./feedback_system/pipe_test.yaml") # TODO Testing set up fix for full pipeline
     #folder_path = os.path.dirname(run_args.VIDEO_PATH)
-    folder_path = "E:\SkiProject\Cut_videos\Edited"
+    folder_path = "E:\SkiProject\Cut_videos\Edited_videos_v3"
     for file_name in os.listdir(folder_path):
         if file_name.endswith(".mp4"):
             full_path = os.path.join(folder_path, file_name)

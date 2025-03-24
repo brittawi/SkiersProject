@@ -26,7 +26,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "44"
+ID = "87"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 INPUT_PATH = os.path.join("E:\SkiProject\AnnotationsByUs", ID[:2] + ".json")
@@ -34,7 +34,7 @@ INPUT_PATH = os.path.join("E:\SkiProject\AnnotationsByUs", ID[:2] + ".json")
 # # path to where all videos are stored
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
-testing_with_inference = False
+testing_with_inference = True
 
 def main():
     
@@ -282,7 +282,6 @@ def main():
                                     (frame1, frame2), 
                                     i)
 
-
             stacked_frame = cv2.vconcat([user_frame, expert_frame])
             stacked_frame = cv2.hconcat([stacked_frame, info_image])
 
@@ -292,7 +291,6 @@ def main():
         
             if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
-        break
     cv2.destroyAllWindows()
 
 
