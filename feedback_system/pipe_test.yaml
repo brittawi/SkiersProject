@@ -1,10 +1,10 @@
   
-VIDEO_PATH: E:\SkiProject\Cut_videos\DJI_0038.MP4
+VIDEO_PATH: E:\SkiProject\Cut_videos\Edited\DJI_0087.MP4
 ALPHA_ARGS:
   SAVE_VIDEO: false
   VIS_FAST: true
   CFG_PATH: alphapose\configs\256x192_res50_lr1e-3_1x.yaml
-  WEIGHTS_PATH: alphapose\pretrained_models\final_DPG_iter_2.pth
+  WEIGHTS_PATH: alphapose\pretrained_models\model_expert_mixed_level.pth
   YOLO_WEIGHT_PATH: alphapose/detector/yolo/data/yolov3-spp.weights
   GPUS: "0"
   OUTPUT_PATH: ""
@@ -15,10 +15,11 @@ CLS_GEAR:
   NETTYPE: mlp
   MODEL_PATH: ./pretrained_models/best_model_2025_02_26_15_36_lr0.0001_seed5.pth
 DTW:
-  VIS_VID_PATH: E:\SkiProject\Cut_videos
+  VIS_VID_PATH: E:\SkiProject\Cut_videos\Cut_videos_v1
   VIS_VIDEO: False
   CHOOSEN_JOINT: RAnkle
   CHOOSEN_REF: Hip
   CHOOSEN_DIM: x
+  GAUS_FILTER: True
   SIGMA_VALUE: 2 
   ORDER: 22
