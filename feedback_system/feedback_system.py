@@ -7,7 +7,7 @@ if project_root not in sys.path:
 
 from utils.load_data import load_json
 from utils.dtw import compare_selected_cycles, extract_frame, extract_frame_second, extract_frame_imageio, extract_frame_ffmpeg, extract_multivariate_series
-from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_lines, draw_table, calculate_similarity
+from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_lines, draw_table, calculate_similarity, draw_plots
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
 from utils.split_cycles import split_into_cycles
@@ -31,12 +31,13 @@ import cv2
 ID = "65"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
-INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
-# INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
+# INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
+INPUT_PATH = os.path.join("E:\SkiProject\\annotations_test_DJI_0044\After_Mixed_level_output\coco_json",  f"DJI_{int(ID):04d}_coco.json")
+INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
 # # path to where all videos are stored
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
-testing_with_inference = True
+testing_with_inference = False
 
 def main():
     
@@ -234,7 +235,7 @@ def main():
                 labels=['Difference between user and expert'], 
                 colors=['b'])
 
-        if False:
+        if True:
             plot_lines(
                 f'output/user_shoulder_hips_{i}.png',
                 'Plot of Array Data', 
@@ -266,7 +267,6 @@ def main():
             video_writer = 1 # skips video writing
 
 
-        
         # Loops through the DTW match pair and shows lines on user video
         for i, (frame1, frame2) in enumerate(path):
             user_frame = extract_frame(run_args.VIDEO_PATH, frame1 + user_start_frame)
@@ -285,21 +285,25 @@ def main():
 
             # Draw lines
             draw_joint_lines(joints_lines, user_frame, user_points_lines)
-            draw_joint_lines(joints_lines, expert_frame, expert_points_lines, l_color=(200,170,240))
+            draw_joint_lines(joints_lines, expert_frame, expert_points_lines)
             draw_joint_angles(joint_angles, user_frame, user_points_angles)
-            draw_joint_angles(joint_angles, expert_frame, expert_points_angles, l_color=(200,170,240))
+            draw_joint_angles(joint_angles, expert_frame, expert_points_angles)
 
             height, width, channels = user_frame.shape
-            empty_image = np.zeros((height*2,width,channels), np.uint8)
+            empty_image = np.zeros((height,width,channels), np.uint8)
 
             info_image = draw_table(empty_image, 
                                     (joint_angles, user_angles, expert_angles, diff_angles, sim_angles),
                                     (joints_lines, user_lines, expert_lines, diff_lines, sim_lines),
                                     (frame1, frame2), 
                                     i)
+            
+            plot_image = draw_plots(np.zeros((height,width,channels), np.uint8), user_angles, expert_angles, path, joint_angles, frame1, frame2)
 
+
+            side_image = cv2.vconcat([info_image, plot_image])
             stacked_frame = cv2.vconcat([user_frame, expert_frame])
-            stacked_frame = cv2.hconcat([stacked_frame, info_image])
+            stacked_frame = cv2.hconcat([stacked_frame, side_image])
 
             resize_frame = cv2.resize(stacked_frame, None, fx=0.5, fy=0.5)
     
@@ -322,6 +326,7 @@ def main():
 
         if video_writer:
             video_writer.release()
+
     cv2.destroyAllWindows()
 
 

@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 from utils.dtw import smooth_cycle, compute_angle
+import matplotlib.pyplot as plt
 
 def compute_angle_between_lines(p1, p2, p3, p4):
     """Computes the angle between two lines formed by points (p1, p2) and (p3, p4)."""
@@ -211,6 +212,71 @@ def draw_table(frame, angles_tuple, lines_tuple, match, iter):
                 text_x = top_left[0] + (cell_width - text_width) // 2
                 text_y = top_left[1] + (cell_height + text_height) // 2
             cv2.putText(frame, text, (text_x, text_y), font, font_scale, text_color, font_thickness)
+    return frame
+
+def draw_plots(frame, user_angles, expert_angles, path, joint_angles, frame1, frame2):
+
+    import matplotlib.pyplot as plt
+    from dtaidistance import dtw_visualisation
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+
+    cols = 2
+    # Determine the grid layout
+    num_plots = len(joint_angles)
+    rows = int(np.ceil(num_plots / cols))  # Calculate how many rows based on number of plots and columns
+
+    # Get frame dimensions
+    frame_height, frame_width = frame.shape[:2]
+    plot_width = frame_width // cols  # Width of each plot
+    plot_height = frame_height // rows  # Height of each plot
+
+    user_angles_arr = np.array(user_angles)
+    expert_angles_arr = np.array(expert_angles)
+    for i, angle in enumerate(joint_angles):
+        #fig, ax = dtw_visualisation.plot_warping_single_ax(user_angles_arr[:, i], expert_angles_arr[:, i], path, filename=None)
+        fig, ax = dtw_visualisation.plot_warping_single_ax(user_angles_arr[:, i], expert_angles_arr[:, i], path, filename=None)
+        fig.patch.set_facecolor('black')
+        ax.set_facecolor('black')
+        ax.plot(user_angles_arr[:, i], label=f"User", color='c')
+        ax.plot(expert_angles_arr[:, i], label=f"Expert", color='y')
+        ax.legend(facecolor='black', edgecolor='white', labelcolor='white')
+        ax.tick_params(axis='both', colors='white')
+        ax.set_title(f"DTW Alignment: {angle}", color='white', fontsize=12, fontweight='bold')
+        ax.set_xlabel("Frame", color='white', fontsize=10, fontweight='bold')
+        #ax.set_ylabel(f"Degree angle of {angle}", color='white', fontsize=10, fontweight='bold')
+        ax.set_ylabel(f"Degree", color='white', fontsize=10, fontweight='bold')
+        ax.grid(True, color='white', linestyle='-', linewidth=0.5)
+        for spine in ax.spines.values():
+            spine.set_edgecolor('white')  # Set the border color to white
+
+        # Plot dots at the specified timestamps
+        ax.plot(frame1, user_angles_arr[frame1, i], marker='o', markersize=10, color='b')
+        ax.plot(frame2, expert_angles_arr[frame2, i], marker='o', markersize=10, color='b')
+
+
+
+        canvas = FigureCanvas(fig)
+        canvas.draw()
+        plot_img = np.frombuffer(canvas.tostring_rgb(), dtype=np.uint8)
+        plot_img = plot_img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        #frame_height, frame_width = frame.shape[:2]
+        plot_img_resized = cv2.resize(plot_img, (frame_width, frame_height))
+        # frame = cv2.addWeighted(frame, 0, plot_img_resized, 1, 0)
+        plt.close(fig)
+                # Calculate the position on the frame where the plot should be placed
+        row_idx = i // cols  # Determine the row index
+        col_idx = i % cols  # Determine the column index
+        y_start = row_idx * plot_height  # Starting y-coordinate
+        x_start = col_idx * plot_width  # Starting x-coordinate
+
+        # Ensure that the plot fits in the calculated area
+        if plot_img_resized.shape[0] != plot_height or plot_img_resized.shape[1] != plot_width:
+            plot_img_resized = cv2.resize(plot_img_resized, (plot_width, plot_height))
+
+        # Place the resized plot image onto the frame
+        frame[y_start:y_start + plot_height, x_start:x_start + plot_width] = plot_img_resized
+
+
     return frame
 
 
