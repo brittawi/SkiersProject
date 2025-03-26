@@ -2,3 +2,6 @@ __pycache__/
 
 alphapose/detector/yolo/data/yolov3-spp.weights
 alphapose/pretrained_models/
+alphapose/trackers/weights/
+alphapose/data/
+alphapose/exp/

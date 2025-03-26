@@ -3,6 +3,7 @@ VIDEO_PATH: e:\SkiProject\Cut_videos\Edited\DJI_0065.MP4
 ALPHA_ARGS:
   SAVE_VIDEO: false
   VIS_FAST: true
+  POSE_TRACK: true
   CFG_PATH: alphapose\configs\256x192_res50_lr1e-3_1x.yaml
   WEIGHTS_PATH: alphapose\pretrained_models\model_expert_mixed_level.pth
   YOLO_WEIGHT_PATH: alphapose/detector/yolo/data/yolov3-spp.weights
