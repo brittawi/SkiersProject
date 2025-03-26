@@ -1,5 +1,5 @@
   
-VIDEO_PATH: E:\SkiProject\Cut_videos\Edited\DJI_0087.MP4
+VIDEO_PATH: e:\SkiProject\Cut_videos\Edited_videos_v3\DJI_0175_cut.MP4
 ALPHA_ARGS:
   SAVE_VIDEO: false
   VIS_FAST: true
@@ -23,3 +23,6 @@ DTW:
   GAUS_FILTER: True
   SIGMA_VALUE: 2 
   ORDER: 22
+FEEDBACK:
+  SAVE_VIDEO: True
+  OUTPUT_PATH: ./data/feedback_videos
