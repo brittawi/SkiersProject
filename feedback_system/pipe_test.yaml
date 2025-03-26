@@ -17,7 +17,16 @@ CLS_GEAR:
 DTW:
   VIS_VID_PATH: E:\SkiProject\Cut_videos\Cut_videos_v1
   VIS_VIDEO: False
-  CHOOSEN_JOINT: RAnkle
+  SPLIT:
+    LEFT: 
+      CHOOSEN_JOINT: RAnkle
+      CHOOSEN_EXTREMA: min
+    RIGHT:
+      CHOOSEN_JOINT: LAnkle
+      CHOOSEN_EXTREMA: max
+    FRONT:
+      CHOOSEN_JOINT: RAnkle
+      CHOOSEN_EXTREMA: min
   CHOOSEN_REF: Hip
   CHOOSEN_DIM: x
   GAUS_FILTER: True

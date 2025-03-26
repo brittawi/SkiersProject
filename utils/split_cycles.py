@@ -17,12 +17,30 @@ def convert_keypoint_format(keypoints, chosen_ref):
     
 
 
-def split_into_cycles(data, run_args, visualize=False):
+def split_into_cycles(data, run_args, video_angle, visualize=False):
+
+    if video_angle == "Front":
+        chosen_joint = run_args.DTW.SPLIT.FRONT.CHOOSEN_JOINT
+        extrema = run_args.DTW.SPLIT.FRONT.CHOOSEN_EXTREMA
+    elif video_angle == "Left":
+        chosen_joint = run_args.DTW.SPLIT.LEFT.CHOOSEN_JOINT
+        extrema = run_args.DTW.SPLIT.LEFT.CHOOSEN_EXTREMA
+    elif video_angle == "Right":
+        chosen_joint = run_args.DTW.SPLIT.RIGHT.CHOOSEN_JOINT
+        extrema = run_args.DTW.SPLIT.RIGHT.CHOOSEN_EXTREMA
+    else:
+        raise ValueError(f"Invalid video angle: {video_angle}")
+
+    if extrema == "min":
+        extrema_func = np.less
+    elif extrema == "max":
+        extrema_func = np.greater
+    else:
+        raise ValueError(f"Invalid extrema value: {extrema}")
     
     # Extract keypoint labels (assumes same structure across files)
     keypoint_labels = data["categories"][0]["keypoints"]
     
-    # keypoint_indices = {label: index for index, label in enumerate(keypoint_labels)}
     
     # create a dict where we save the keypoint values per joint and indices for each joint
     keypoint_dict = {}
@@ -34,19 +52,19 @@ def split_into_cycles(data, run_args, visualize=False):
     
     # Normalize and smooth the choosen signal
     smoothed_normalized_keypoints = {"x": [], "y": []}
-    smoothed_normalized_keypoints["x"] = normalize_signal(keypoints[run_args.DTW.CHOOSEN_JOINT]["x"])
-    smoothed_normalized_keypoints["y"] = normalize_signal(keypoints[run_args.DTW.CHOOSEN_JOINT]["y"])
+    smoothed_normalized_keypoints["x"] = normalize_signal(keypoints[chosen_joint]["x"])
+    smoothed_normalized_keypoints["y"] = normalize_signal(keypoints[chosen_joint]["y"])
 
     smoothed_normalized_keypoints["x"] = smooth_signal(smoothed_normalized_keypoints["x"], sigma=run_args.DTW.SIGMA_VALUE)
     smoothed_normalized_keypoints["y"] = smooth_signal(smoothed_normalized_keypoints["y"], sigma=run_args.DTW.SIGMA_VALUE)
     
     # Detect local minima for X movement
     x_values = np.array(smoothed_normalized_keypoints["x"])
-    x_min_indices = argrelextrema(x_values, np.less, order=run_args.DTW.ORDER)[0]  
+    x_extrema_indices = argrelextrema(x_values, extrema_func, order=run_args.DTW.ORDER)[0]  
     
     # Detect local minima for Y movement
     y_values = np.array(smoothed_normalized_keypoints["y"])
-    y_min_indices = argrelextrema(y_values, np.less, order=run_args.DTW.ORDER)[0]
+    y_extrema_indices = argrelextrema(y_values, extrema_func, order=run_args.DTW.ORDER)[0]
     
     # Plot if needed
     if visualize:
@@ -54,19 +72,19 @@ def split_into_cycles(data, run_args, visualize=False):
         fig, axs = plt.subplots(2, 1, figsize=(12, 6), sharex=True)  
 
         # Plot choosen joint X movement
-        axs[0].plot(frames, x_values, label=f"{run_args.DTW.CHOOSEN_JOINT} X ({file_path[-11:-5]})", color="red")
-        axs[0].scatter(np.array(frames)[x_min_indices], x_values[x_min_indices], color="black", marker="o", label="Local Minima")
+        axs[0].plot(frames, x_values, label=f"{chosen_joint} X ({file_path[-11:-5]})", color="red")
+        axs[0].scatter(np.array(frames)[x_extrema_indices], x_values[x_extrema_indices], color="black", marker="o", label="Local Minima")
         axs[0].set_ylabel("Normalized X Position")
         axs[0].legend()
 
         # Plot choosen joint Y movement
-        axs[1].plot(frames, y_values, label=f"{run_args.DTW.CHOOSEN_JOINT} Y ({file_path[-11:-5]})", color="blue")
-        axs[1].scatter(np.array(frames)[y_min_indices], y_values[y_min_indices], color="black", marker="o", label="Local Minima")
+        axs[1].plot(frames, y_values, label=f"{chosen_joint} Y ({file_path[-11:-5]})", color="blue")
+        axs[1].scatter(np.array(frames)[y_extrema_indices], y_values[y_extrema_indices], color="black", marker="o", label="Local Minima")
         axs[1].set_ylabel("Normalized Y Position")
         axs[1].set_xlabel("Frame")
         axs[1].legend()
 
-        plt.suptitle(f"Smoothed {run_args.DTW.CHOOSEN_JOINT} Movement with Local Minima (Gaussian σ={run_args.DTW.SIGMA_VALUE})")
+        plt.suptitle(f"Smoothed {chosen_joint} Movement with Local Minima (Gaussian σ={run_args.DTW.SIGMA_VALUE})")
         plt.tight_layout()
         plt.show()
     
@@ -86,18 +104,18 @@ def split_into_cycles(data, run_args, visualize=False):
     
     # choose dim 
     if run_args.DTW.CHOOSEN_DIM == "x":
-        min_indices = x_min_indices
+        extrema_indices = x_extrema_indices
     else:
-        min_indices = y_min_indices
+        extrema_indices = y_extrema_indices
     
     # split cycles and savee
     data_split_by_cycles = {} 
     cycle = 1   
-    while current_min_index < len(min_indices) - 1:  # Ensure at least two minima
-        start_frame = frames[min_indices[current_min_index]]
+    while current_min_index < len(extrema_indices) - 1:  # Ensure at least two minima
+        start_frame = frames[extrema_indices[current_min_index]]
         cycle_values_for_joints = {}
         for joint, values in keypoint_values.items():
-            cycle_vals = values[min_indices[current_min_index] : min_indices[current_min_index + 1] + 1]
+            cycle_vals = values[extrema_indices[current_min_index] : extrema_indices[current_min_index + 1] + 1]
             cycle_values_for_joints[joint] = cycle_vals
             
         cycle_values_for_joints["Start_frame"] = start_frame    

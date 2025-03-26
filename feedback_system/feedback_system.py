@@ -62,7 +62,7 @@ def main():
 
     # Step 2: Split into cycles
     print("Splitting the data into cycles...")
-    cycle_data = split_into_cycles(coco_data, run_args, visualize=False)
+    cycle_data = split_into_cycles(coco_data, run_args, visualize=False, video_angle=video_angle)
 
     # Load the checkpoint to the model as we need it for certain data
     print("Loading Model...")

@@ -82,7 +82,7 @@ def extract_keypoint_series(cycle_data, joints, sigma=2):
 def extract_frame(video_path, frame_idx):
     """Extracts and returns a specific frame from a video file."""
     # minus 1 because frames start at 0 but image id starts at 1
-    print("extracting frame: ", frame_idx-20)
+    #print("extracting frame: ", frame_idx-2)
     cap = cv2.VideoCapture(video_path)
     cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx-2)
     ret, frame = cap.read()
