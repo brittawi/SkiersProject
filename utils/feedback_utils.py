@@ -213,4 +213,79 @@ def draw_table(frame, angles_tuple, lines_tuple, match, iter):
             cv2.putText(frame, text, (text_x, text_y), font, font_scale, text_color, font_thickness)
     return frame
 
+# function for choosing the ID of the skier that we want to track
+def choose_id(results_list, video_path):
+            
+    # Extract the first frame image_id
+    first_frame_id = results_list[0]["image_id"]
+
+    # Filter out only the keypoints from the first frame
+    first_frame_data = [entry for entry in results_list if entry["image_id"] == first_frame_id]
+
+    # Load the first frame from the video
+    cap = cv2.VideoCapture(video_path)
+
+    success, image = cap.read()
+    cap.release()
+
+    if not success:
+        print("Could not read the first frame from the video.")
+    else:
+        
+        # select different colors for different IDs
+        np.random.seed(42)  # Ensure reproducibility
+        colors = {person["idx"]: tuple(np.random.randint(0, 255, 3).tolist()) for person in first_frame_data}
+        
+        # Dictionary to store keypoints by ID
+        person_keypoints = {}
+        
+        # Draw keypoints and IDs on the image
+        for person in first_frame_data:
+            idx = person["idx"]  # Person ID
+            keypoints = np.array(person["keypoints"]).reshape(-1, 3)[:, :2]  # Extract (x, y) keypoints
+            color = colors[idx]
+            
+            person_keypoints[idx] = keypoints  # Store keypoints for click detectio
+            
+            # Draw keypoints
+            for (x, y) in keypoints:
+                cv2.circle(image, (int(x), int(y)), 5, color, -1)  # Red keypoints
+            
+            # Display the ID near the head (assuming first keypoint is the head)
+            head_x, head_y = map(int, keypoints[0])
+            cv2.putText(image, str(idx), (head_x, head_y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+            
+        selected_id = None
+
+        # Mouse click callback function
+        def select_id(event, x, y, flags, param):
+            nonlocal selected_id
+            if event == cv2.EVENT_LBUTTONDOWN:
+                min_dist = float('inf')
+                closest_id = None
+                
+                # Find the closest keypoint to the click position
+                for pid, keypoints in person_keypoints.items():
+                    for kx, ky in keypoints:
+                        dist = np.sqrt((x - kx) ** 2 + (y - ky) ** 2)
+                        if dist < min_dist:
+                            min_dist = dist
+                            closest_id = pid
+                
+                if closest_id is not None:
+                    selected_id = closest_id
+                    print(f"You selected ID: {selected_id}")
+        
+        # Show image with OpenCV
+        cv2.imshow("Click on the ID you want to select", image)
+        cv2.setMouseCallback("Click on the ID you want to select", select_id)
+        
+        # Wait for selection
+        while selected_id is None:
+            cv2.waitKey(1)
+        
+        cv2.destroyAllWindows()
+        
+        return selected_id
+
 
