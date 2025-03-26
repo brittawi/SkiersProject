@@ -3,7 +3,9 @@ from collections import defaultdict
 import json
 
 # ChatGPT generated!
-def halpe26_to_coco(halpe26_data):
+def halpe26_to_coco(halpe26_data, tracker_id = None):
+    
+    save_verification = False
     
     current_date = datetime.now().strftime("%Y-%m-%d")
     
@@ -51,9 +53,17 @@ def halpe26_to_coco(halpe26_data):
     filename_to_id = {}
     annotations_grouped_by_image = defaultdict(list)
     annotation_id = 1
+    
+    # Count occurrences of each tracker_id
+    tracker_counts = defaultdict(int)
+    tracker_scores = defaultdict(list)
 
     for annotation in halpe26_data:
         file_name = annotation["image_id"]
+        
+        # Increment tracker count and collect scores for each tracker_id
+        tracker_counts[annotation["idx"]] += 1
+        tracker_scores[annotation["idx"]].append(annotation["score"])
 
         # Assign an image_id to each unique file_name
         if file_name not in filename_to_id:
@@ -73,16 +83,32 @@ def halpe26_to_coco(halpe26_data):
         # Use the assigned image_id for this file
         image_id = filename_to_id[file_name]
         
-        # Extract score for filtering
-        score = annotation["score"]
+        # # Extract score for filtering
+        # score = annotation["score"]
         # Group annotations by image_id
-        annotations_grouped_by_image[image_id].append((annotation, score))
+        annotations_grouped_by_image[image_id].append(annotation)
         
-    # Filter annotations to keep only the one with the highest score per image_id
+    # print(f"IDs: {list(tracker_counts.keys())}")
+        
+    # Determine the tracker_id with the most occurrences, and highest average score in case of a tie
+    if tracker_id is None:
+        # Get the tracker_id with the most occurrences
+        max_tracker_id = max(tracker_counts, key=lambda k: (tracker_counts[k], sum(tracker_scores[k]) / len(tracker_scores[k])))
+        tracker_id = max_tracker_id
+        
+    # Filter annotations to keep only the one with the highest score per image_id or by tracker id
     for image_id, annotations in annotations_grouped_by_image.items():
+        
+        filtered_annotations = [a for a in annotations if a["idx"] == tracker_id]
 
-        # Find the annotation with the highest score
-        best_annotation, _ = max(annotations, key=lambda x: x[1])
+        # If no annotations for that tracker_id, skip this image
+        if not filtered_annotations:
+            save_verification = True
+            print(f"No Annotations for Image id: {image_id} and tracker ID: {tracker_id}")
+            continue
+        
+        # Process the best annotation for this tracker_id (if multiple annotations, choose the best one)
+        best_annotation = max(filtered_annotations, key=lambda x: x["score"])
         
         # Process keypoints
         keypoints = best_annotation.get("keypoints", [])
@@ -113,7 +139,7 @@ def halpe26_to_coco(halpe26_data):
         })
         annotation_id += 1
 
-    return coco_data
+    return coco_data, tracker_id, save_verification
     # # Save the updated COCO JSON file
     # with open(output_file, 'w') as f:
     #     json.dump(coco_data, f, indent=4)
