@@ -5,6 +5,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import argrelextrema  # Local minima detection
 
+def convert_keypoint_format(keypoints, chosen_ref):
+    keypoint_values = {}
+    for joint, values in keypoints.items(): 
+        if joint == chosen_ref:
+            key_x, key_y = joint + "_x_ref", joint + "_y_ref"
+        else:
+            key_x, key_y = joint + "_x", joint + "_y"
+        keypoint_values[key_x], keypoint_values[key_y] = values["x"], values["y"]
+    return keypoint_values
+    
+
 
 def split_into_cycles(data, run_args, visualize=False):
     
@@ -19,7 +30,7 @@ def split_into_cycles(data, run_args, visualize=False):
         keypoint_dict[label] = {"x": [], "y": [], "index" : i}
 
     # get keypoints and frames
-    frames, keypoints = process_data(data, keypoint_dict, run_args)
+    frames, keypoints = process_data(data, keypoint_dict, run_args.DTW.CHOOSEN_REF)
     
     # Normalize and smooth the choosen signal
     smoothed_normalized_keypoints = {"x": [], "y": []}
@@ -98,7 +109,7 @@ def split_into_cycles(data, run_args, visualize=False):
         
         
 # Function to process data from a dataset
-def process_data(data, keypoint_dict, run_args):
+def process_data(data, keypoint_dict, chosen_ref):
     frames = sorted(set(anno["image_id"] for anno in data.get("annotations", [])))
     
     keypoint_movements = {}
@@ -111,7 +122,7 @@ def process_data(data, keypoint_dict, run_args):
             
             # TODO
             # for the choosen reference joint we save the absolute values, but only if it is in choosen joints
-            if joint == run_args.DTW.CHOOSEN_REF:
+            if joint == chosen_ref:
                 absolute_keypoints = []
                 for i in range(0, len(keypoints), 3):
                     x, y, v = keypoints[i:i+3]
@@ -121,7 +132,7 @@ def process_data(data, keypoint_dict, run_args):
                 joint_x, joint_y = absolute_keypoints[index]
             # for other joints we save keypoints relative to our reference joints
             else:
-                relative_keypoints = compute_relative_keypoints(keypoints, keypoint_dict[run_args.DTW.CHOOSEN_REF]["index"])
+                relative_keypoints = compute_relative_keypoints(keypoints, keypoint_dict[chosen_ref]["index"])
                 joint_x, joint_y = relative_keypoints[index]
 
             keypoints_per_joint["x"].append(joint_x)
