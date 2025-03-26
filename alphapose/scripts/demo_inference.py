@@ -309,7 +309,7 @@ def run_inference(args_cfg):
         sp = True  # Force single-process on Windows
         detector = 'yolo'
         gpus = args_cfg.ALPHA_ARGS.GPUS
-        pose_track = False
+        pose_track = args_cfg.ALPHA_ARGS.POSE_TRACK
         pose_flow = False
         min_box_area = 0
         detbatch = 5
