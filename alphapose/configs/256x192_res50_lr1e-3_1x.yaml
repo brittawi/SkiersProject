@@ -3,7 +3,7 @@ DATASET:
     TYPE: 'Halpe_26'
     ROOT: './data/halpe/'
     IMG_PREFIX: 'images/train2015'
-    ANN: 'annotations/combined_annotations_2.json'
+    ANN: 'annotations/combined_train_annotations.json'
     AUG:
       FLIP: true
       ROT_FACTOR: 40
@@ -14,13 +14,13 @@ DATASET:
     TYPE: 'Halpe_26'
     ROOT: './data/halpe/'
     IMG_PREFIX: 'images/val2017'
-    ANN: 'annotations/halpe_val_v1.json'
+    ANN: 'annotations/combined_val_annotations.json'
   TEST:
     TYPE: 'Halpe_26_det'
     ROOT: './data/halpe/'
     IMG_PREFIX: 'images/val2017'
     DET_FILE: './exp/json/test_det_yolo.json'
-    ANN: 'annotations/halpe_val_v1.json'
+    ANN: 'annotations/combined_val_annotations.json'
 DATA_PRESET:
   TYPE: 'simple'
   SIGMA: 2
@@ -33,7 +33,7 @@ DATA_PRESET:
   - 48
 MODEL:
   TYPE: 'FastPose'
-  PRETRAINED: 'pretrained_models/final_DPG_43_44.pth'
+  PRETRAINED: 'pretrained_models/model_expert_mixed_level.pth'
   TRY_LOAD: ''
   NUM_DECONV_FILTERS:
   - 256
@@ -52,7 +52,7 @@ TRAIN:
   WORLD_SIZE: 4
   BATCH_SIZE: 32
   BEGIN_EPOCH: 0
-  END_EPOCH: 50
+  END_EPOCH: 2
   OPTIMIZER: 'adam'
   LR: 0.001
   LR_FACTOR: 0.1
