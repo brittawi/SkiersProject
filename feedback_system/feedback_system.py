@@ -6,7 +6,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 
 from utils.load_data import load_json
-from utils.dtw import compare_selected_cycles, extract_frame, extract_frame_imageio, extract_frame_ffmpeg, extract_multivariate_series
+from utils.dtw import compare_selected_cycles, extract_frame, extract_frame_second, extract_frame_imageio, extract_frame_ffmpeg, extract_multivariate_series
 from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_lines, draw_table, calculate_similarity
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
@@ -16,6 +16,7 @@ from utils.annotation_format import halpe26_to_coco
 from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
 from utils.feedback_utils import get_line_points
+from utils.classify_angle import classify_angle
 
 import torch
 import numpy as np
@@ -27,7 +28,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "64"
+ID = "65"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -56,9 +57,12 @@ def main():
     else:
         coco_data = load_json(INPUT_PATH)
 
+    video_angle = classify_angle(coco_data)
+    print(f"Video angle: {video_angle}")
+
     # Step 2: Split into cycles
     print("Splitting the data into cycles...")
-    cycle_data = split_into_cycles(coco_data, run_args, visualize=False)
+    cycle_data = split_into_cycles(coco_data, run_args, visualize=False, video_angle=video_angle)
 
     # Load the checkpoint to the model as we need it for certain data
     print("Loading Model...")
@@ -195,7 +199,7 @@ def main():
             joint_distances = []
         elif direction == "left":
             joints_lines = [("RAnkle", "RKnee", "Hip", "Neck")]
-            joint_angles = [("RHip", "RKnee", "RAnkle")]
+            joint_angles = [("RHip", "RKnee", "RAnkle"), ("RWrist", "RElbow", "RShoulder")]
         elif direction == "right":
             #joints_lines = [("LAnkle", "LKnee", "Hip", "Neck"), ("LElbow", "LWrist", "RAnkle", "RKnee")]
             joint_angles = [("LHip", "LKnee", "LAnkle"), ("RHip", "RKnee", "RAnkle"), ("LAnkle", "LHeel", "LBigToe"), ("LWrist", "LElbow", "LShoulder")]
@@ -255,15 +259,22 @@ def main():
         
         output_dir = "output_frames"
         os.makedirs(output_dir, exist_ok=True)
+
+        if run_args.FEEDBACK.SAVE_VIDEO:
+            video_writer = None
+        else:
+            video_writer = 1 # skips video writing
+
+
         
         # Loops through the DTW match pair and shows lines on user video
         for i, (frame1, frame2) in enumerate(path):
-            user_frame = extract_frame_imageio(run_args.VIDEO_PATH, frame1 + user_start_frame)
+            user_frame = extract_frame(run_args.VIDEO_PATH, frame1 + user_start_frame)
             # # TODO Make this a parameter?
             # if True:
             expert_start_frame = expert_cycle.get("Start_frame")
             expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
-            expert_frame = extract_frame_imageio(expert_video, frame2 + expert_start_frame)
+            expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
             
             # draw lines on to each frame
             user_points_lines = get_line_points(cycle, joints_lines, frame1, run_args)
@@ -292,11 +303,25 @@ def main():
 
             resize_frame = cv2.resize(stacked_frame, None, fx=0.5, fy=0.5)
     
-            cv2.imshow("User video", resize_frame)
+            if True:
+                cv2.imshow("User video", resize_frame)
+
+            if video_writer is None:
+                # Define the video codec and output file
+                os.makedirs(run_args.FEEDBACK.OUTPUT_PATH, exist_ok=True)
+                output_video_path = os.path.join(run_args.FEEDBACK.OUTPUT_PATH, f"output_video.mp4")
+                fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4
+                video_output_size = (resize_frame.shape[1], resize_frame.shape[0])  # Set the desired output size
+                video_writer = cv2.VideoWriter(output_video_path, fourcc, 24.0, video_output_size)
+
+            if run_args.FEEDBACK.SAVE_VIDEO:
+                video_writer.write(resize_frame)
         
-            if cv2.waitKey(10) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-        break
+
+        if video_writer:
+            video_writer.release()
     cv2.destroyAllWindows()
 
 

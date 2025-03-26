@@ -16,15 +16,17 @@ def compute_angle(p1, p2, p3):
     return np.arccos(dot_product / norm_product) * (180.0 / np.pi)
 
 # TODO do not need anymore I think?! For single signal
-def extract_angle_series(cycle_data, joint1, joint2, joint3):
+def extract_angle_series(cycle_data, joint1, joint2, joint3, compute_angle_func=None):
     """Extracts time-series data for an angle between three joints from a cycle."""
+    if compute_angle_func == None:
+        compute_angle_func = compute_angle
     angles = []
     frames = []
     for i in range(len(cycle_data[joint1 + "_x"])):
         p1 = (cycle_data[joint1 + "_x"][i], cycle_data[joint1 + "_y"][i])
         p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
         p3 = (cycle_data[joint3 + "_x"][i], cycle_data[joint3 + "_y"][i])
-        angles.append(compute_angle(p1, p2, p3))
+        angles.append(compute_angle_func(p1, p2, p3))
         frames.append(i)
     return np.array(angles), frames
 
@@ -80,7 +82,7 @@ def extract_keypoint_series(cycle_data, joints, sigma=2):
 def extract_frame(video_path, frame_idx):
     """Extracts and returns a specific frame from a video file."""
     # minus 1 because frames start at 0 but image id starts at 1
-    print("extracting frame: ", frame_idx-20)
+    #print("extracting frame: ", frame_idx-2)
     cap = cv2.VideoCapture(video_path)
     cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx-2)
     ret, frame = cap.read()
@@ -116,7 +118,6 @@ def extract_frame_imageio(video_path, frame_idx):
     """Extracts a frame using imageio (alternative to OpenCV)."""
     frame_idx = frame_idx-1
     
-    print("extracting frame: ", frame_idx)
     vid = imageio.get_reader(video_path, "ffmpeg")
     
     try:
