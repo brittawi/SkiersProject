@@ -5,7 +5,7 @@ DATASET:
     IMG_PREFIX: 'images/train2015'
     ANN: 'annotations/combined_train_annotations.json'
     AUG:
-      FLIP: true
+      FLIP: false
       ROT_FACTOR: 40
       SCALE_FACTOR: 0.3
       NUM_JOINTS_HALF_BODY: 11
@@ -57,9 +57,9 @@ TRAIN:
   LR: 0.001
   LR_FACTOR: 0.1
   LR_STEP:
-  - 50
-  - 70
-  DPG_MILESTONE: 90
+  - 20
+  - 40
+  DPG_MILESTONE: 60
   DPG_STEP:
   - 110
   - 130
