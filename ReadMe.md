@@ -352,8 +352,6 @@ We have tested the following pose estimation models for this projects (TODO):
 - Predicted keypoints (We wanted to include all main joints of the body. After meeting with a crosscountry ski trainer we looked for a model that also includes keypoints on the foot.)
 
 
-
-
 ## Contribution
 TODO not sure if we even need this  
 
