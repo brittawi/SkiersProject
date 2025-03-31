@@ -12,17 +12,48 @@ DATASET:
 DATA_PRESET:
   CHOOSEN_JOINTS: 
     - LShoulder_x
+    - LShoulder_y
+    - RShoulder_x
     - RShoulder_y
     - LElbow_x
+    - LElbow_y
     - RElbow_x
+    - RElbow_y
+    - LWrist_x
     - LWrist_y
     - RWrist_x
+    - RWrist_y
+    - LHip_x
     - LHip_y
     - RHip_x
+    - RHip_y
     - LKnee_x
+    - LKnee_y
     - RKnee_x
+    - RKnee_y
     - LAnkle_x
+    - LAnkle_y
     - RAnkle_x
+    - RAnkle_y
+    - Head_x
+    - Head_y
+    - Neck_x
+    - Neck_y
+    - Hip_y_ref
+    - Hip_x_ref
+    - LBigToe_x
+    - LBigToe_y
+    - RBigToe_x
+    - RBigToe_y
+    - LSmallToe_x
+    - LSmallToe_y
+    - RSmallToe_x
+    - RSmallToe_y
+    - LHeel_x
+    - LHeel_y
+    - RHeel_x
+    - RHeel_y
+    
   LABELS :
     unknown: 0
     gear2 : 1
