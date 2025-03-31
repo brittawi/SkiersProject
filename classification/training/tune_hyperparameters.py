@@ -236,8 +236,8 @@ def tune_hyperparameters():
                 resources={"cpu": 4, "gpu": 0}
             ),
             tune_config=tune.TuneConfig(
-                metric="loss",
-                mode="min",
+                metric="accuracy",
+                mode="max",
                 scheduler=scheduler,
                 num_samples=ssp.NUM_SAMPLES,
             ),
@@ -249,7 +249,7 @@ def tune_hyperparameters():
         )
         results = tuner.fit()
         
-        best_result = results.get_best_result("loss", "min")
+        best_result = results.get_best_result("accuracy", "max")
 
         print("Best trial config: {}".format(best_result.config))
         print("Best trial final validation loss: {}".format(
