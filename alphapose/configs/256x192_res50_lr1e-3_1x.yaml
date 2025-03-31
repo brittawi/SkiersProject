@@ -5,7 +5,7 @@ DATASET:
     IMG_PREFIX: 'images/train2015'
     ANN: 'annotations/combined_train_annotations.json'
     AUG:
-      FLIP: false
+      FLIP: False
       ROT_FACTOR: 40
       SCALE_FACTOR: 0.3
       NUM_JOINTS_HALF_BODY: 11
@@ -23,6 +23,7 @@ DATASET:
     ANN: 'annotations/combined_val_annotations.json'
 DATA_PRESET:
   TYPE: 'simple'
+  LOSS_TYPE: 'L1JointRegression' # Not needed here when MSE loss?
   SIGMA: 2
   NUM_JOINTS: 26
   IMAGE_SIZE:
@@ -33,7 +34,7 @@ DATA_PRESET:
   - 48
 MODEL:
   TYPE: 'FastPose'
-  PRETRAINED: 'pretrained_models/model_expert_mixed_level.pth'
+  PRETRAINED: 'pretrained_models/original_weights.pth'
   TRY_LOAD: ''
   NUM_DECONV_FILTERS:
   - 256
@@ -41,7 +42,9 @@ MODEL:
   - 256
   NUM_LAYERS: 50
 LOSS:
-  TYPE: 'MSELoss'
+  TYPE: 'L1JointRegression'
+  NORM_TYPE: 'sigmoid'
+  OUTPUT_3D: False
 DETECTOR:
   NAME: 'yolo'
   CONFIG: 'alphapose/detector/yolo/cfg/yolov3-spp.cfg'
@@ -52,14 +55,14 @@ TRAIN:
   WORLD_SIZE: 4
   BATCH_SIZE: 32
   BEGIN_EPOCH: 0
-  END_EPOCH: 2
+  END_EPOCH: 100
   OPTIMIZER: 'adam'
   LR: 0.001
   LR_FACTOR: 0.1
   LR_STEP:
-  - 20
-  - 40
-  DPG_MILESTONE: 60
+  - 15
+  - 30
+  DPG_MILESTONE: 50
   DPG_STEP:
-  - 110
-  - 130
+  - 65
+  - 80
