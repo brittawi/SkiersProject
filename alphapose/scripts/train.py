@@ -22,6 +22,8 @@ if opt.sync:
     norm_layer = nn.SyncBatchNorm
 else:
     norm_layer = nn.BatchNorm2d
+    
+num_workers = 4
 
 
 def train(opt, train_loader, m, criterion, optimizer, writer):
@@ -119,7 +121,7 @@ def train(opt, train_loader, m, criterion, optimizer, writer):
 def validate(m, opt, heatmap_to_coord, criterion, batch_size=20):
     det_dataset = builder.build_dataset(cfg.DATASET.TEST, preset_cfg=cfg.DATA_PRESET, train=False, opt=opt)
     det_loader = torch.utils.data.DataLoader(
-        det_dataset, batch_size=batch_size, shuffle=False, num_workers=0, drop_last=False)
+        det_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False)
     
     loss_logger = DataLogger()
     acc_logger = DataLogger()
@@ -230,10 +232,10 @@ def validate(m, opt, heatmap_to_coord, criterion, batch_size=20):
 #     sys.stdout = sysout
 #     return res
 
-def validate_gt(m, opt, cfg, heatmap_to_coord, criterion, batch_size=20):
+def validate_gt(m, opt, cfg, heatmap_to_coord, criterion, writer, batch_size=20):
     gt_val_dataset = builder.build_dataset(cfg.DATASET.VAL, preset_cfg=cfg.DATA_PRESET, train=False)
     gt_val_loader = torch.utils.data.DataLoader(
-        gt_val_dataset, batch_size=batch_size, shuffle=False, num_workers=0, drop_last=False)
+        gt_val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False)
 
     loss_logger = DataLogger()
     acc_logger = DataLogger()
@@ -242,7 +244,7 @@ def validate_gt(m, opt, cfg, heatmap_to_coord, criterion, batch_size=20):
     norm_type = cfg.LOSS.get('NORM_TYPE', None)
 
     with torch.no_grad():
-        for inps, labels, label_masks, img_ids, bboxes in tqdm(gt_val_loader, dynamic_ncols=True):
+        for i, (inps, labels, label_masks, img_ids, bboxes) in enumerate(gt_val_loader):
             if isinstance(inps, list):
                 inps = [inp.cuda() for inp in inps]
             else:
@@ -265,6 +267,8 @@ def validate_gt(m, opt, cfg, heatmap_to_coord, criterion, batch_size=20):
                     face_hand_num = 42
                 else:
                     face_hand_num = 110
+                    
+                #TODO
 
                 output_body_foot = output[:, :-face_hand_num, :, :]
                 output_face_hand = output[:, -face_hand_num:, :, :]
@@ -290,6 +294,17 @@ def validate_gt(m, opt, cfg, heatmap_to_coord, criterion, batch_size=20):
             batch_size = inps[0].size(0) if isinstance(inps, list) else inps.size(0)
             loss_logger.update(loss.item(), batch_size)
             acc_logger.update(acc, batch_size)
+    
+    opt.valIters += 1
+            
+    # Tensorboard
+    if opt.board:
+        board_writing(writer, loss_logger.avg, acc_logger.avg, opt.valIters, 'Validation')
+
+    # Debug
+    if opt.debug and not i % 10:
+        debug_writing(writer, output, labels, inps, opt.valIters)
+
 
     return loss_logger.avg, acc_logger.avg
 
@@ -389,11 +404,12 @@ def main():
 
     train_dataset = builder.build_dataset(cfg.DATASET.TRAIN, preset_cfg=cfg.DATA_PRESET, train=True)
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=cfg.TRAIN.BATCH_SIZE * num_gpu, shuffle=True, num_workers=0)
+        train_dataset, batch_size=cfg.TRAIN.BATCH_SIZE * num_gpu, shuffle=True, num_workers=num_workers)
 
     heatmap_to_coord = get_func_heatmap_to_coord(cfg)
 
     opt.trainIters = 0
+    opt.valIters = 0
 
     for i in range(cfg.TRAIN.BEGIN_EPOCH, cfg.TRAIN.END_EPOCH):
         opt.epoch = i
@@ -419,9 +435,8 @@ def main():
                 # print(f"Validation Loss: {val_loss}, Accuracy: {val_acc}")
 
 
-                gt_val_loss, gt_val_acc = validate_gt(m, opt, cfg, heatmap_to_coord, criterion, batch_size=20)
-                print(f"GT Validation Loss: {gt_val_loss}, Accuracy: {gt_val_acc}")
-                #logger.info(f'##### Epoch {opt.epoch} | gt mAP: {gt_AP} | rcnn mAP: {rcnn_AP} #####')
+                gt_val_loss, gt_val_acc = validate_gt(m, opt, cfg, heatmap_to_coord, criterion, writer, batch_size=20)
+                logger.info(f"GT Validation Loss: {gt_val_loss}, Accuracy: {gt_val_acc}")
 
         # Time to add DPG
         if i == cfg.TRAIN.DPG_MILESTONE:
@@ -433,7 +448,7 @@ def main():
             # Reset dataset
             train_dataset = builder.build_dataset(cfg.DATASET.TRAIN, preset_cfg=cfg.DATA_PRESET, train=True, dpg=True)
             train_loader = torch.utils.data.DataLoader(
-                train_dataset, batch_size=cfg.TRAIN.BATCH_SIZE * num_gpu, shuffle=True, num_workers=0)
+                train_dataset, batch_size=cfg.TRAIN.BATCH_SIZE * num_gpu, shuffle=True, num_workers=num_workers)
 
     torch.save(m.module.state_dict(), './exp/{}-{}/final_DPG.pth'.format(opt.exp_id, cfg.FILE_NAME))
 
