@@ -21,7 +21,6 @@ from utils.CustomDataset import CustomDataset
 from utils.training_utils import validation, initialize_loss
 
 
-#TODO Use 1 or many models?
 MODEL_PATH = "./pretrained_models/best_model_2025_03_28_14_46_lr0.0001_seed42.pth"
 TEST_DATA_PATH = "./data/split_data/test.json"
 
@@ -121,6 +120,8 @@ def main():
 
     disp = ConfusionMatrixDisplay(conf_matrix)
     disp.plot()
+    #TODO add save path
+    plt.savefig()
     plt.show()
     
 

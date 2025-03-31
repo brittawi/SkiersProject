@@ -82,7 +82,10 @@ def main():
             "norm_type" : cfg.DATASET.AUG.get('NORM_TYPE', "full_signal"),
             "smoothing" : cfg.DATASET.AUG.SMOOTHING,
             "choosen_joints" : cfg.DATA_PRESET.CHOOSEN_JOINTS,
-            "labels" : cfg.DATA_PRESET.LABELS
+            "labels" : cfg.DATA_PRESET.LABELS,
+            "network_type" : cfg.TRAIN.NETWORK.NETWORKTYPE,
+            "batch_size" : cfg.TRAIN.BATCH_SIZE,
+            "loss_type" : cfg.TRAIN.LOSS
         }
         
         net_type = cfg.TRAIN.NETWORK.get('NETWORKTYPE', "mlp")
@@ -121,6 +124,8 @@ def main():
     writer.close()
 
     plot_avg_std_combined(average_results, cfg, start_time)
+
+    #TODO get highest val metric and epoch 
 
 
 
