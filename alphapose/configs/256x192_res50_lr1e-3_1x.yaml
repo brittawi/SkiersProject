@@ -23,6 +23,7 @@ DATASET:
     ANN: 'annotations/combined_val_annotations.json'
 DATA_PRESET:
   TYPE: 'simple'
+  LOSS_TYPE: 'L1JointRegression' # Not needed here when MSE loss?
   SIGMA: 2
   NUM_JOINTS: 26
   IMAGE_SIZE:
@@ -33,7 +34,7 @@ DATA_PRESET:
   - 48
 MODEL:
   TYPE: 'FastPose'
-  PRETRAINED: 'pretrained_models/model_expert_mixed_level.pth'
+  PRETRAINED: 'pretrained_models/RegLoss100EpochNoFlipDPG.pth'
   TRY_LOAD: ''
   NUM_DECONV_FILTERS:
   - 256
@@ -41,7 +42,9 @@ MODEL:
   - 256
   NUM_LAYERS: 50
 LOSS:
-  TYPE: 'MSELoss'
+  TYPE: 'L1JointRegression'
+  NORM_TYPE: 'sigmoid'
+  OUTPUT_3D: False
 DETECTOR:
   NAME: 'yolo'
   CONFIG: 'alphapose/detector/yolo/cfg/yolov3-spp.cfg'
