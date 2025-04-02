@@ -5,7 +5,7 @@ ALPHA_ARGS:
   VIS_FAST: true
   POSE_TRACK: true
   CFG_PATH: alphapose\configs\256x192_res50_lr1e-3_1x.yaml
-  WEIGHTS_PATH: alphapose\pretrained_models\model_expert_mixed_level.pth
+  WEIGHTS_PATH: alphapose\pretrained_models\RegLoss100EpochNoFlipDPG.pth
   YOLO_WEIGHT_PATH: alphapose/detector/yolo/data/yolov3-spp.weights
   GPUS: "0"
   OUTPUT_PATH: ""

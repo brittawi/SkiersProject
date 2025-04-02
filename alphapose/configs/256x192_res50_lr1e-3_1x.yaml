@@ -34,7 +34,7 @@ DATA_PRESET:
   - 48
 MODEL:
   TYPE: 'FastPose'
-  PRETRAINED: 'pretrained_models/original_weights.pth'
+  PRETRAINED: 'pretrained_models/RegLoss100EpochNoFlipDPG.pth'
   TRY_LOAD: ''
   NUM_DECONV_FILTERS:
   - 256
