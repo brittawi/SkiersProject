@@ -13,6 +13,9 @@ from utils.feedback_utils import choose_id
 import re
 import cv2
 
+def get_image_by_id(images, target_id):
+    return next((image for image in images if image['id'] == target_id), None)
+
 def visualize_tracking(input_video_path, output_video_path, coco_annotations):
     # Define keypoint colors
     KEYPOINT_COLOR = (0, 255, 0)  # Green
@@ -51,9 +54,11 @@ def visualize_tracking(input_video_path, output_video_path, coco_annotations):
     # Map annotations by image_id for quick lookup
     annotations_by_image_id = {}
     for annotation in coco_annotations['annotations']:
-        if annotation['image_id'] not in annotations_by_image_id:
-            annotations_by_image_id[annotation['image_id']] = []
-        annotations_by_image_id[annotation['image_id']].append(annotation)
+        image_video_id = get_image_by_id(coco_annotations["images"], annotation['image_id'])
+        image_video_id = int(image_video_id["file_name"].split('.')[0])
+        if image_video_id not in annotations_by_image_id:
+            annotations_by_image_id[image_video_id] = []
+        annotations_by_image_id[image_video_id].append(annotation)
 
     # Iterate through all frames (image_ids) in the video
     frame_id = 0
@@ -65,8 +70,8 @@ def visualize_tracking(input_video_path, output_video_path, coco_annotations):
             break  # End of video
 
         # Check if there are any annotations for this frame (image_id)
-        if frame_id + 1 in annotations_by_image_id:  # Image IDs are 1-based
-            annotations = annotations_by_image_id[frame_id + 1]
+        if frame_id in annotations_by_image_id:  # Image IDs are 1-based
+            annotations = annotations_by_image_id[frame_id]
             
             for annotation in annotations:
                 keypoints = annotation['keypoints']
@@ -93,7 +98,7 @@ def main():
     # Load config
     run_args = update_config("./feedback_system/pipe_test.yaml") # TODO Testing set up fix for full pipeline
     #folder_path = os.path.dirname(run_args.VIDEO_PATH)
-    folder_path = "C:\\awilde\\britta\\LTU\\SkiingProject\\SkiersProject\\Data\\NewData\\Film2025-02-22\\"
+    folder_path = "e:\SkiProject\Cut_videos\MAKE_ANNOTATION_FOR"
     for file_name in os.listdir(folder_path):
         if file_name.endswith(".mp4") or file_name.endswith(".MP4"):
             full_path = os.path.join(folder_path, file_name)
