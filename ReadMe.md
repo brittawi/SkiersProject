@@ -196,6 +196,10 @@ Here you set the train image load folder, annotation file, and set which pretrai
 
 ```python scripts/demo_inference.py --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/final_DPG_iter_2.pth --video E:\alphapose\AlphaPose\examples\demo\DJI_0015.MP4 --save_video --vis_fast```
 
+### Testing
+
+```python scripts/test.py --cfg configs/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/RegLoss100EpochNoFlipDPG.pth --num_workers 4```
+
 ## Usage
 TODO folder structure, where to find what and how to use it
 

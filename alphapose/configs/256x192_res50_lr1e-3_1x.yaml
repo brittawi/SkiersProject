@@ -16,11 +16,11 @@ DATASET:
     IMG_PREFIX: 'images/val2017'
     ANN: 'annotations/combined_val_annotations.json'
   TEST:
-    TYPE: 'Halpe_26_det'
+    TYPE: 'Halpe_26'
     ROOT: './data/halpe/'
-    IMG_PREFIX: 'images/val2017'
-    DET_FILE: './exp/json/test_det_yolo.json'
-    ANN: 'annotations/combined_val_annotations.json'
+    IMG_PREFIX: 'images/test'
+    #DET_FILE: './exp/json/test_det_yolo.json'
+    ANN: 'annotations/combined_test_annotations.json'
 DATA_PRESET:
   TYPE: 'simple'
   LOSS_TYPE: 'L1JointRegression' # Not needed here when MSE loss?
