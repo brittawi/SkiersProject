@@ -62,10 +62,10 @@ opt.gpus = [gpus[0]]
 opt.device = torch.device("cuda:" + str(opt.gpus[0]) if opt.gpus[0] >= 0 else "cpu")
 
 
-def test_gt(m, opt, cfg, heatmap_to_coord, criterion, batch_size=20, num_workers=20):
-    gt_val_dataset = builder.build_dataset(cfg.DATASET.TEST, preset_cfg=cfg.DATA_PRESET, train=False)
-    gt_val_loader = torch.utils.data.DataLoader(
-        gt_val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False)
+def test_gt(m, cfg, criterion, batch_size=20, num_workers=20):
+    gt_test_dataset = builder.build_dataset(cfg.DATASET.TEST, preset_cfg=cfg.DATA_PRESET, train=False)
+    gt_test_loader = torch.utils.data.DataLoader(
+        gt_test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False)
 
     loss_logger = DataLogger()
     acc_logger = DataLogger()
@@ -74,7 +74,7 @@ def test_gt(m, opt, cfg, heatmap_to_coord, criterion, batch_size=20, num_workers
     norm_type = cfg.LOSS.get('NORM_TYPE', None)
 
     with torch.no_grad():
-        for inps, labels, label_masks, img_ids, bboxes in tqdm(gt_val_loader, dynamic_ncols=True):
+        for inps, labels, label_masks, img_ids, bboxes in tqdm(gt_test_loader, dynamic_ncols=True):
             if isinstance(inps, list):
                 inps = [inp.cuda() for inp in inps]
             else:
@@ -147,7 +147,5 @@ if __name__ == "__main__":
     heatmap_to_coord = get_func_heatmap_to_coord(cfg)
 
     with torch.no_grad():
-        gt_test_loss, gt_test_acc = test_gt(m, cfg, heatmap_to_coord, criterion, opt.batch, opt.num_workers)
-        #detbox_AP = validate(m, heatmap_to_coord, opt.batch, opt.num_workers)
-    print(f"GT Test Loss: {gt_test_loss}, Accuracy: {gt_test_acc}")
-    #print('##### gt box: {} mAP | det box: {} mAP #####'.format(gt_AP, detbox_AP))
+        gt_test_loss, gt_test_acc = test_gt(m, cfg, criterion, opt.batch, opt.num_workers)
+        print(f"GT Test Loss: {gt_test_loss}, Accuracy: {gt_test_acc}")
