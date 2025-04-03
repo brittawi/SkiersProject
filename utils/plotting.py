@@ -45,7 +45,7 @@ def plot_avg_std_combined(metrics_dict, cfg, start_time, show_plots=False):
 
     # Ensure save directory exists
     root_dir = os.path.join(cfg.LOGGING.ROOT_PATH, cfg.LOGGING.PLOT_PATH)
-    root_dir = os.path.join(root_dir, "run_" + start_time)
+    root_dir = os.path.join(root_dir, "run_cv_" + start_time)
     os.makedirs(root_dir, exist_ok=True)
 
     # Identify training and validation metric names dynamically
@@ -104,52 +104,33 @@ def plot_avg_std_combined(metrics_dict, cfg, start_time, show_plots=False):
         plt.show()
 
 
-# # Plot function for train & val together
-# def plot_train_val(results, metric, title, ylabel, mean_std_results):
-#     epochs = len(results[0]["train_losses"])
-#     x = np.arange(1, epochs + 1)
 
-#     train_mean, train_std = mean_std_results[metric]["train"]
-#     val_mean, val_std = mean_std_results[metric]["val"]
+def plot_training_final_metrics(results, root):
 
-#     plt.figure(figsize=(8, 5))
+    metrics = {
+        "train_losses": "Loss",
+        "train_accs": "Accuracy",
+        "train_precisions": "Precision",
+        "train_recalls": "Recall",
+        "train_f1s": "F1 Score"
+    }
 
-#     # Plot train
-#     plt.plot(x, train_mean, label="Train", color="blue")
-#     plt.fill_between(x, train_mean - train_std, train_mean + train_std, color="blue", alpha=0.2)
+    colors = ['red', 'blue', 'green', 'purple', 'orange']
 
-#     # Plot validation
-#     plt.plot(x, val_mean, label="Validation", color="red")
-#     plt.fill_between(x, val_mean - val_std, val_mean + val_std, color="red", alpha=0.2)
+    for i, (key, title) in enumerate(metrics.items()):
+        plt.figure(figsize=(6, 4))  # Create a new figure for each plot
+        plt.plot(range(1, len(results[key]) + 1), results[key], color=colors[i])
+        plt.xlabel("Epoch")
+        plt.ylabel(title)
+        plt.title(f"Training {title}")
+        plt.grid()
 
-#     plt.xlabel("Epochs")
-#     plt.ylabel(ylabel)
-#     plt.title(title)
-#     plt.legend()
-#     plt.grid()
-#     plt.show()
+        # Save the plot
+        save_path = os.path.join(root, f"{key}.png")
+        plt.savefig(save_path)
 
-# def plot_single_metric(epoch_range, train_metric, val_metric, metric_name, xlabel, ylabel):
-#     plt.plot(epoch_range, train_metric, label=f'Training {metric_name}')
-#     plt.plot(epoch_range, val_metric, label=f'Validation {metric_name}')
-#     plt.title(f'Training and Validation {metric_name}')
-#     plt.xlabel(xlabel)
-#     plt.ylabel(ylabel)
-#     plt.legend()
+    
 
-# # Function to plot a metric
-# def plot_metric(metric, title, x, ylabel, mean_std_results):
-#     mean_values, std_values = mean_std_results[metric]
-
-#     plt.figure(figsize=(8, 5))
-#     plt.plot(x, mean_values, label=f"Mean {metric}", color="blue")
-#     plt.fill_between(x, mean_values - std_values, mean_values + std_values, color="blue", alpha=0.2, label="Std Dev")
-#     plt.xlabel("Epochs")
-#     plt.ylabel(ylabel)
-#     plt.title(title)
-#     plt.legend()
-#     plt.grid()
-#     plt.show()
 
 def plot_lines(output_path, title, xlabel, ylabel, *line_data, labels=None, colors=None):
     
