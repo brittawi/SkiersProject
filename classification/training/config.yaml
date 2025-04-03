@@ -89,6 +89,7 @@ LOGGING:
   TENSORBOARD_PATH: "tensorboard_runs"
   MODEL_DIR: "saved_models"
   PLOT_PATH: "plots"
+  BEST_EPOCH_PATH: "best_epoch_log"
 
 OPTIMIZATION: 
   SEARCH_CONFIG: search_space.yaml
