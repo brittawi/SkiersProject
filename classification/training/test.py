@@ -14,6 +14,7 @@ import numpy as np
 import json
 from sklearn.metrics import ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 from utils.preprocess_signals import pad_sequences, normalize_full_signal, normalize_per_timestamp, replace_nan_with_first_value, gaussian_filter1d
 from utils.nets import LSTMNet, SimpleMLP
@@ -21,10 +22,12 @@ from utils.CustomDataset import CustomDataset
 from utils.training_utils import validation, initialize_loss
 
 
-MODEL_PATH = "./pretrained_models/best_model_2025_03_28_14_46_lr0.0001_seed42.pth"
+MODEL_PATH = "./pretrained_models/trained_model_2025_04_01_06_46_lr0.0001.pth"
 TEST_DATA_PATH = "./data/split_data/test.json"
+TEST_OUTPUT = "./classification/training/runs/test"
 
 def main():
+    start_time = datetime.now().strftime("%Y_%m_%d_%H_%M")
     # check and select device
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     print(f"Device = {device}")
@@ -112,17 +115,31 @@ def main():
 
     avg_test_loss, epoch_accuracy, precision, recall, f1, conf_matrix = validation(test_loader, net, loss_func, device, custom_params["network_type"])
 
-    print("Test loss:", avg_test_loss)
-    print("Test accuracy:", epoch_accuracy)
-    print("Test precision", precision)
-    print("Test recall", recall)
-    print("Test f1", f1)
+    test_results_text = (
+        f"Test Loss: {avg_test_loss:.4f}\n"
+        f"Test Accuracy: {epoch_accuracy:.2f}%\n"
+        f"Test Precision: {precision:.4f}\n"
+        f"Test Recall: {recall:.4f}\n"
+        f"Test F1 Score: {f1:.4f}\n"
+    )
 
-    disp = ConfusionMatrixDisplay(conf_matrix)
+    # Print results
+    print(test_results_text)
+
+    disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=[*custom_params["labels"]])
     disp.plot()
-    #TODO add save path
-    plt.savefig()
-    plt.show()
+
+    # Save cm and output
+    cm_out_path = os.path.join(TEST_OUTPUT, f"cm_{start_time}.png")
+    os.makedirs(TEST_OUTPUT, exist_ok=True)
+    plt.savefig(cm_out_path)
+
+    for key, item in custom_params.items():
+        test_results_text += str(key) + " " + str(item) + "\n"
+
+    test_results_file = os.path.join(TEST_OUTPUT, f"test_results_{start_time}.txt")
+    with open(test_results_file, "w") as file:
+        file.write(test_results_text)
     
 
 if __name__ == '__main__':
