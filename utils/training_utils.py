@@ -365,17 +365,18 @@ def initialize_net(cfg, input_channels, output):
         
     return net
 
-def initialize_loss(cfg, config = None):
+def initialize_loss(cfg, config = None, num_classes=4):
     # Check if cfg is string, because can't send in cfg in hyperparameter optimization
     if not config == None:
         criterion_type = config["loss_type"]
     else:
         criterion_type = cfg.TRAIN.get('LOSS', "cross_entropy")
+        num_classes = len(cfg.DATA_PRESET.LABELS.keys())
 
     if criterion_type == "cross_entropy":
         criterion = torch.nn.CrossEntropyLoss()
     elif criterion_type == "focal_loss":
-        criterion = FocalLoss(num_classes=len(cfg.DATA_PRESET.LABELS.keys()))
+        criterion = FocalLoss(num_classes=num_classes)
     else:
         print("Loss type not implemented")
     return criterion
@@ -432,21 +433,23 @@ def print_save_best_epoch(results, save_path, start_time, custom_params):
             std_metrics[metric][epoch] = np.std(values)
 
     # Find the epoch with the highest average validation accuracy
-    best_epoch = np.argmax(avg_metrics["val_accs"])
+    best_val_acc_epoch = np.argmax(avg_metrics["val_accs"])
+    best_val_loss_epoch = np.argmin(avg_metrics["val_losses"])
 
     # Prepare the result string
-    result_text = f"Best Epoch: {best_epoch}\n"
+    result_text = f"Epoch with highest val acc: {best_val_acc_epoch}\n"
+    result_text += f"Best epoch with lowest val loss: {best_val_loss_epoch}\n"
     result_text += f"Folds: {len(values)}\n"
-    result_text += f"Train Loss: {avg_metrics['train_losses'][best_epoch]:.4f} ± {std_metrics['train_losses'][best_epoch]:.4f}\n"
-    result_text += f"Train Acc: {avg_metrics['train_accs'][best_epoch]:.2f}% ± {std_metrics['train_accs'][best_epoch]:.2f}\n"
-    result_text += f"Train Precision: {avg_metrics['train_precisions'][best_epoch]:.4f} ± {std_metrics['train_precisions'][best_epoch]:.4f}\n"
-    result_text += f"Train Recall: {avg_metrics['train_recalls'][best_epoch]:.4f} ± {std_metrics['train_recalls'][best_epoch]:.4f}\n"
-    result_text += f"Train F1 Score: {avg_metrics['train_f1s'][best_epoch]:.4f} ± {std_metrics['train_f1s'][best_epoch]:.4f}\n"
-    result_text += f"Val Loss: {avg_metrics['val_losses'][best_epoch]:.4f} ± {std_metrics['val_losses'][best_epoch]:.4f}\n"
-    result_text += f"Val Acc: {avg_metrics['val_accs'][best_epoch]:.2f}% ± {std_metrics['val_accs'][best_epoch]:.2f}\n"
-    result_text += f"Val Precision: {avg_metrics['val_precisions'][best_epoch]:.4f} ± {std_metrics['val_precisions'][best_epoch]:.4f}\n"
-    result_text += f"Val Recall: {avg_metrics['val_recalls'][best_epoch]:.4f} ± {std_metrics['val_recalls'][best_epoch]:.4f}\n"
-    result_text += f"Val F1 Score: {avg_metrics['val_f1s'][best_epoch]:.4f} ± {std_metrics['val_f1s'][best_epoch]:.4f}\n"
+    result_text += f"Train Loss: {avg_metrics['train_losses'][best_val_loss_epoch]:.4f} ± {std_metrics['train_losses'][best_val_loss_epoch]:.4f}\n"
+    result_text += f"Train Acc: {avg_metrics['train_accs'][best_val_loss_epoch]:.2f}% ± {std_metrics['train_accs'][best_val_loss_epoch]:.2f}\n"
+    result_text += f"Train Precision: {avg_metrics['train_precisions'][best_val_loss_epoch]:.4f} ± {std_metrics['train_precisions'][best_val_loss_epoch]:.4f}\n"
+    result_text += f"Train Recall: {avg_metrics['train_recalls'][best_val_loss_epoch]:.4f} ± {std_metrics['train_recalls'][best_val_loss_epoch]:.4f}\n"
+    result_text += f"Train F1 Score: {avg_metrics['train_f1s'][best_val_loss_epoch]:.4f} ± {std_metrics['train_f1s'][best_val_loss_epoch]:.4f}\n"
+    result_text += f"Val Loss: {avg_metrics['val_losses'][best_val_loss_epoch]:.4f} ± {std_metrics['val_losses'][best_val_loss_epoch]:.4f}\n"
+    result_text += f"Val Acc: {avg_metrics['val_accs'][best_val_loss_epoch]:.2f}% ± {std_metrics['val_accs'][best_val_loss_epoch]:.2f}\n"
+    result_text += f"Val Precision: {avg_metrics['val_precisions'][best_val_loss_epoch]:.4f} ± {std_metrics['val_precisions'][best_val_loss_epoch]:.4f}\n"
+    result_text += f"Val Recall: {avg_metrics['val_recalls'][best_val_loss_epoch]:.4f} ± {std_metrics['val_recalls'][best_val_loss_epoch]:.4f}\n"
+    result_text += f"Val F1 Score: {avg_metrics['val_f1s'][best_val_loss_epoch]:.4f} ± {std_metrics['val_f1s'][best_val_loss_epoch]:.4f}\n"
 
     # Print results to console
     print(result_text)

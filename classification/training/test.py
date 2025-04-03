@@ -22,8 +22,8 @@ from utils.CustomDataset import CustomDataset
 from utils.training_utils import validation, initialize_loss
 
 
-MODEL_PATH = "./pretrained_models/trained_model_2025_04_01_06_46_lr0.0001.pth"
-TEST_DATA_PATH = "./data/split_data/test.json"
+MODEL_PATH = "./pretrained_models/trained_model_2025_04_03_12_11_lr0.001.pth"
+TEST_DATA_PATH = "./data/split_data/test_full.json"
 TEST_OUTPUT = "./classification/training/runs/test"
 
 def main():
@@ -111,7 +111,7 @@ def main():
     net.to(device)
     net.eval()
 
-    loss_func = initialize_loss(custom_params, custom_params)
+    loss_func = initialize_loss(custom_params, custom_params, output_channels)
 
     avg_test_loss, epoch_accuracy, precision, recall, f1, conf_matrix = validation(test_loader, net, loss_func, device, custom_params["network_type"])
 
