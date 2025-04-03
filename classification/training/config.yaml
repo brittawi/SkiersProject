@@ -3,7 +3,7 @@ DATASET:
   VAL_SIZE : 0.2
   ROOT_PATH: "./data/split_data"
   FILE_PREFIX: "labeled_cycles_"
-  TRAIN_FILE_NAME: "train.json"
+  TRAIN_FILE_NAME: "train_full.json"
   AUG:
     SMOOTHING: 2
     NORMALIZATION: true
@@ -61,13 +61,13 @@ DATA_PRESET:
     gear4 : 3
 
 TRAIN:
-  BATCH_SIZE: 16
+  BATCH_SIZE: 32
   EPOCHS: 10
   OPTIMIZER: 'adam'
-  LOSS: cross_entropy
-  LR: 0.0001
+  LOSS: focal_loss
+  LR: 0.001
   PATIENCE: 100
-  K_FOLDS: 2
+  K_FOLDS: 5
   SEEDS:
     - 42
     - 2
@@ -81,8 +81,8 @@ TRAIN:
       NUM_LAYERS: 2
       DROPOUT: 0.2
     MLP:
-      HIDDEN_1: 251
-      HIDDEN_2: 219
+      HIDDEN_1: 264
+      HIDDEN_2: 128
 
 LOGGING:
   ROOT_PATH: "./classification/training/runs"

@@ -117,7 +117,7 @@ def train_func(config, cfg, current_folder, seed):
                 optimizer.load_state_dict(optimizer_state)
 
     # Define loss function and optimizer
-    criterion = initialize_loss(cfg, config)
+    criterion = initialize_loss(cfg, config, num_classes=output_channels)
 
     optimizer = torch.optim.Adam(net.parameters(), lr=config["lr"])  
 
@@ -206,17 +206,17 @@ def tune_hyperparameters():
         if  ssp.NETWORK.NETWORKTYPE == "mlp":
             # Define search space for hyperparameters
             search_space = {
-                "lr": tune.loguniform(ssp.LR.MIN, ssp.LR.MAX),  # Learning rate search space
+                "lr": tune.choice(ssp.LR),  # Learning rate search space
                 "batch_size": tune.choice(ssp.BATCH_SIZE),  # Different batch sizes
-                "hidden_1" : tune.randint(ssp.NETWORK.MLP.HIDDEN_MIN_SIZE, ssp.NETWORK.MLP.HIDDEN_MAX_SIZE),
-                "hidden_2" : tune.randint(ssp.NETWORK.MLP.HIDDEN_MIN_SIZE, ssp.NETWORK.MLP.HIDDEN_MAX_SIZE),
+                "hidden_1" : tune.choice(ssp.NETWORK.MLP.LAYER_1_SIZES),
+                "hidden_2" : tune.choice(ssp.NETWORK.MLP.LAYER_2_SIZES),
                 "loss_type": tune.choice(ssp.LOSS_TYPE)
             }
         elif ssp.NETWORK.NETWORKTYPE == "lstm":
             search_space = {
-                "lr": tune.loguniform(ssp.LR.MIN, ssp.LR.MAX),  # Learning rate search space
+                "lr": tune.choice(ssp.LR),  # Learning rate search space
                 "batch_size": tune.choice(ssp.BATCH_SIZE),  # Different batch sizes
-                "hidden_size": tune.randint(ssp.NETWORK.LSTM.HIDDEN_MIN_SIZE, ssp.NETWORK.LSTM.HIDDEN_MAX_SIZE),  # Number of hidden units
+                "hidden_size": tune.choice(ssp.NETWORK.LSTM.HIDDEN_SIZE),  # Number of hidden units
                 "num_layers": tune.choice(ssp.NETWORK.LSTM.NUM_LAYERS),
                 "dropout": tune.choice(ssp.NETWORK.LSTM.DROPOUT),
                 "loss_type": tune.choice(ssp.LOSS_TYPE)
