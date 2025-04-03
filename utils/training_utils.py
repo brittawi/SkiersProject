@@ -416,9 +416,48 @@ def calc_avg_metrics(k_folds, all_results, seeds, epochs):
         fold_final_results[i] = results_lists
     return fold_final_results
 
-# # Function to compute mean and std across seeds
-# def compute_mean_std(results, metric):
-#     metric_values = np.array([res[metric] for res in results])  # Shape: (num_seeds, num_epochs)
-#     mean_values = np.mean(metric_values, axis=0)  # Mean across seeds
-#     std_values = np.std(metric_values, axis=0)    # Std deviation across seeds
-#     return mean_values, std_values
+def print_save_best_epoch(results, save_path, start_time, custom_params):
+    # Extract the number of epochs from the first fold
+    num_epochs = len(next(iter(results.values()))["val_accs"])
+
+    # Initialize a dictionary to store metrics across folds
+    avg_metrics = {metric: np.zeros(num_epochs) for metric in results[1].keys()}
+    std_metrics = {metric: np.zeros(num_epochs) for metric in results[1].keys()}
+
+    # Compute the average and standard deviation for each epoch
+    for epoch in range(num_epochs):
+        for metric in avg_metrics.keys():
+            values = [fold_data[metric][epoch] for fold_data in results.values()]
+            avg_metrics[metric][epoch] = np.mean(values)
+            std_metrics[metric][epoch] = np.std(values)
+
+    # Find the epoch with the highest average validation accuracy
+    best_epoch = np.argmax(avg_metrics["val_accs"])
+
+    # Prepare the result string
+    result_text = f"Best Epoch: {best_epoch}\n"
+    result_text += f"Folds: {len(values)}\n"
+    result_text += f"Train Loss: {avg_metrics['train_losses'][best_epoch]:.4f} ± {std_metrics['train_losses'][best_epoch]:.4f}\n"
+    result_text += f"Train Acc: {avg_metrics['train_accs'][best_epoch]:.2f}% ± {std_metrics['train_accs'][best_epoch]:.2f}\n"
+    result_text += f"Train Precision: {avg_metrics['train_precisions'][best_epoch]:.4f} ± {std_metrics['train_precisions'][best_epoch]:.4f}\n"
+    result_text += f"Train Recall: {avg_metrics['train_recalls'][best_epoch]:.4f} ± {std_metrics['train_recalls'][best_epoch]:.4f}\n"
+    result_text += f"Train F1 Score: {avg_metrics['train_f1s'][best_epoch]:.4f} ± {std_metrics['train_f1s'][best_epoch]:.4f}\n"
+    result_text += f"Val Loss: {avg_metrics['val_losses'][best_epoch]:.4f} ± {std_metrics['val_losses'][best_epoch]:.4f}\n"
+    result_text += f"Val Acc: {avg_metrics['val_accs'][best_epoch]:.2f}% ± {std_metrics['val_accs'][best_epoch]:.2f}\n"
+    result_text += f"Val Precision: {avg_metrics['val_precisions'][best_epoch]:.4f} ± {std_metrics['val_precisions'][best_epoch]:.4f}\n"
+    result_text += f"Val Recall: {avg_metrics['val_recalls'][best_epoch]:.4f} ± {std_metrics['val_recalls'][best_epoch]:.4f}\n"
+    result_text += f"Val F1 Score: {avg_metrics['val_f1s'][best_epoch]:.4f} ± {std_metrics['val_f1s'][best_epoch]:.4f}\n"
+
+    # Print results to console
+    print(result_text)
+
+    for key, item in custom_params.items():
+        result_text += str(key) + " " + str(item) + "\n"
+
+    # Save to a text file
+    output_file = f"best_epoch_{start_time}_results.txt"
+    output_file = os.path.join(save_path, output_file)
+    with open(output_file, "w") as file:
+        file.write(result_text)
+
+    print(f"Results saved to {output_file}")

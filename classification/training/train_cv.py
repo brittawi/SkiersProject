@@ -125,7 +125,10 @@ def main():
 
     plot_avg_std_combined(average_results, cfg, start_time)
 
-    #TODO get highest val metric and epoch 
+    #TODO get highest val metric and epoch
+    best_epoch_file_path = os.path.join(cfg.LOGGING.ROOT_PATH, cfg.LOGGING.BEST_EPOCH_PATH)
+    os.makedirs(best_epoch_file_path, exist_ok=True)
+    print_save_best_epoch(average_results, best_epoch_file_path, start_time, custom_params)
 
 
 
