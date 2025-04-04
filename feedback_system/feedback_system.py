@@ -28,12 +28,14 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "65"
+ID = "144"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
-INPUT_PATH = os.path.join("E:\SkiProject\\annotations_test_DJI_0044\After_Mixed_level_output\coco_json",  f"DJI_{int(ID):04d}_coco.json")
-INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
+# INPUT_PATH = os.path.join("E:\SkiProject\\annotations_test_DJI_0044\After_Mixed_level_output\coco_json",  f"DJI_{int(ID):04d}_coco.json")
+INPUT_PATH = os.path.join("e:\SkiProject\Results_AlphaPose\Expert_mistake_iter_1\All",  f"{ID}.json")
+#INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
+INPUT_VIDEO = r"e:\SkiProject\Expert_mistake_videos\DJI_00" + ID + ".mp4"
 # # path to where all videos are stored
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
@@ -193,17 +195,19 @@ def main():
         Look at distance between keypoints (eg feet)
         
         """
+
+        
         direction = expert_cycle.get("Direction")
-        if direction == "front":
+        if video_angle == "Front":
             # Joint 1 and 2 create one line, joint 3 and 4 another line. 
             joints_lines = [("RShoulder", "LShoulder", "RHip", "LHip"), ("LElbow", "LShoulder", "RElbow", "RShoulder")]
             joint_angles = [("RHip", "RKnee", "RAnkle")]
             #TODO
             joint_distances = []
-        elif direction == "left":
+        elif video_angle == "Left":
             joints_lines = [("RAnkle", "RKnee", "Hip", "Neck")]
             joint_angles = [("RHip", "RKnee", "RAnkle"), ("RWrist", "RElbow", "RShoulder")]
-        elif direction == "right":
+        elif video_angle == "Right":
             #joints_lines = [("LAnkle", "LKnee", "Hip", "Neck"), ("LElbow", "LWrist", "RAnkle", "RKnee")]
             joint_angles = [("LHip", "LKnee", "LAnkle"), ("RHip", "RKnee", "RAnkle"), ("LAnkle", "LHeel", "LBigToe"), ("LWrist", "LElbow", "LShoulder")]
             joints_lines = [("LAnkle", "LKnee", "Hip", "Neck")]
@@ -227,7 +231,7 @@ def main():
 
         # Plotting
         # TODO make parameter?
-        if True:
+        if False:
             plot_lines(
                 f'output/diff_shoulder_hips_{i}.png', 
                 'Difference between user and expert with DTW', 
@@ -236,8 +240,6 @@ def main():
                 diff_angles,  # Positional argument for *line_data
                 labels=['Difference between user and expert'], 
                 colors=['b'])
-
-        if True:
             plot_lines(
                 f'output/user_shoulder_hips_{i}.png',
                 'Plot of Array Data', 
