@@ -41,6 +41,7 @@ def main():
     print("Loading Train and validation data...")
     train_val_data = []
     labels = []
+    skier_ids = []
     file = os.path.join(cfg.DATASET.ROOT_PATH, cfg.DATASET.TRAIN_FILE_NAME)
     with open(file, 'r') as f:
         data_json = json.load(f)
@@ -55,6 +56,7 @@ def main():
 
         train_val_data.append(cycle_tensor)
         labels.append(cycle["Label"])
+        skier_ids.append(cycle["Skier_id"])
     
     # create train and val dataloaders for crossvalidation
     
@@ -67,8 +69,8 @@ def main():
     for fold, (train_index, val_index) in enumerate(kf.split(train_val_data)):
         
         print(f"Fold {fold+1}: Train size = {len(train_index)}, Val size = {len(val_index)}")
-        X_train, y_train = ([train_val_data[i] for i in train_index], [labels[i] for i in train_index])
-        X_val, y_val = ([train_val_data[i] for i in val_index], [labels[i] for i in val_index])
+        X_train, y_train, train_skiers = ([train_val_data[i] for i in train_index], [labels[i] for i in train_index], [skier_ids[i] for i in train_index])
+        X_val, y_val, val_skiers = ([train_val_data[i] for i in val_index], [labels[i] for i in val_index], [skier_ids[i] for i in val_index])
         
         # prepocess data based on train set
         X_train, X_val, train_mean, train_std, train_max_length = preprocess_data(cfg, X_train, X_val, y_train, fold, plotting)
@@ -100,8 +102,8 @@ def main():
         
         # create Datasets
         print("Creating Datasets...")
-        train_dataset = CustomDataset(X_train, y_train, cfg.DATA_PRESET.LABELS)
-        val_dataset = CustomDataset(X_val, y_val, cfg.DATA_PRESET.LABELS)
+        train_dataset = CustomDataset(X_train, y_train, cfg.DATA_PRESET.LABELS, skier_id=train_skiers)
+        val_dataset = CustomDataset(X_val, y_val, cfg.DATA_PRESET.LABELS, skier_id=val_skiers)
         
         # create dataloaders
         train_loader = DataLoader(train_dataset, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=True)
@@ -115,6 +117,8 @@ def main():
      
     # training the network
     all_results, best_train_cms, best_val_cms = cross_validation(cfg, fold_loaders, output_channels, device, start_time)
+
+    #print(all_results)
 
     # log results to tensorboard
     tensorboard_file_path = os.path.join(cfg.LOGGING.ROOT_PATH, cfg.LOGGING.TENSORBOARD_PATH)

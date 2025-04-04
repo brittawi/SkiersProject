@@ -12,11 +12,13 @@ METRICS_NAMES = ["train_losses",
         "train_precisions",
         "train_recalls",
         "train_f1s",
+        "train_skiers_accs",
         "val_losses",
         "val_accs",
         "val_precisions",
         "val_recalls",
-        "val_f1s"
+        "val_f1s",
+        "val_skiers_accs"
     ]
 
 # ======================================
@@ -50,13 +52,20 @@ def training(train_loader, net, criterion, optimizer, device, network_type):
     correct_predictions = 0  # To track the correct predictions
     all_labels = []
     all_predictions = []
+    skier_accuracy = {}  # Dictionary to store accuracy per skier
     
     # setting model to training => bug fix (https://discuss.pytorch.org/t/cudnn-rnn-backward-can-only-be-called-in-training-mode/37622)
     net.train()
     
     for i, data in enumerate(train_loader, 0):
-        # get the inputs; data is a list of [inputs, labels]
-        inputs, labels = data
+        if len(data) == 3:
+            inputs, labels, skiers = data  # Case with skier IDs
+            track_skiers = True
+        else:
+            # get the inputs; data is a list of [inputs, labels]
+            inputs, labels = data
+            skiers = None
+            track_skiers = False
         if network_type == "mlp":
             inputs = inputs.view(inputs.size(0), -1)
         inputs = inputs.to(device)
@@ -81,6 +90,20 @@ def training(train_loader, net, criterion, optimizer, device, network_type):
         all_labels.extend(labels.cpu().numpy())  # Store all labels
         all_predictions.extend(predicted.cpu().numpy())  # Store all predictions
 
+        # If skiers are provided, track accuracy per skier
+        if track_skiers:
+            skiers = skiers.cpu().numpy()
+            labels_np = labels.cpu().numpy()
+            predicted_np = predicted.cpu().numpy()
+
+            for skier, true_label, pred_label in zip(skiers, labels_np, predicted_np):
+                if skier not in skier_accuracy:
+                    skier_accuracy[skier] = {"correct": 0, "total": 0}
+                
+                skier_accuracy[skier]["total"] += 1
+                if true_label == pred_label:
+                    skier_accuracy[skier]["correct"] += 1
+
     # Calculate the average loss for the epoch
     avg_epoch_loss = running_loss / len(train_loader)  # Average loss per batch
     epoch_accuracy = 100 * correct_predictions / total_samples  # Calculate accuracy as a percentage
@@ -93,7 +116,12 @@ def training(train_loader, net, criterion, optimizer, device, network_type):
     # Compute confusion matrix
     conf_matrix = confusion_matrix(all_labels, all_predictions)
 
-    return avg_epoch_loss, epoch_accuracy, precision, recall, f1, conf_matrix
+    # Compute accuracy per skier
+    if track_skiers:
+        for skier in skier_accuracy:
+            skier_accuracy[skier] = 100 * skier_accuracy[skier]["correct"] / skier_accuracy[skier]["total"]
+
+    return avg_epoch_loss, epoch_accuracy, precision, recall, f1, conf_matrix, skier_accuracy if track_skiers else None
 
 def validation(val_loader, net, criterion, device, network_type):
     """
@@ -121,12 +149,19 @@ def validation(val_loader, net, criterion, device, network_type):
     correct_predictions = 0  # To track the correct predictions
     all_labels = []
     all_predictions = []
+    skier_accuracy = {}  # Dictionary to store accuracy per skier
     
     net.eval()
     with torch.no_grad():
         for i, data in enumerate(val_loader, 0):
-            # get the inputs; data is a list of [inputs, labels]
-            inputs, labels = data
+            if len(data) == 3:
+                inputs, labels, skiers = data  # Case with skier IDs
+                track_skiers = True
+            else:
+                # get the inputs; data is a list of [inputs, labels]
+                inputs, labels = data
+                skiers = None
+                track_skiers = False
             if network_type == "mlp":
                 inputs = inputs.view(inputs.size(0), -1)
             inputs = inputs.to(device)
@@ -144,6 +179,21 @@ def validation(val_loader, net, criterion, device, network_type):
             # For F1, recall, precision, confusion matrix
             all_labels.extend(labels.cpu().numpy())  # Store all labels
             all_predictions.extend(predicted.cpu().numpy())  # Store all predictions
+
+                            # If skiers are provided, track accuracy per skier
+            if track_skiers:
+                skiers = skiers.cpu().numpy()
+                labels_np = labels.cpu().numpy()
+                predicted_np = predicted.cpu().numpy()
+
+                for skier, true_label, pred_label in zip(skiers, labels_np, predicted_np):
+                    if skier not in skier_accuracy:
+                        skier_accuracy[skier] = {"correct": 0, "total": 0}
+                    
+                    skier_accuracy[skier]["total"] += 1
+                    if true_label == pred_label:
+                        skier_accuracy[skier]["correct"] += 1
+
             
         # Calculate the average validation loss over all batches
         avg_val_loss = running_val_loss / len(val_loader)  # len(val_loader) is the number of batches
@@ -156,8 +206,13 @@ def validation(val_loader, net, criterion, device, network_type):
 
         # Compute confusion matrix
         conf_matrix = confusion_matrix(all_labels, all_predictions)
+
+        # Compute accuracy per skier
+        if track_skiers:
+            for skier in skier_accuracy:
+                skier_accuracy[skier] = 100 * skier_accuracy[skier]["correct"] / skier_accuracy[skier]["total"]
     
-    return avg_val_loss, epoch_accuracy, precision, recall, f1, conf_matrix
+    return avg_val_loss, epoch_accuracy, precision, recall, f1, conf_matrix, skier_accuracy if track_skiers else None
 
 def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_loader, device, fold, start_time, custom_params):
     """
@@ -196,23 +251,27 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
     for epoch in range(cfg.TRAIN.EPOCHS):  # loop over the dataset multiple times
         
         print("Training")
-        epoch_train_loss, epoch_train_acc, train_precision, train_recall, train_f1, train_conf_matrix = training(train_loader, net, criterion, optimizer, device, cfg.TRAIN.NETWORK.NETWORKTYPE)
+        epoch_train_loss, epoch_train_acc, train_precision, train_recall, train_f1, train_conf_matrix, train_skier_acc = training(train_loader, net, criterion, optimizer, device, cfg.TRAIN.NETWORK.NETWORKTYPE)
         results["train_losses"].append(epoch_train_loss)
         results["train_accs"].append(epoch_train_acc)
         results["train_precisions"].append(train_precision)
         results["train_recalls"].append(train_recall)
         results["train_f1s"].append(train_f1)
+        results["train_skiers_accs"].append(train_skier_acc)
 
         print(f"Epoch: {epoch+1}/{cfg.TRAIN.EPOCHS}, Loss: {epoch_train_loss:.3f}, Accuracy: {epoch_train_acc:.3f}")
+        print(f"Skier acc", train_skier_acc[1])
         
         print("Validation")
-        epoch_val_loss, epoch_val_acc, val_precision, val_recall, val_f1, val_conf_matrix = validation(val_loader, net, criterion, device, cfg.TRAIN.NETWORK.NETWORKTYPE)
+        epoch_val_loss, epoch_val_acc, val_precision, val_recall, val_f1, val_conf_matrix, val_skier_acc = validation(val_loader, net, criterion, device, cfg.TRAIN.NETWORK.NETWORKTYPE)
         results["val_losses"].append(epoch_val_loss)
         results["val_accs"].append(epoch_val_acc)
         results["val_precisions"].append(val_precision)
         results["val_recalls"].append(val_recall)
         results["val_f1s"].append(val_f1)
+        results["val_skiers_accs"].append(val_skier_acc)
         print(f"Epoch: {epoch+1}/{cfg.TRAIN.EPOCHS}, Loss: {epoch_val_loss:.3f}, Accuracy: {epoch_val_acc:.3f}")
+        print(f"Skier acc val", train_skier_acc[1])
 
         # Check early stopping based on validation loss
         if epoch_val_loss < best_val_loss:
@@ -398,23 +457,144 @@ def write_cv_results(fold_final_results, epochs, writer):
             writer.add_scalar(f'Fold_{fold}/Val/Precision', fold_final_results[fold]['val_precisions'][epoch], epoch)
             writer.add_scalar(f'Fold_{fold}/Val/Recall', fold_final_results[fold]['val_recalls'][epoch], epoch)
             writer.add_scalar(f'Fold_{fold}/Val/F1', fold_final_results[fold]['val_f1s'][epoch], epoch)
+
+# def calculate_avg_for_keys(data):
+#     # Initialize a dictionary to hold the sum of values for each key
+#     sum_dict = {}
     
+#     # Initialize a dictionary to hold the count of occurrences for each key
+#     count_dict = {}
+    
+#     # Loop over each dictionary in the list
+#     for d in data:
+#         # Loop through each key-value pair in the dictionary
+#         for key, value in d.items():
+#             if key not in sum_dict:
+#                 sum_dict[key] = 0
+#                 count_dict[key] = 0
+            
+#             # Add the value to the sum for this key
+#             sum_dict[key] += value
+#             # Increment the count for this key
+#             count_dict[key] += 1
+    
+#     # Calculate the average for each key
+#     avg_dict = {key: sum_dict[key] / count_dict[key] for key in sum_dict}
+    
+#     return avg_dict   
+
+# def calc_avg_metrics(k_folds, all_results, seeds, epochs):
+#     fold_final_results = {}
+#     for i in range(1, k_folds+1):
+#         fold_results = [entry for entry in all_results if entry['fold'] == i]
+#         results_lists = {}
+#         for metric_name in METRICS_NAMES:
+#             results_lists[metric_name] = np.zeros(epochs)
+#         for results in fold_results:
+
+#             for metric, values in results["results"].items():
+#                 results_lists[metric] = [a + b for a, b in zip(results_lists[metric], values)]
+
+#         for metric in results_lists.keys():
+#             results_lists[metric] = [total / len(seeds) for total in results_lists[metric]]
+            
+#         fold_final_results[i] = results_lists
+#     return fold_final_results
+
+# def calc_avg_metrics(k_folds, all_results, seeds, epochs):
+#     fold_final_results = {}
+#     for i in range(1, k_folds+1):
+#         fol_i_seed_results = [entry for entry in all_results if entry['fold'] == i]
+#         results_lists = {}
+#         for metric_name in METRICS_NAMES:
+#             if metric_name in ["train_skiers_accs", "val_skiers_accs"]:
+#                 # Creates new dict where all skier id values are 0 
+#                 results_lists[metric_name] = {key: 0 for key in fol_i_seed_results["results"][metric_name].keys()}
+#             else:
+#                 results_lists[metric_name] = np.zeros(epochs)
+
+#         # Loops through the seed results of a fold
+#         for results in fol_i_seed_results:
+#             # Loops through the metrics of a seeds results in fold i 
+#             for metric, values in results["results"].items():
+#                 if metric not in ["train_skiers_accs", "val_skiers_accs"]:
+#                     #print(metric, [a + b for a, b in zip(results_lists[metric], values)])
+#                     results_lists[metric] = [a + b for a, b in zip(results_lists[metric], values)]
+#                 else:
+#                     # Collect the values for each skier
+#                     print(metric, values)
+#                     for dict1, dict2 in zip(values, results_lists[metric]):
+#                         print(dict1, dict2)
+#                     continue
+#                     #WRONG
+#                     #print("input", values)
+#                     #avg_ski_dict = calculate_avg_for_keys(values)
+#                     #print("output", avg_ski_dict)
+#                     #print(ski_results[metric])
+#                     #ski_results[metric].append(avg_ski_dict)
+#                     #print(ski_results[metric])
+
+
+#         for metric in results_lists.keys():
+#             results_lists[metric] = [total / len(seeds) for total in results_lists[metric]]
+            
+#         fold_final_results[i] = results_lists
+#     return fold_final_results
+            
 def calc_avg_metrics(k_folds, all_results, seeds, epochs):
     fold_final_results = {}
-    for i in range(1, k_folds+1):
-        fold_results = [entry for entry in all_results if entry['fold'] == i]
-        results_lists = {}
-        for metric_name in METRICS_NAMES:
-            results_lists[metric_name] = np.zeros(epochs)
+
+    for i in range(1, k_folds + 1):
+        fold_results = [entry for entry in all_results if entry["fold"] == i]
+        results_lists = {metric_name: np.zeros(epochs) for metric_name in METRICS_NAMES}
+
+        # Collect all unique skier IDs across train and val
+        all_train_skiers, all_val_skiers = set(), set()
         for results in fold_results:
+            for epoch_data in results["results"].get("train_skiers_accs", []):
+                if epoch_data:  # Ensure it's not None
+                    all_train_skiers.update(epoch_data.keys())  # Collect all train skier IDs
+            for epoch_data in results["results"].get("val_skiers_accs", []):
+                if epoch_data:  # Ensure it's not None
+                    all_val_skiers.update(epoch_data.keys())  # Collect all val skier IDs
 
+        # Initialize skier accuracy storage
+        train_skiers_accs = {skier: [0] * epochs for skier in all_train_skiers}
+        val_skiers_accs = {skier: [0] * epochs for skier in all_val_skiers}
+
+        # Sum metrics across seeds
+        for results in fold_results:
             for metric, values in results["results"].items():
-                results_lists[metric] = [a + b for a, b in zip(results_lists[metric], values)]
+                if metric not in ["train_skiers_accs", "val_skiers_accs"]:
+                    results_lists[metric] = [a + b for a, b in zip(results_lists[metric], values)]
+                else:
+                    # Sum skier accuracies per epoch
+                    if metric == "train_skiers_accs":
+                        for epoch_idx, epoch_data in enumerate(values):
+                            if epoch_data:  # Ensure epoch_data is not None
+                                for skier in all_train_skiers:
+                                    train_skiers_accs[skier][epoch_idx] += epoch_data.get(skier, 0)
 
+                    elif metric == "val_skiers_accs":
+                        for epoch_idx, epoch_data in enumerate(values):
+                            if epoch_data:  # Ensure epoch_data is not None
+                                for skier in all_val_skiers:
+                                    val_skiers_accs[skier][epoch_idx] += epoch_data.get(skier, 0)
+
+        # Compute averages for metrics and skier accuracies
         for metric in results_lists.keys():
             results_lists[metric] = [total / len(seeds) for total in results_lists[metric]]
-            
+
+        for skier in train_skiers_accs.keys():
+            train_skiers_accs[skier] = [total / len(seeds) for total in train_skiers_accs[skier]]
+
+        for skier in val_skiers_accs.keys():
+            val_skiers_accs[skier] = [total / len(seeds) for total in val_skiers_accs[skier]]
+
+        results_lists["train_skiers_accs"] = train_skiers_accs
+        results_lists["val_skiers_accs"] = val_skiers_accs
         fold_final_results[i] = results_lists
+
     return fold_final_results
 
 def print_save_best_epoch(results, save_path, start_time, custom_params):
@@ -428,9 +608,10 @@ def print_save_best_epoch(results, save_path, start_time, custom_params):
     # Compute the average and standard deviation for each epoch
     for epoch in range(num_epochs):
         for metric in avg_metrics.keys():
-            values = [fold_data[metric][epoch] for fold_data in results.values()]
-            avg_metrics[metric][epoch] = np.mean(values)
-            std_metrics[metric][epoch] = np.std(values)
+            if metric not in ["train_skiers_accs", "val_skiers_accs"]:
+                values = [fold_data[metric][epoch] for fold_data in results.values()]
+                avg_metrics[metric][epoch] = np.mean(values)
+                std_metrics[metric][epoch] = np.std(values)
 
     # Find the epoch with the highest average validation accuracy
     best_val_acc_epoch = np.argmax(avg_metrics["val_accs"])
@@ -464,3 +645,4 @@ def print_save_best_epoch(results, save_path, start_time, custom_params):
         file.write(result_text)
 
     print(f"Results saved to {output_file}")
+
