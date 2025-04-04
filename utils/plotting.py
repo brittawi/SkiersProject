@@ -169,9 +169,12 @@ def plot_avg_std_combined(metrics_dict, cfg, start_time, show_plots=False):
             ax.fill_between(epochs, avg_metrics[val_metric] - std_metrics[val_metric], 
                             avg_metrics[val_metric] + std_metrics[val_metric], color='#000058', alpha=0.2)
 
+            train_metric_name = train_metric.replace('_', ' ').title()
+            val_metric_name = val_metric.replace('_', ' ').title()
+
             ax.set_xlabel("Epochs")
-            ax.set_ylabel(train_metric.replace('_', ' ').title())  # Use training metric name for y-label
-            ax.set_title(f"Mean and Std of {train_metric} & {val_metric} Across Folds")
+            ax.set_ylabel(train_metric_name)  # Use training metric name for y-label
+            ax.set_title(f"Mean and Standard Deviation of {train_metric_name} & {val_metric_name} Across Folds")
             ax.legend()
             ax.grid(True)
 
@@ -199,7 +202,7 @@ def plot_training_final_metrics(results, root):
         "train_f1s": "F1 Score"
     }
 
-    colors = ['red', 'blue', 'green', 'purple', 'orange']
+    colors = ["#93c8ee", "#4d90d3", "#21638f", "#004e98", "#102c9d", "#000058"] 
 
     for i, (key, title) in enumerate(metrics.items()):
         plt.figure(figsize=(6, 4))  # Create a new figure for each plot
@@ -235,10 +238,10 @@ def plot_training_final_metrics(results, root):
 
         # Plot each skier's accuracy
         for i, (skier_id, accuracy_list) in enumerate(skier_accuracies.items()):
-            color_index = i % 10  # Cycle through 10 colors first
-            style_index = i // 10  # Only change line style after one full color cycle
+            color_index = i % 6  # Cycle through 10 colors first
+            style_index = i // 6  # Only change line style after one full color cycle
             
-            color = color_map(color_index)
+            color = colors[color_index]
             line_style = line_styles[style_index % len(line_styles)]  # Ensure we don't run out of styles
 
             plt.plot(range(1, len(accuracy_list) + 1), accuracy_list, 
