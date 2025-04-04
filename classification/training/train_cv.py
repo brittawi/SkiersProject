@@ -118,8 +118,6 @@ def main():
     # training the network
     all_results, best_train_cms, best_val_cms = cross_validation(cfg, fold_loaders, output_channels, device, start_time)
 
-    #print(all_results)
-
     # log results to tensorboard
     tensorboard_file_path = os.path.join(cfg.LOGGING.ROOT_PATH, cfg.LOGGING.TENSORBOARD_PATH)
     writer = SummaryWriter(tensorboard_file_path + '/cross_validation_experiment_' +  start_time)
