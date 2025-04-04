@@ -171,7 +171,9 @@ def main():
             continue
         
         expert_data = load_json(expert_path)
-        
+        #TODO Preprocess?
+
+
         # Define joint triplets for angle comparisons
         # TODO to compare cycles we can either input joint triplets, then we need to set use_keypoints to false
         # otherwise we can input joints, then it will use raw keypoints for DTW
