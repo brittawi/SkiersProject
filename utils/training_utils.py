@@ -530,9 +530,13 @@ def print_save_best_epoch(results, save_path, start_time, custom_params):
                 avg_metrics[metric][epoch] = np.mean(values)
                 std_metrics[metric][epoch] = np.std(values)
 
+            else:
+                #TODO add for skiers
+                continue
+
     # Find the epoch with the highest average validation accuracy
-    best_val_acc_epoch = np.argmax(avg_metrics["val_accs"])
-    best_val_loss_epoch = np.argmin(avg_metrics["val_losses"])
+    best_val_acc_epoch = np.argmax(avg_metrics["val_accs"]) + 1
+    best_val_loss_epoch = np.argmin(avg_metrics["val_losses"]) + 1
 
     # Prepare the result string
     result_text = f"Epoch with highest val acc: {best_val_acc_epoch}\n"

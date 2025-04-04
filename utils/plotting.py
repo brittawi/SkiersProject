@@ -90,7 +90,7 @@ def plot_individual_skier(train_avg, train_std, val_avg, val_std, root_dir):
         
         # Titles and labels
         ax.set_title(f"Skier {skier} Accuracy with Standard Deviation")
-        ax.set_xlabel("Time Steps")
+        ax.set_xlabel("Epoch")
         ax.set_ylabel("Accuracy (%)")
         ax.set_ylim(50, 100)
         ax.grid(True)
@@ -172,7 +172,7 @@ def plot_avg_std_combined(metrics_dict, cfg, start_time, show_plots=False):
             train_metric_name = train_metric.replace('_', ' ').title()
             val_metric_name = val_metric.replace('_', ' ').title()
 
-            ax.set_xlabel("Epochs")
+            ax.set_xlabel("Epoch")
             ax.set_ylabel(train_metric_name)  # Use training metric name for y-label
             ax.set_title(f"Mean and Standard Deviation of {train_metric_name} & {val_metric_name} Across Folds")
             ax.legend()
