@@ -201,6 +201,18 @@ def draw_table(frame, angles_tuple, lines_tuple, match, iter):
                 
             # Draw rectangle (cell border)
             cv2.rectangle(frame, top_left, bottom_right, border_colour, 2)  # Black border
+
+            try:
+                deciding_value = abs(float(table_data[row][3]))  # Value from 4th column (deciding factor)
+            except ValueError:
+                deciding_value = 0
+
+            # Map the value to a color intensity (more red for higher values)
+            red_intensity = min(255, int(deciding_value * 8))  # Scale value to a reasonable range (adjust multiplier)
+            red_intensity = max(0, red_intensity)  # Ensure it's at least 0
+            
+            text_color = (255- red_intensity, 255 - red_intensity, 255)
+
             
             # Add text to the cell (centered)
             text = table_data[row][col]
