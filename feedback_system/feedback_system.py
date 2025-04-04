@@ -7,7 +7,7 @@ if project_root not in sys.path:
 
 from utils.load_data import load_json
 from utils.dtw import compare_selected_cycles, extract_frame, extract_frame_second, extract_frame_imageio, extract_frame_ffmpeg, extract_multivariate_series
-from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_lines, draw_table, calculate_similarity, draw_plots
+from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_relative_lines, draw_table, calculate_similarity, draw_plots, extract_multivariate_series_for_single_lines, draw_joint_single_lines
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
 from utils.split_cycles import split_into_cycles
@@ -201,45 +201,53 @@ def main():
         direction = expert_cycle.get("Direction")
         if video_angle == "Front":
             # Joint 1 and 2 create one line, joint 3 and 4 another line. 
-            joints_lines = [("RShoulder", "LShoulder", "RHip", "LHip")]
+            joints_lines_relative = [("RShoulder", "LShoulder", "RHip", "LHip")]
             #joint_angles = [("RHip", "RKnee", "RAnkle"), ("LHip", "LKnee", "LAnkle")]
 
             # Mistake biathlon
             #joint_angles = [("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
             joint_angles = [("RShoulder", "RHip", "RKnee"), ("RElbow", "RShoulder", "RHip"), ("LElbow", "LShoulder", "LHip"), ("LShoulder", "LHip", "LAnkle")]
+            joints_lines_horizontal = [("Hip", "Neck"), ("LHip", "RHip")]
             #TODO
             joint_distances = []
         elif video_angle == "Left":
-            joints_lines = [("RAnkle", "RKnee", "Hip", "Neck")]
-            #joints_lines = []
+            joints_lines_relative = [("RAnkle", "RKnee", "Hip", "Neck")]
+            #joints_lines_relative = []
             #joint_angles = [("RHip", "RKnee", "RAnkle"), ("RWrist", "RElbow", "RShoulder")]
 
             # For Ankle mistake
             #joint_angles = [("RHip", "RKnee", "RAnkle"), ("RKnee", "RHeel", "RSmallToe"), ("RKnee", "RHip", "Neck")]
 
             joint_angles = [("RElbow", "RShoulder", "Neck"), ("RElbow", "RShoulder", "RHip")]
+            joints_lines_horizontal = [("Hip", "Neck")]
 
 
         elif video_angle == "Right":
-            #joints_lines = [("LAnkle", "LKnee", "Hip", "Neck"), ("LElbow", "LWrist", "RAnkle", "RKnee")]
+            #joints_lines_relative = [("LAnkle", "LKnee", "Hip", "Neck"), ("LElbow", "LWrist", "RAnkle", "RKnee")]
             joint_angles = [("LHip", "LKnee", "LAnkle"), ("RHip", "RKnee", "RAnkle"), ("LAnkle", "LHeel", "LBigToe"), ("LWrist", "LElbow", "LShoulder")]
-            joints_lines = [("LAnkle", "LKnee", "Hip", "Neck")]
+            joints_lines_relative = [("LAnkle", "LKnee", "Hip", "Neck")]
+            joints_lines_horizontal = [("Hip", "Neck"), ("LHip", "RHip")]
             #joint_angles = [("LHip", "LKnee", "LAnkle")]
 
         # Get the lines 
-        user_lines, _ = extract_multivariate_series_for_lines(cycle, joints_lines, run_args)
-        expert_lines, _ = extract_multivariate_series_for_lines(expert_cycle, joints_lines, run_args)
+        user_lines, _ = extract_multivariate_series_for_lines(cycle, joints_lines_relative, run_args)
+        expert_lines, _ = extract_multivariate_series_for_lines(expert_cycle, joints_lines_relative, run_args)
         user_angles, _ = extract_multivariate_series(cycle, joint_angles, run_args)
         expert_angles, _ = extract_multivariate_series(expert_cycle, joint_angles, run_args)
+        user_horizontal_lines, _ = extract_multivariate_series_for_single_lines(cycle, joints_lines_horizontal, run_args)
+        expert_horizontal_lines, _= extract_multivariate_series_for_single_lines(expert_cycle, joints_lines_horizontal, run_args)
+
+        print(user_horizontal_lines)
         
         # Match using DTW and calculate difference in angle between the lines
-        diff_lines = calculate_differences(user_lines, expert_lines, path)
-        sim_lines = calculate_similarity(user_lines, expert_lines, path)
-        # Flatten because it is in shape [array([value]), [array([value]), ...]
-        #diff_lines = [item[0] for item in diff_lines]
+        diff_lines_relative = calculate_differences(user_lines, expert_lines, path)
+        sim_lines_relative = calculate_similarity(user_lines, expert_lines, path)
 
         diff_angles = calculate_differences(user_angles, expert_angles, path)
         sim_angles = calculate_similarity(user_angles, expert_angles, path)
+
+        diff_lines_horizontal = calculate_differences(user_horizontal_lines, expert_horizontal_lines, path)
+        sim_lines_horizontal = calculate_similarity(user_horizontal_lines, expert_horizontal_lines, path)
 
 
         # Plotting
@@ -274,10 +282,6 @@ def main():
 
         
         user_start_frame = cycle.get("Start_frame")
-        
-        output_dir = "output_frames"
-        os.makedirs(output_dir, exist_ok=True)
-
 
         # Loops through the DTW match pair and shows lines on user video
         for i, (frame1, frame2) in enumerate(path):
@@ -291,24 +295,30 @@ def main():
             expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
             
             # draw lines on to each frame
-            user_points_lines = get_line_points(cycle, joints_lines, frame1, run_args)
-            expert_points_lines = get_line_points(expert_cycle, joints_lines, frame2, run_args)
+            user_points_lines = get_line_points(cycle, joints_lines_relative, frame1, run_args)
+            expert_points_lines = get_line_points(expert_cycle, joints_lines_relative, frame2, run_args)
             
             user_points_angles = get_line_points(cycle, joint_angles, frame1, run_args)
             expert_points_angles = get_line_points(expert_cycle, joint_angles, frame2, run_args)
 
+            user_points_horizontal_lines = get_line_points(cycle, joints_lines_horizontal, frame1, run_args)
+            expert_points_horizontal_lines = get_line_points(expert_cycle, joints_lines_horizontal, frame2, run_args)
+
             # Draw lines
-            draw_joint_lines(joints_lines, user_frame, user_points_lines)
-            draw_joint_lines(joints_lines, expert_frame, expert_points_lines)
+            draw_joint_relative_lines(joints_lines_relative, user_frame, user_points_lines)
+            draw_joint_relative_lines(joints_lines_relative, expert_frame, expert_points_lines)
             draw_joint_angles(joint_angles, user_frame, user_points_angles)
             draw_joint_angles(joint_angles, expert_frame, expert_points_angles)
+            draw_joint_single_lines(joints_lines_horizontal, user_frame, user_points_horizontal_lines)
+            draw_joint_single_lines(joints_lines_horizontal, expert_frame, expert_points_horizontal_lines)
 
             height, width, channels = user_frame.shape
             empty_image = np.zeros((height,width,channels), np.uint8)
 
             info_image = draw_table(empty_image, 
                                     (joint_angles, user_angles, expert_angles, diff_angles, sim_angles),
-                                    (joints_lines, user_lines, expert_lines, diff_lines, sim_lines),
+                                    (joints_lines_relative, user_lines, expert_lines, diff_lines_relative, sim_lines_relative),
+                                    (joints_lines_horizontal, user_horizontal_lines, expert_horizontal_lines, diff_lines_horizontal, sim_lines_horizontal),
                                     (frame1, frame2), 
                                     i)
             
