@@ -30,22 +30,6 @@ def plot_raw_vs_normalized(X_train_raw, X_train, y_train):
 
     plt.tight_layout()
     plt.show()
-
-# Function to compute mean and standard deviation
-# def _compute_stats(data, key):
-#     skier_stats = {}
-#     print(data[1][key])
-#     for skier_id in data[1][key]:  # Iterate through skier IDs
-#         all_values = []
-#         for fold in data.values():  # Loop through fold results
-#             all_values.extend(fold[key][skier_id])  # Collect all values
-        
-#         mean = np.mean(all_values)
-#         std = np.std(all_values)
-        
-#         skier_stats[skier_id] = {"mean": round(mean, 2), "std": round(std, 2)}
-    
-#     return skier_stats
     
 def compute_avg_std(data, key):
     temp_values = {}
@@ -78,34 +62,6 @@ def plot_individual_skier(train_avg, train_std, val_avg, val_std, root_dir):
     length_of_first_list = len(train_avg[first_key])
     x_values = np.arange(1, length_of_first_list+1)
 
-    # # Create one plot per skier
-    # for skier in train_avg.keys():
-    #     plt.figure(figsize=(10, 6))
-        
-    #     # Get Training and Validation data for the skier
-    #     train_mean = np.array(train_avg[skier])
-    #     train_std_dev = np.array(train_std[skier])
-    #     val_mean = np.array(val_avg[skier])
-    #     val_std_dev = np.array(val_std[skier])
-        
-    #     # Training Plot
-    #     plt.plot(x_values, train_mean, label=f'Train Skier {skier}', linestyle='--', alpha=0.7)
-    #     plt.fill_between(x_values, train_mean - train_std_dev, train_mean + train_std_dev, alpha=0.2)
-        
-    #     # Validation Plot
-    #     plt.plot(x_values, val_mean, label=f'Val Skier {skier}')
-    #     plt.fill_between(x_values, val_mean - val_std_dev, val_mean + val_std_dev, alpha=0.2)
-        
-    #     # Titles and labels
-    #     plt.title(f"Skier {skier} Accuracy with Standard Deviation")
-    #     plt.xlabel("Time Steps")
-    #     plt.ylabel("Accuracy (%)")
-    #     plt.legend(loc='best', fontsize=8)
-    #     plt.grid(True)
-        
-    #     # Show each plot individually
-    #     plt.tight_layout()
-    #     plt.show()
     n_skiers = len(train_avg)
     cols = 4  # Number of columns in the grid
     rows = (n_skiers + cols - 1) // cols  # Calculate number of rows
