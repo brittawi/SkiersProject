@@ -28,7 +28,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "165"
+ID = "183"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -141,6 +141,11 @@ def main():
     
     # reverse label dict to get predictions
     reversed_labels = {v: k for k, v in custom_params["labels"].items()}
+
+    if run_args.FEEDBACK.SAVE_VIDEO:
+        video_writer = None
+    else:
+        video_writer = 1 # skips video writing
     
     # classify each cycle
     for i, cycle_input in enumerate(input_data):
@@ -273,11 +278,6 @@ def main():
         output_dir = "output_frames"
         os.makedirs(output_dir, exist_ok=True)
 
-        if run_args.FEEDBACK.SAVE_VIDEO:
-            video_writer = None
-        else:
-            video_writer = 1 # skips video writing
-
 
         # Loops through the DTW match pair and shows lines on user video
         for i, (frame1, frame2) in enumerate(path):
@@ -327,20 +327,20 @@ def main():
             if video_writer is None:
                 # Define the video codec and output file
                 os.makedirs(run_args.FEEDBACK.OUTPUT_PATH, exist_ok=True)
-                output_video_path = os.path.join(run_args.FEEDBACK.OUTPUT_PATH, f"output_video.mp4")
+                output_video_path = os.path.join(run_args.FEEDBACK.OUTPUT_PATH, "output_video_" + run_args.VIDEO_PATH.split("\\")[-1].split(".")[0] + ".mp4")
                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4
                 video_output_size = (resize_frame.shape[1], resize_frame.shape[0])  # Set the desired output size
-                fps = 10
+                fps = 5
                 video_writer = cv2.VideoWriter(output_video_path, fourcc, fps, video_output_size)
 
             if run_args.FEEDBACK.SAVE_VIDEO:
                 video_writer.write(resize_frame)
         
-            if cv2.waitKey(0) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
-        if video_writer:
-            video_writer.release()
+    if video_writer:
+        video_writer.release()
 
     cv2.destroyAllWindows()
 
