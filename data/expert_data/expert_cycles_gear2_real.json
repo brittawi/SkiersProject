@@ -13635,6 +13635,7 @@
         "End_frame": 211,
         "Skier_id": 2,
         "Video": "146",
-        "Direction": "Left"
+        "Direction": "Left",
+        "Remove": "True"
     }
 }

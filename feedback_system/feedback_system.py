@@ -28,7 +28,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "144"
+ID = "165"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -86,14 +86,12 @@ def main():
         cycle_tensor = np.stack(cycle_data_array)  # Shape: (num_joints, time_steps)
 
         input_data.append(cycle_tensor)
-
     # Step 3: Classify user cycles
     
     # Preprocess data based on train data
     print("Preprocessing data...")
     # padding
     input_data = pad_sequences(input_data, max_length=custom_params["train_max_length"], pad_value=float('nan'))
-    
     # normalization
     if custom_params["normalization"]:
         print("Normalizing the data...")
@@ -167,26 +165,24 @@ def main():
         if predicted_label == "gear3":
             expert_path = "./data/expert_data/expert_cycles_gear3.json"
         elif predicted_label == "gear2":
-            expert_path = "./data/expert_data/expert_cycles_gear2.json"
+            expert_path = "./data/expert_data/expert_cycles_gear2_real.json"
         else:
             print(f"The system cannot give feedback for {predicted_label}")
             continue
         
         expert_data = load_json(expert_path)
-        #TODO Preprocess?
-
-
+        
         # Define joint triplets for angle comparisons
         # TODO to compare cycles we can either input joint triplets, then we need to set use_keypoints to false
         # otherwise we can input joints, then it will use raw keypoints for DTW
         joint_triplets = [("RHip", "RKnee", "RAnkle"), ("LHip", "LKnee", "LAnkle"), ("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
-        #joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist"]
-        joints = ["RHip", "LHip", "RShoulder", "LShoulder"]
+        joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist"]
+        #joints = ["RHip", "LHip", "RShoulder", "LShoulder"]
         
         # send in data in json format
         cycle = cycle_data[f"Cycle {i+1}"]
         
-        dtw_comparisons, path, expert_cycle = compare_selected_cycles(expert_data, cycle, joints, run_args.VIDEO_PATH, run_args.DTW.VIS_VID_PATH, visualize=False)
+        dtw_comparisons, path, expert_cycle = compare_selected_cycles(expert_data, cycle, joints, run_args.VIDEO_PATH, run_args.DTW.VIS_VID_PATH, use_keypoints=True, visualize=False)
        
         # Step 5: Give feedback
         """
@@ -200,13 +196,25 @@ def main():
         direction = expert_cycle.get("Direction")
         if video_angle == "Front":
             # Joint 1 and 2 create one line, joint 3 and 4 another line. 
-            joints_lines = [("RShoulder", "LShoulder", "RHip", "LHip"), ("LElbow", "LShoulder", "RElbow", "RShoulder")]
-            joint_angles = [("RHip", "RKnee", "RAnkle")]
+            joints_lines = [("RShoulder", "LShoulder", "RHip", "LHip")]
+            #joint_angles = [("RHip", "RKnee", "RAnkle"), ("LHip", "LKnee", "LAnkle")]
+
+            # Mistake biathlon
+            #joint_angles = [("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
+            joint_angles = [("RShoulder", "RHip", "RKnee"), ("RElbow", "RShoulder", "RHip"), ("LElbow", "LShoulder", "LHip"), ("LShoulder", "LHip", "LAnkle")]
             #TODO
             joint_distances = []
         elif video_angle == "Left":
             joints_lines = [("RAnkle", "RKnee", "Hip", "Neck")]
-            joint_angles = [("RHip", "RKnee", "RAnkle"), ("RWrist", "RElbow", "RShoulder")]
+            #joints_lines = []
+            #joint_angles = [("RHip", "RKnee", "RAnkle"), ("RWrist", "RElbow", "RShoulder")]
+
+            # For Ankle mistake
+            #joint_angles = [("RHip", "RKnee", "RAnkle"), ("RKnee", "RHeel", "RSmallToe"), ("RKnee", "RHip", "Neck")]
+
+            joint_angles = [("RElbow", "RShoulder", "Neck"), ("RElbow", "RShoulder", "RHip")]
+
+
         elif video_angle == "Right":
             #joints_lines = [("LAnkle", "LKnee", "Hip", "Neck"), ("LElbow", "LWrist", "RAnkle", "RKnee")]
             joint_angles = [("LHip", "LKnee", "LAnkle"), ("RHip", "RKnee", "RAnkle"), ("LAnkle", "LHeel", "LBigToe"), ("LWrist", "LElbow", "LShoulder")]
@@ -277,7 +285,9 @@ def main():
             # # TODO Make this a parameter?
             # if True:
             expert_start_frame = expert_cycle.get("Start_frame")
-            expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
+            #expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
+            vid_id = int(expert_cycle.get("Video"))
+            expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, f"DJI_{vid_id:04d}" + ".mp4")
             expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
             
             # draw lines on to each frame
@@ -320,12 +330,13 @@ def main():
                 output_video_path = os.path.join(run_args.FEEDBACK.OUTPUT_PATH, f"output_video.mp4")
                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4
                 video_output_size = (resize_frame.shape[1], resize_frame.shape[0])  # Set the desired output size
-                video_writer = cv2.VideoWriter(output_video_path, fourcc, 24.0, video_output_size)
+                fps = 10
+                video_writer = cv2.VideoWriter(output_video_path, fourcc, fps, video_output_size)
 
             if run_args.FEEDBACK.SAVE_VIDEO:
                 video_writer.write(resize_frame)
         
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(0) & 0xFF == ord('q'):
                 break
 
         if video_writer:

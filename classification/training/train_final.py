@@ -59,10 +59,8 @@ def main():
         labels.append(cycle["Label"])
     
 
-        
-        # Preprocess data based on train data
+    # Preprocess data based on train data
     print("Preprocessing data...")
-    print(train_data[0].shape)
     # padding
     max_length = max(seq.shape[1] for seq in train_data)
     train_data = pad_sequences(train_data, max_length=max_length, pad_value=float('nan'))
@@ -79,8 +77,6 @@ def main():
             train_data = normalize_full_signal(train_data, train_data_mean, train_data_std)
         else:
             # Normalize by timestamp
-            train_data_mean = np.nanmean(train_data, axis=0)
-            train_data_std = np.nanstd(train_data, axis=0) 
             train_data = normalize_per_timestamp(train_data, train_data_mean, train_data_std)
     
     # adjust padding    
