@@ -84,7 +84,7 @@ def extract_multivariate_series_for_single_lines(cycle_data, line_joint_pairs, r
                 p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
             
             print(p1, p2)
-            angles.append(compute_angle_between_lines(p1, p2, (0,2), (0,0)))
+            angles.append(compute_angle_between_lines(p1, p2, (1,0), (0,0)))
             print(compute_angle_between_lines(p1, p2, (0,2), (0,0)))
         all_angles.append(angles)
         frames.append(i)
