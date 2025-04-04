@@ -1599,7 +1599,9 @@
         "Label": "gear2",
         "Start_frame": 72,
         "End_frame": 107,
-        "Skier_id": 2
+        "Skier_id": 2,
+        "Video": "147",
+        "Direction": "Right"
     },
     "Cycle 2": {
         "RAnkle_x": [
@@ -3201,7 +3203,9 @@
         "Label": "gear2",
         "Start_frame": 107,
         "End_frame": 142,
-        "Skier_id": 2
+        "Skier_id": 2,
+        "Video": "147",
+        "Direction": "Right"
     },
     "Cycle 3": {
         "RAnkle_x": [
@@ -4761,7 +4765,9 @@
         "Label": "gear2",
         "Start_frame": 8,
         "End_frame": 42,
-        "Skier_id": 4
+        "Skier_id": 4,
+        "Video": "151",
+        "Direction": "Front"
     },
     "Cycle 4": {
         "RAnkle_x": [
@@ -6489,7 +6495,9 @@
         "Label": "gear2",
         "Start_frame": 110,
         "End_frame": 148,
-        "Skier_id": 8
+        "Skier_id": 8,
+        "Video": "43",
+        "Direction": "Left"
     },
     "Cycle 5": {
         "RAnkle_x": [
@@ -8091,7 +8099,9 @@
         "Label": "gear2",
         "Start_frame": 113,
         "End_frame": 148,
-        "Skier_id": 8
+        "Skier_id": 8,
+        "Video": "44",
+        "Direction": "Right"
     },    
     "Cycle 6": {
         "RAnkle_x": [
@@ -9399,7 +9409,9 @@
         "Label": "gear2",
         "Start_frame": 107,
         "End_frame": 135,
-        "Skier_id": 8
+        "Skier_id": 8,
+        "Video": "40",
+        "Direction": "Front"
     },
     "Cycle 7": {
         "RAnkle_x": [
@@ -10875,7 +10887,9 @@
         "Label": "gear2",
         "Start_frame": 69,
         "End_frame": 101,
-        "Skier_id": 8
+        "Skier_id": 8,
+        "Video": "38",
+        "Direction": "Front"
     },
     "Cycle 8": {
         "RAnkle_x": [
@@ -11973,6 +11987,8 @@
         "Label": "gear2",
         "Start_frame": 118,
         "End_frame": 141,
-        "Skier_id": 8
+        "Skier_id": 8,
+        "Video": "54",
+        "Direction": "Right"
     }
 }
