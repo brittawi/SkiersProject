@@ -3,7 +3,7 @@ import cv2
 import matplotlib.pyplot as plt
 from dtaidistance import dtw, dtw_visualisation
 import os
-from utils.preprocess_signals import smooth_signal
+from utils.preprocess_signals import smooth_signal, normalize_signal
 import imageio
 import subprocess
 
@@ -51,7 +51,7 @@ def extract_multivariate_series(cycle_data, joint_triplets, run_args):
         frames.append(i)
     return np.array(all_angles), frames
 
-def smooth_cycle(cycle_data, joints, sigma=2):
+def smooth_cycle(cycle_data, joints, sigma=2, norm=False):
     smoothed_cycle_data = {}
     # apply smoothing first
     if sigma > 0:
@@ -60,6 +60,8 @@ def smooth_cycle(cycle_data, joints, sigma=2):
             joint_base = joint.replace("_x", "").replace("_y", "")
             joint_ref = joint.replace("_x_ref", "").replace("_y_ref", "") # Need to include reference
             if joint_base in joints or joint_ref in joints:
+                if norm:
+                    series = normalize_signal(series)
                 smoothed_series = smooth_signal(series, sigma)
                 smoothed_cycle_data[joint] = smoothed_series
     return smoothed_cycle_data
@@ -216,6 +218,7 @@ def compare_selected_cycles(expert_data, cycle, joint_triplets, user_video, vide
     
     # get video path
     expert_video = os.path.join(video_path, "DJI_00" + closest_cycle.get("Video") + ".mp4")
+
     
     if visualize:
         overlay_frames_loop(user_video, expert_video, path, user_start_frame, expert_start_frame, series_user, series_expert)
