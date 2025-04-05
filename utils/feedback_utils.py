@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 from utils.dtw import smooth_cycle, compute_angle
 import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt
 from dtaidistance import dtw_visualisation
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
@@ -86,9 +85,7 @@ def extract_multivariate_series_for_single_lines(cycle_data, line_joint_pairs, r
             else:
                 p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
             
-            #print(p1, p2)
             angles.append(compute_angle_between_lines(p1, p2, (1,0), (0,0)))
-            #print(compute_angle_between_lines(p1, p2, (0,2), (0,0)))
         all_angles.append(angles)
         frames.append(i)
     return np.array(all_angles), frames
@@ -224,12 +221,16 @@ def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, distances_
     if len(joint_angles) > 0:
         rows += len(joint_angles) + 1 # +1 for header
     if len(joint_lines) > 0:
-        rows += len(joint_lines) + 1 # +1 for header
+        header = True
+        rows += len(joint_lines)
     if len(joint_hor_lines) > 0:
+        header = True
         rows += len(joint_hor_lines)
     if len(joints_distance) > 0:
         rows += len(joints_distance) + 1 # +1 for header
-        
+
+    if header:
+        rows += 1
     cols = 5
     cell_width = int(width*0.9 // cols)
     cell_height = height // 20
@@ -249,44 +250,45 @@ def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, distances_
     #     ['Row3Col1', 'Row3Col2', 'Row3Col3', 'Row3Col4', 'Row3Col5'],
     #     ['Row4Col1', 'Row4Col2', 'Row4Col3', 'Row4Col4', 'Row4Col5']
     # ]
-
-    table_data = [['Angles', 'User', 'Expert', 'Difference', 'Similarity (%)']]
-    for i, angle in enumerate(joint_angles):
-        row = []
-        row.append(str(angle))
-        row.append(f"{user_angles[match[0]][i]:.2f}")
-        row.append(f"{expert_angles[match[1]][i]:.2f}")
-        row.append(f"{diff_angles[iter][i]:.2f}")
-        row.append(f"{sim_angles[iter][i]:.2%}")
-        table_data.append(row)
-
-    table_data.append(['Lines', 'User', 'Expert', 'Difference', 'Similarity (%)'])
-    for i, lines in enumerate(joint_lines):
-        row = []
-        row.append(str(lines))
-        row.append(f"{user_lines[match[0]][i]:.2f}")
-        row.append(f"{expert_lines[match[1]][i]:.2f}")
-        row.append(f"{diff_lines[iter][i]:.2f}")
-        row.append(f"{sim_lines[iter][i]:.2%}")
-        table_data.append(row)
-    for i, lines in enumerate(joint_hor_lines):
-        row = []
-        row.append(str(lines))
-        row.append(f"{user_hor_lines[match[0]][i]:.2f}")
-        row.append(f"{expert_hor_lines[match[1]][i]:.2f}")
-        row.append(f"{diff_hor_lines[iter][i]:.2f}")
-        row.append(f"{sim_hor_lines[iter][i]:.2%}")
-        table_data.append(row)
-        
-    table_data.append(['Distances', 'User', 'Expert', 'Difference', 'Similarity (%)'])
-    for i, dist in enumerate(joints_distance):
-        row = []
-        row.append(str(dist))
-        row.append(f"{user_distances[match[0]][i]:.2f}")
-        row.append(f"{expert_distances[match[1]][i]:.2f}")
-        row.append(f"{diff_distances[iter][i]:.2f}")
-        row.append(f"{sim_distances[iter][i]:.2%}")
-        table_data.append(row)
+    table_data = []
+    if len(joint_angles) > 0:
+        table_data.append(['Angles', 'User', 'Expert', 'Difference', 'Similarity (%)'])
+        for i, angle in enumerate(joint_angles):
+            row = []
+            row.append(str(angle))
+            row.append(f"{user_angles[match[0]][i]:.2f}")
+            row.append(f"{expert_angles[match[1]][i]:.2f}")
+            row.append(f"{diff_angles[iter][i]:.2f}")
+            row.append(f"{sim_angles[iter][i]:.2%}")
+            table_data.append(row)
+    if len(joint_hor_lines) > 0 or len(joint_lines) > 0:
+        table_data.append(['Lines', 'User', 'Expert', 'Difference', 'Similarity (%)'])
+        for i, lines in enumerate(joint_lines):
+            row = []
+            row.append(str(lines))
+            row.append(f"{user_lines[match[0]][i]:.2f}")
+            row.append(f"{expert_lines[match[1]][i]:.2f}")
+            row.append(f"{diff_lines[iter][i]:.2f}")
+            row.append(f"{sim_lines[iter][i]:.2%}")
+            table_data.append(row)
+        for i, lines in enumerate(joint_hor_lines):
+            row = []
+            row.append(str(lines))
+            row.append(f"{user_hor_lines[match[0]][i]:.2f}")
+            row.append(f"{expert_hor_lines[match[1]][i]:.2f}")
+            row.append(f"{diff_hor_lines[iter][i]:.2f}")
+            row.append(f"{sim_hor_lines[iter][i]:.2%}")
+            table_data.append(row)
+    if len(joints_distance) > 0:        
+      table_data.append(['Distances', 'User', 'Expert', 'Difference', 'Similarity (%)'])
+      for i, dist in enumerate(joints_distance):
+          row = []
+          row.append(str(dist))
+          row.append(f"{user_distances[match[0]][i]:.2f}")
+          row.append(f"{expert_distances[match[1]][i]:.2f}")
+          row.append(f"{diff_distances[iter][i]:.2f}")
+          row.append(f"{sim_distances[iter][i]:.2%}")
+          table_data.append(row)
     
 
     for row in range(rows):
@@ -326,11 +328,46 @@ def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, distances_
             cv2.putText(frame, text, (text_x, text_y), font, font_scale, text_color, font_thickness)
     return frame
 
-def draw_plots(frame, user_angles, expert_angles, path, joint_angles, frame1, frame2):
+def safe_hstack(arrays):
+    # Filter out empty arrays (those with 0 columns, including 1D arrays with no data)
+    valid_arrays = []
+    for arr in arrays:
+        # Handle cases where the array might be 1D or empty
+        if arr.ndim == 1 and arr.size > 0:
+            valid_arrays.append(arr[:, np.newaxis])  # Convert to 2D array (n, 1)
+        elif arr.ndim == 2 and arr.shape[1] > 0:
+            valid_arrays.append(arr)
+    
+    if valid_arrays:
+        return np.hstack(valid_arrays)
+    else:
+        # If no valid arrays are found, return an empty array with the correct number of rows
+        return np.empty((arrays[0].shape[0], 0))
 
-    cols = 2
+def draw_plots(frame,  angles_tuple, lines_tuple, lines_hor_tuple, path, frame1, frame2):
+
+    user_angles, expert_angles, joint_angles = angles_tuple
+    user_lines, expert_lines, joints_lines_relative = lines_tuple
+    user_hor_lines, expert_hor_lines, joint_lines_hor = lines_hor_tuple
+
+    joints = []
+    if len(joint_angles) > 0:
+        joints.extend(joint_angles)
+    if len(joints_lines_relative) > 0:
+        joints.extend(joints_lines_relative)
+    if len(joints_lines_relative) > 0:
+        joints.extend(joint_lines_hor)
+
+    if 0 < len(joints) <= 4:
+        cols = 2
+    elif 4 < len(joints) <= 9:
+        cols = 3
+    else:
+        cols = 4
     # Determine the grid layout
-    num_plots = len(joint_angles)
+    num_plots = len(joints)
+    if num_plots == 0:
+        return frame
     rows = int(np.ceil(num_plots / cols))  # Calculate how many rows based on number of plots and columns
 
     # Get frame dimensions
@@ -340,16 +377,24 @@ def draw_plots(frame, user_angles, expert_angles, path, joint_angles, frame1, fr
 
     user_angles_arr = np.array(user_angles)
     expert_angles_arr = np.array(expert_angles)
-    for i, angle in enumerate(joint_angles):
-        #fig, ax = dtw_visualisation.plot_warping_single_ax(user_angles_arr[:, i], expert_angles_arr[:, i], path, filename=None)
-        fig, ax = dtw_visualisation.plot_warping_single_ax(user_angles_arr[:, i], expert_angles_arr[:, i], path, filename=None)
+    user_lines_arr = np.array(user_lines)
+    expert_lines_arr = np.array(expert_lines)
+    user_lines_hor_arr = np.array(user_hor_lines)
+    expert_lines_hor_arr = np.array(expert_hor_lines)
+
+
+    user_features = safe_hstack([user_angles_arr, user_lines_arr, user_lines_hor_arr])
+    expert_features = safe_hstack([expert_angles_arr, expert_lines_arr, expert_lines_hor_arr])
+
+    for i, joint_tuple in enumerate(joints):
+        fig, ax = dtw_visualisation.plot_warping_single_ax(user_features[:, i], expert_features[:, i], path, filename=None)
         fig.patch.set_facecolor('black')
         ax.set_facecolor('black')
-        ax.plot(user_angles_arr[:, i], label=f"User", color='c')
-        ax.plot(expert_angles_arr[:, i], label=f"Expert", color='y')
+        ax.plot(user_features[:, i], label=f"User", color='c')
+        ax.plot(expert_features[:, i], label=f"Expert", color='y')
         ax.legend(facecolor='black', edgecolor='white', labelcolor='white')
         ax.tick_params(axis='both', colors='white')
-        ax.set_title(f"DTW Alignment: {angle}", color='white', fontsize=12, fontweight='bold')
+        ax.set_title(f"DTW Alignment: {joint_tuple}", color='white', fontsize=12, fontweight='bold')
         ax.set_xlabel("Frame", color='white', fontsize=10, fontweight='bold')
         #ax.set_ylabel(f"Degree angle of {angle}", color='white', fontsize=10, fontweight='bold')
         ax.set_ylabel(f"Degree", color='white', fontsize=10, fontweight='bold')
@@ -358,8 +403,8 @@ def draw_plots(frame, user_angles, expert_angles, path, joint_angles, frame1, fr
             spine.set_edgecolor('white')  # Set the border color to white
 
         # Plot dots at the specified timestamps
-        ax.plot(frame1, user_angles_arr[frame1, i], marker='o', markersize=10, color='b')
-        ax.plot(frame2, expert_angles_arr[frame2, i], marker='o', markersize=10, color='b')
+        ax.plot(frame1, user_features[frame1, i], marker='o', markersize=10, color='b')
+        ax.plot(frame2, expert_features[frame2, i], marker='o', markersize=10, color='b')
 
 
 
