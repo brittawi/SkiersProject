@@ -7,7 +7,7 @@ if project_root not in sys.path:
 
 from utils.load_data import load_json
 from utils.dtw import compare_selected_cycles, extract_frame, extract_frame_second, extract_frame_imageio, extract_frame_ffmpeg, extract_multivariate_series
-from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_relative_lines, draw_table, calculate_similarity, draw_plots, extract_multivariate_series_for_single_lines, draw_joint_single_lines
+from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_relative_lines, draw_table, calculate_similarity, draw_plots, extract_multivariate_series_for_single_lines, draw_joint_single_lines, extract_multivariate_series_for_distances
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
 from utils.split_cycles import split_into_cycles
@@ -28,14 +28,14 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "183"
+ID = "92"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
 # INPUT_PATH = os.path.join("E:\SkiProject\\annotations_test_DJI_0044\After_Mixed_level_output\coco_json",  f"DJI_{int(ID):04d}_coco.json")
-INPUT_PATH = os.path.join("e:\SkiProject\Results_AlphaPose\Expert_mistake_iter_1\All",  f"{ID}.json")
+INPUT_PATH = os.path.join(r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\annotations_finetuned_v1",  f"{ID}.json")
 #INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
-INPUT_VIDEO = r"e:\SkiProject\Expert_mistake_videos\DJI_00" + ID + ".mp4"
+INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\NewData\Film2025-02-22\DJI_00" + ID + ".mp4"
 # # path to where all videos are stored
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
@@ -199,6 +199,7 @@ def main():
 
         
         direction = expert_cycle.get("Direction")
+        # TODO make it work for empty lists!
         if video_angle == "Front":
             # Joint 1 and 2 create one line, joint 3 and 4 another line. 
             joints_lines_relative = [("RShoulder", "LShoulder", "RHip", "LHip")]
@@ -206,10 +207,10 @@ def main():
 
             # Mistake biathlon
             #joint_angles = [("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
-            joint_angles = [("RShoulder", "RHip", "RKnee"), ("RElbow", "RShoulder", "RHip"), ("LElbow", "LShoulder", "LHip"), ("LShoulder", "LHip", "LAnkle")]
+            #joint_angles = [("RShoulder", "RHip", "RKnee"), ("RElbow", "RShoulder", "RHip"), ("LElbow", "LShoulder", "LHip"), ("LShoulder", "LHip", "LAnkle")]
+            joint_angles = [("RShoulder", "RElbow", "RWrist")]
             joints_lines_horizontal = [("Hip", "Neck"), ("LHip", "RHip")]
-            #TODO
-            joint_distances = []
+            joints_distance = [("LAnkle", "RAnkle")]
         elif video_angle == "Left":
             joints_lines_relative = [("RAnkle", "RKnee", "Hip", "Neck")]
             #joints_lines_relative = []
@@ -228,7 +229,6 @@ def main():
             joints_lines_relative = [("LAnkle", "LKnee", "Hip", "Neck")]
             joints_lines_horizontal = [("Hip", "Neck"), ("LHip", "RHip")]
             #joint_angles = [("LHip", "LKnee", "LAnkle")]
-
         
         user_lines = []
         expert_lines = []
@@ -236,12 +236,16 @@ def main():
         expert_angles = []
         user_horizontal_lines = []
         expert_horizontal_lines = []
+        user_dists = []
+        expert_dists = []
         diff_lines_relative = []
         sim_lines_relative = []
         diff_angles = []
         sim_angles = []
         diff_lines_horizontal = []
         sim_lines_horizontal = []
+        diff_dists = []
+        sim_dists = []
 
         # Get the lines
         if len(joints_lines_relative):
@@ -264,10 +268,14 @@ def main():
              # Match using DTW and calculate difference in angle between the lines
             diff_lines_horizontal = calculate_differences(user_horizontal_lines, expert_horizontal_lines, path)
             sim_lines_horizontal = calculate_similarity(user_horizontal_lines, expert_horizontal_lines, path)
+            
+        if len(joints_distance):
+            user_distances, _ = extract_multivariate_series_for_distances(cycle, joints_distance, run_args)
+            expert_distances, _ = extract_multivariate_series_for_distances(expert_cycle, joints_distance, run_args)
+            
+            diff_distances = calculate_differences(user_distances, expert_distances, path)
+            sim_distances = calculate_similarity(user_distances, expert_distances, path)
         
-
-        
-
 
         # Plotting
         # TODO make parameter?
@@ -322,6 +330,9 @@ def main():
 
             user_points_horizontal_lines = get_line_points(cycle, joints_lines_horizontal, frame1, run_args)
             expert_points_horizontal_lines = get_line_points(expert_cycle, joints_lines_horizontal, frame2, run_args)
+            
+            user_points_distances = get_line_points(cycle, joints_distance, frame1, run_args)
+            expert_points_distances = get_line_points(expert_cycle, joints_distance, frame2, run_args)
 
             # Draw lines
             draw_joint_relative_lines(joints_lines_relative, user_frame, user_points_lines)
@@ -330,6 +341,9 @@ def main():
             draw_joint_angles(joint_angles, expert_frame, expert_points_angles)
             draw_joint_single_lines(joints_lines_horizontal, user_frame, user_points_horizontal_lines)
             draw_joint_single_lines(joints_lines_horizontal, expert_frame, expert_points_horizontal_lines)
+            draw_joint_single_lines(joints_distance, user_frame, user_points_distances)
+            draw_joint_single_lines(joints_distance, expert_frame, expert_points_distances)
+            
 
             height, width, channels = user_frame.shape
             empty_image = np.zeros((height,width,channels), np.uint8)
@@ -338,6 +352,7 @@ def main():
                                     (joint_angles, user_angles, expert_angles, diff_angles, sim_angles),
                                     (joints_lines_relative, user_lines, expert_lines, diff_lines_relative, sim_lines_relative),
                                     (joints_lines_horizontal, user_horizontal_lines, expert_horizontal_lines, diff_lines_horizontal, sim_lines_horizontal),
+                                    (joints_distance, user_distances, expert_distances, diff_distances, sim_distances),
                                     (frame1, frame2), 
                                     i)
             

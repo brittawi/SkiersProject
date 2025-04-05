@@ -90,6 +90,29 @@ def extract_multivariate_series_for_single_lines(cycle_data, line_joint_pairs, r
         frames.append(i)
     return np.array(all_angles), frames
 
+def distance_formula(p1, p2):
+    return ((p2[0] - p1[0]) ** 2 + (p2[1]- p1[1]) ** 2) ** 0.5
+
+def extract_multivariate_series_for_distances(cycle_data, joints_distance, run_args):
+    """Extracts distances between certain joints for the cycle"""
+    all_distances = []
+    frames = []
+
+    joints_list = [joint for tuple_joints in joints_distance for joint in tuple_joints]
+    if run_args.DTW.GAUS_FILTER:
+        cycle_data = smooth_cycle(cycle_data, joints_list, sigma=run_args.DTW.SIGMA_VALUE)
+
+    for i in range(len(cycle_data[joints_distance[0][0]+ "_x"])):
+        dists = []
+        for joint1, joint2 in joints_distance:
+            p1 = (cycle_data[joint1 + "_x"][i], cycle_data[joint1 + "_y"][i])
+            p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
+            dist = distance_formula(p1, p2)
+            dists.append(dist)
+        all_distances.append(dists)
+        frames.append(i)
+    return np.array(all_distances), frames
+
 def calculate_differences(list1, list2, index_pairs):
     """
     Calculates the differences between values in list1 and list2 using the given index pairs.
@@ -185,13 +208,14 @@ def draw_joint_angles(joint_angles, frame, points, l_color=(0,255,0), p_color=(0
             cv2.ellipse(frame, points[1+j], (e_radius, e_radius), 0, end_angle, end_angle - angle_diff, l_color, l_thickness)
 
 
-def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, match, iter):
+def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, distances_tuple, match, iter):
 
     # Unpack tuples
     joint_angles, user_angles, expert_angles, diff_angles, sim_angles = angles_tuple
     joint_lines, user_lines, expert_lines, diff_lines, sim_lines = lines_rel_tuple
     joint_hor_lines, user_hor_lines, expert_hor_lines, diff_hor_lines, sim_hor_lines = lines_hor_tuple
-
+    joints_distance, user_distances, expert_distances, diff_distances, sim_distances = distances_tuple
+    
     height, width, _ = frame.shape
     rows = 0
     if len(joint_angles) > 0:
@@ -202,6 +226,9 @@ def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, match, ite
     if len(joint_hor_lines) > 0:
         header = True
         rows += len(joint_hor_lines)
+    if len(joints_distance) > 0:
+        rows += len(joints_distance) + 1 # +1 for header
+
     if header:
         rows += 1
     cols = 5
@@ -252,8 +279,17 @@ def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, match, ite
             row.append(f"{diff_hor_lines[iter][i]:.2f}")
             row.append(f"{sim_hor_lines[iter][i]:.2%}")
             table_data.append(row)
+    if len(joints_distance) > 0:        
+      table_data.append(['Distances', 'User', 'Expert', 'Difference', 'Similarity (%)'])
+      for i, dist in enumerate(joints_distance):
+          row = []
+          row.append(str(dist))
+          row.append(f"{user_distances[match[0]][i]:.2f}")
+          row.append(f"{expert_distances[match[1]][i]:.2f}")
+          row.append(f"{diff_distances[iter][i]:.2f}")
+          row.append(f"{sim_distances[iter][i]:.2%}")
+          table_data.append(row)
     
-
 
     for row in range(rows):
         for col in range(cols):
@@ -291,7 +327,6 @@ def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, match, ite
                 text_y = top_left[1] + (cell_height + text_height) // 2
             cv2.putText(frame, text, (text_x, text_y), font, font_scale, text_color, font_thickness)
     return frame
-
 
 def safe_hstack(arrays):
     # Filter out empty arrays (those with 0 columns, including 1D arrays with no data)
