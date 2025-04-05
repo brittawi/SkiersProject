@@ -5,3 +5,4 @@ alphapose/pretrained_models/
 alphapose/trackers/weights/
 alphapose/data/
 alphapose/exp/
+classification/training/saved_models/
