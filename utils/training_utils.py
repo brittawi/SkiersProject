@@ -5,6 +5,7 @@ import os
 import random
 from utils.nets import LSTMNet, SimpleMLP
 from utils.focal_loss import FocalLoss 
+from utils.plotting import compute_avg_std
 
 
 METRICS_NAMES = ["train_losses",
@@ -260,7 +261,6 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
         results["train_skiers_accs"].append(train_skier_acc)
 
         print(f"Epoch: {epoch+1}/{cfg.TRAIN.EPOCHS}, Loss: {epoch_train_loss:.3f}, Accuracy: {epoch_train_acc:.3f}")
-        print(f"Skier acc", train_skier_acc[1])
         
         print("Validation")
         epoch_val_loss, epoch_val_acc, val_precision, val_recall, val_f1, val_conf_matrix, val_skier_acc = validation(val_loader, net, criterion, device, cfg.TRAIN.NETWORK.NETWORKTYPE)
@@ -271,7 +271,6 @@ def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_l
         results["val_f1s"].append(val_f1)
         results["val_skiers_accs"].append(val_skier_acc)
         print(f"Epoch: {epoch+1}/{cfg.TRAIN.EPOCHS}, Loss: {epoch_val_loss:.3f}, Accuracy: {epoch_val_acc:.3f}")
-        print(f"Skier acc val", train_skier_acc[1])
 
         # Check early stopping based on validation loss
         if epoch_val_loss < best_val_loss:
@@ -518,6 +517,7 @@ def print_save_best_epoch(results, save_path, start_time, custom_params):
     # Extract the number of epochs from the first fold
     num_epochs = len(next(iter(results.values()))["val_accs"])
 
+
     # Initialize a dictionary to store metrics across folds
     avg_metrics = {metric: np.zeros(num_epochs) for metric in results[1].keys()}
     std_metrics = {metric: np.zeros(num_epochs) for metric in results[1].keys()}
@@ -530,17 +530,21 @@ def print_save_best_epoch(results, save_path, start_time, custom_params):
                 avg_metrics[metric][epoch] = np.mean(values)
                 std_metrics[metric][epoch] = np.std(values)
 
-            else:
-                #TODO add for skiers
-                continue
+            elif metric == "train_skiers_accs":
+                # Compute statistics
+                skier_avg_train_acc, skier_std_train_acc = compute_avg_std(results, "train_skiers_accs")
+                
+            elif metric == "val_skiers_accs":
+                skier_avg_val_acc, skier_std_val_acc = compute_avg_std(results, "val_skiers_accs")
+
 
     # Find the epoch with the highest average validation accuracy
-    best_val_acc_epoch = np.argmax(avg_metrics["val_accs"]) + 1
-    best_val_loss_epoch = np.argmin(avg_metrics["val_losses"]) + 1
+    best_val_acc_epoch = np.argmax(avg_metrics["val_accs"])
+    best_val_loss_epoch = np.argmin(avg_metrics["val_losses"])
 
     # Prepare the result string
-    result_text = f"Epoch with highest val acc: {best_val_acc_epoch}\n"
-    result_text += f"Best epoch with lowest val loss: {best_val_loss_epoch}\n"
+    result_text = f"Epoch with highest val acc: {best_val_acc_epoch+1}\n"
+    result_text += f"Best epoch with lowest val loss: {best_val_loss_epoch+1}\n"
     result_text += f"Folds: {len(values)}\n"
     result_text += f"Train Loss: {avg_metrics['train_losses'][best_val_loss_epoch]:.4f} ± {std_metrics['train_losses'][best_val_loss_epoch]:.4f}\n"
     result_text += f"Train Acc: {avg_metrics['train_accs'][best_val_loss_epoch]:.2f}% ± {std_metrics['train_accs'][best_val_loss_epoch]:.2f}\n"
@@ -552,6 +556,9 @@ def print_save_best_epoch(results, save_path, start_time, custom_params):
     result_text += f"Val Precision: {avg_metrics['val_precisions'][best_val_loss_epoch]:.4f} ± {std_metrics['val_precisions'][best_val_loss_epoch]:.4f}\n"
     result_text += f"Val Recall: {avg_metrics['val_recalls'][best_val_loss_epoch]:.4f} ± {std_metrics['val_recalls'][best_val_loss_epoch]:.4f}\n"
     result_text += f"Val F1 Score: {avg_metrics['val_f1s'][best_val_loss_epoch]:.4f} ± {std_metrics['val_f1s'][best_val_loss_epoch]:.4f}\n"
+
+    for skier_id in skier_avg_train_acc:
+        result_text += (f"Skier {skier_id} Train Acc: {skier_avg_train_acc[skier_id][best_val_loss_epoch]:.4f} ± {skier_std_train_acc[skier_id][best_val_loss_epoch]:.4f} | Val Acc: {skier_avg_val_acc[skier_id][best_val_loss_epoch]:.4f} ± {skier_std_val_acc[skier_id][best_val_loss_epoch]:.4f}\n")
 
     # Print results to console
     print(result_text)
