@@ -2,6 +2,9 @@ import numpy as np
 import cv2
 from utils.dtw import smooth_cycle, compute_angle
 import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+from dtaidistance import dtw_visualisation
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 def compute_angle_between_lines(p1, p2, p3, p4):
     """Computes the angle between two lines formed by points (p1, p2) and (p3, p4)."""
@@ -83,12 +86,35 @@ def extract_multivariate_series_for_single_lines(cycle_data, line_joint_pairs, r
             else:
                 p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
             
-            print(p1, p2)
+            #print(p1, p2)
             angles.append(compute_angle_between_lines(p1, p2, (1,0), (0,0)))
-            print(compute_angle_between_lines(p1, p2, (0,2), (0,0)))
+            #print(compute_angle_between_lines(p1, p2, (0,2), (0,0)))
         all_angles.append(angles)
         frames.append(i)
     return np.array(all_angles), frames
+
+def distance_formula(p1, p2):
+    return ((p2[0] - p1[0]) ** 2 + (p2[1]- p1[1]) ** 2) ** 0.5
+
+def extract_multivariate_series_for_distances(cycle_data, joints_distance, run_args):
+    """Extracts distances between certain joints for the cycle"""
+    all_distances = []
+    frames = []
+
+    joints_list = [joint for tuple_joints in joints_distance for joint in tuple_joints]
+    if run_args.DTW.GAUS_FILTER:
+        cycle_data = smooth_cycle(cycle_data, joints_list, sigma=run_args.DTW.SIGMA_VALUE)
+
+    for i in range(len(cycle_data[joints_distance[0][0]+ "_x"])):
+        dists = []
+        for joint1, joint2 in joints_distance:
+            p1 = (cycle_data[joint1 + "_x"][i], cycle_data[joint1 + "_y"][i])
+            p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
+            dist = distance_formula(p1, p2)
+            dists.append(dist)
+        all_distances.append(dists)
+        frames.append(i)
+    return np.array(all_distances), frames
 
 def calculate_differences(list1, list2, index_pairs):
     """
@@ -185,13 +211,14 @@ def draw_joint_angles(joint_angles, frame, points, l_color=(0,255,0), p_color=(0
             cv2.ellipse(frame, points[1+j], (e_radius, e_radius), 0, end_angle, end_angle - angle_diff, l_color, l_thickness)
 
 
-def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, match, iter):
+def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, distances_tuple, match, iter):
 
     # Unpack tuples
     joint_angles, user_angles, expert_angles, diff_angles, sim_angles = angles_tuple
     joint_lines, user_lines, expert_lines, diff_lines, sim_lines = lines_rel_tuple
     joint_hor_lines, user_hor_lines, expert_hor_lines, diff_hor_lines, sim_hor_lines = lines_hor_tuple
-
+    joints_distance, user_distances, expert_distances, diff_distances, sim_distances = distances_tuple
+    
     height, width, _ = frame.shape
     rows = 0
     if len(joint_angles) > 0:
@@ -200,6 +227,9 @@ def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, match, ite
         rows += len(joint_lines) + 1 # +1 for header
     if len(joint_hor_lines) > 0:
         rows += len(joint_hor_lines)
+    if len(joints_distance) > 0:
+        rows += len(joints_distance) + 1 # +1 for header
+        
     cols = 5
     cell_width = int(width*0.9 // cols)
     cell_height = height // 20
@@ -247,8 +277,17 @@ def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, match, ite
         row.append(f"{diff_hor_lines[iter][i]:.2f}")
         row.append(f"{sim_hor_lines[iter][i]:.2%}")
         table_data.append(row)
+        
+    table_data.append(['Distances', 'User', 'Expert', 'Difference', 'Similarity (%)'])
+    for i, dist in enumerate(joints_distance):
+        row = []
+        row.append(str(dist))
+        row.append(f"{user_distances[match[0]][i]:.2f}")
+        row.append(f"{expert_distances[match[1]][i]:.2f}")
+        row.append(f"{diff_distances[iter][i]:.2f}")
+        row.append(f"{sim_distances[iter][i]:.2%}")
+        table_data.append(row)
     
-
 
     for row in range(rows):
         for col in range(cols):
@@ -288,10 +327,6 @@ def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, match, ite
     return frame
 
 def draw_plots(frame, user_angles, expert_angles, path, joint_angles, frame1, frame2):
-
-    import matplotlib.pyplot as plt
-    from dtaidistance import dtw_visualisation
-    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
     cols = 2
     # Determine the grid layout

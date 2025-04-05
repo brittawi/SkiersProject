@@ -7,7 +7,7 @@ if project_root not in sys.path:
 
 from utils.load_data import load_json
 from utils.dtw import compare_selected_cycles, extract_frame, extract_frame_second, extract_frame_imageio, extract_frame_ffmpeg, extract_multivariate_series
-from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_relative_lines, draw_table, calculate_similarity, draw_plots, extract_multivariate_series_for_single_lines, draw_joint_single_lines
+from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_relative_lines, draw_table, calculate_similarity, draw_plots, extract_multivariate_series_for_single_lines, draw_joint_single_lines, extract_multivariate_series_for_distances
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
 from utils.split_cycles import split_into_cycles
@@ -208,8 +208,7 @@ def main():
             #joint_angles = [("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
             joint_angles = [("RShoulder", "RHip", "RKnee"), ("RElbow", "RShoulder", "RHip"), ("LElbow", "LShoulder", "LHip"), ("LShoulder", "LHip", "LAnkle")]
             joints_lines_horizontal = [("Hip", "Neck"), ("LHip", "RHip")]
-            #TODO
-            joint_distances = []
+            joints_distance = [("LAnkle", "RAnkle")]
         elif video_angle == "Left":
             joints_lines_relative = [("RAnkle", "RKnee", "Hip", "Neck")]
             #joints_lines_relative = []
@@ -236,8 +235,14 @@ def main():
         expert_angles, _ = extract_multivariate_series(expert_cycle, joint_angles, run_args)
         user_horizontal_lines, _ = extract_multivariate_series_for_single_lines(cycle, joints_lines_horizontal, run_args)
         expert_horizontal_lines, _= extract_multivariate_series_for_single_lines(expert_cycle, joints_lines_horizontal, run_args)
+        user_distances, _ = extract_multivariate_series_for_distances(cycle, joints_distance, run_args)
+        expert_distances, _ = extract_multivariate_series_for_distances(expert_cycle, joints_distance, run_args)
+        
+        # print(f"user dist {user_distances}")
+        # print(f"user dist {expert_distances}")
+        # print(f"user angles {user_angles}")
 
-        print(user_horizontal_lines)
+        #print(user_horizontal_lines)
         
         # Match using DTW and calculate difference in angle between the lines
         diff_lines_relative = calculate_differences(user_lines, expert_lines, path)
@@ -248,6 +253,9 @@ def main():
 
         diff_lines_horizontal = calculate_differences(user_horizontal_lines, expert_horizontal_lines, path)
         sim_lines_horizontal = calculate_similarity(user_horizontal_lines, expert_horizontal_lines, path)
+        
+        diff_distances = calculate_differences(user_distances, expert_distances, path)
+        sim_distances = calculate_similarity(user_distances, expert_distances, path)
 
 
         # Plotting
@@ -319,6 +327,7 @@ def main():
                                     (joint_angles, user_angles, expert_angles, diff_angles, sim_angles),
                                     (joints_lines_relative, user_lines, expert_lines, diff_lines_relative, sim_lines_relative),
                                     (joints_lines_horizontal, user_horizontal_lines, expert_horizontal_lines, diff_lines_horizontal, sim_lines_horizontal),
+                                    (joints_distance, user_distances, expert_distances, diff_distances, sim_distances),
                                     (frame1, frame2), 
                                     i)
             
