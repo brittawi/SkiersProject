@@ -65,14 +65,12 @@ def main():
         
         # Preprocess data based on train data
     print("Preprocessing data...")
-    print(train_data[0].shape)
     # padding
     max_length = max(seq.shape[1] for seq in train_data)
     train_data = pad_sequences(train_data, max_length=max_length, pad_value=float('nan'))
     train_data_mean = np.nanmean(train_data, axis=0)
     train_data_std = np.nanstd(train_data, axis=0) 
     
-    print(train_data[0].shape)
     # normalization
     if cfg.DATASET.AUG.NORMALIZATION:
         print("Normalizing the data...")
