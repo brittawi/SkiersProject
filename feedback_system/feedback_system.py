@@ -229,23 +229,44 @@ def main():
             joints_lines_horizontal = [("Hip", "Neck"), ("LHip", "RHip")]
             #joint_angles = [("LHip", "LKnee", "LAnkle")]
 
-        # Get the lines 
-        user_lines, _ = extract_multivariate_series_for_lines(cycle, joints_lines_relative, run_args)
-        expert_lines, _ = extract_multivariate_series_for_lines(expert_cycle, joints_lines_relative, run_args)
-        user_angles, _ = extract_multivariate_series(cycle, joint_angles, run_args)
-        expert_angles, _ = extract_multivariate_series(expert_cycle, joint_angles, run_args)
-        user_horizontal_lines, _ = extract_multivariate_series_for_single_lines(cycle, joints_lines_horizontal, run_args)
-        expert_horizontal_lines, _= extract_multivariate_series_for_single_lines(expert_cycle, joints_lines_horizontal, run_args)
         
-        # Match using DTW and calculate difference in angle between the lines
-        diff_lines_relative = calculate_differences(user_lines, expert_lines, path)
-        sim_lines_relative = calculate_similarity(user_lines, expert_lines, path)
+        user_lines = []
+        expert_lines = []
+        user_angles = []
+        expert_angles = []
+        user_horizontal_lines = []
+        expert_horizontal_lines = []
+        diff_lines_relative = []
+        sim_lines_relative = []
+        diff_angles = []
+        sim_angles = []
+        diff_lines_horizontal = []
+        sim_lines_horizontal = []
 
-        diff_angles = calculate_differences(user_angles, expert_angles, path)
-        sim_angles = calculate_similarity(user_angles, expert_angles, path)
+        # Get the lines
+        if len(joints_lines_relative):
+            user_lines, _ = extract_multivariate_series_for_lines(cycle, joints_lines_relative, run_args)
+            expert_lines, _ = extract_multivariate_series_for_lines(expert_cycle, joints_lines_relative, run_args)
+            # Match using DTW and calculate difference in angle between the lines
+            diff_lines_relative = calculate_differences(user_lines, expert_lines, path)
+            sim_lines_relative = calculate_similarity(user_lines, expert_lines, path)
 
-        diff_lines_horizontal = calculate_differences(user_horizontal_lines, expert_horizontal_lines, path)
-        sim_lines_horizontal = calculate_similarity(user_horizontal_lines, expert_horizontal_lines, path)
+        if len(joint_angles):
+            user_angles, _ = extract_multivariate_series(cycle, joint_angles, run_args)
+            expert_angles, _ = extract_multivariate_series(expert_cycle, joint_angles, run_args)
+             # Match using DTW and calculate difference in angle between the lines
+            diff_angles = calculate_differences(user_angles, expert_angles, path)
+            sim_angles = calculate_similarity(user_angles, expert_angles, path)
+
+        if len(joints_lines_horizontal): 
+            user_horizontal_lines, _ = extract_multivariate_series_for_single_lines(cycle, joints_lines_horizontal, run_args)
+            expert_horizontal_lines, _= extract_multivariate_series_for_single_lines(expert_cycle, joints_lines_horizontal, run_args)
+             # Match using DTW and calculate difference in angle between the lines
+            diff_lines_horizontal = calculate_differences(user_horizontal_lines, expert_horizontal_lines, path)
+            sim_lines_horizontal = calculate_similarity(user_horizontal_lines, expert_horizontal_lines, path)
+        
+
+        
 
 
         # Plotting
