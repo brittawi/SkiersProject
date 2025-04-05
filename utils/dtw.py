@@ -93,6 +93,7 @@ def extract_frame(video_path, frame_idx):
         #return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         return frame
     else:
+        print(f"Frame {frame_idx} could not be extracted from this path: {video_path}")
         return None
     
 def extract_frame_second(video_path, frame_idx):
