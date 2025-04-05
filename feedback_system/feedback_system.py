@@ -202,14 +202,18 @@ def main():
         # TODO make it work for empty lists!
         if video_angle == "Front":
             # Joint 1 and 2 create one line, joint 3 and 4 another line. 
-            joints_lines_relative = [("RShoulder", "LShoulder", "RHip", "LHip")]
+            # joints_lines_relative = [("RShoulder", "LShoulder", "RHip", "LHip")]
+            joints_lines_relative = []
             #joint_angles = [("RHip", "RKnee", "RAnkle"), ("LHip", "LKnee", "LAnkle")]
 
             # Mistake biathlon
             #joint_angles = [("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
             #joint_angles = [("RShoulder", "RHip", "RKnee"), ("RElbow", "RShoulder", "RHip"), ("LElbow", "LShoulder", "LHip"), ("LShoulder", "LHip", "LAnkle")]
-            joint_angles = [("RShoulder", "RElbow", "RWrist")]
+            #joint_angles = [("RShoulder", "RElbow", "RWrist")]
             joints_lines_horizontal = [("Hip", "Neck"), ("LHip", "RHip")]
+            
+            # Wide leg mistake
+            joint_angles = []
             joints_distance = [("LAnkle", "RAnkle")]
         elif video_angle == "Left":
             joints_lines_relative = [("RAnkle", "RKnee", "Hip", "Neck")]
@@ -236,16 +240,16 @@ def main():
         expert_angles = []
         user_horizontal_lines = []
         expert_horizontal_lines = []
-        user_dists = []
-        expert_dists = []
+        user_distances = []
+        expert_distances = []
         diff_lines_relative = []
         sim_lines_relative = []
         diff_angles = []
         sim_angles = []
         diff_lines_horizontal = []
         sim_lines_horizontal = []
-        diff_dists = []
-        sim_dists = []
+        diff_distances = []
+        sim_distances = []
 
         # Get the lines
         if len(joints_lines_relative):
@@ -361,6 +365,7 @@ def main():
                                              (user_angles, expert_angles, joint_angles,),
                                              (user_lines, expert_lines, joints_lines_relative),
                                              (user_horizontal_lines, expert_horizontal_lines, joints_lines_horizontal),
+                                             (user_distances, expert_distances, joints_distance),
                                              path, 
                                              frame1, 
                                              frame2)

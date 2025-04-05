@@ -100,7 +100,8 @@ def extract_multivariate_series_for_distances(cycle_data, joints_distance, run_a
 
     joints_list = [joint for tuple_joints in joints_distance for joint in tuple_joints]
     if run_args.DTW.GAUS_FILTER:
-        cycle_data = smooth_cycle(cycle_data, joints_list, sigma=run_args.DTW.SIGMA_VALUE)
+        # with normalization for distances!
+        cycle_data = smooth_cycle(cycle_data, joints_list, sigma=run_args.DTW.SIGMA_VALUE, norm = True)
 
     for i in range(len(cycle_data[joints_distance[0][0]+ "_x"])):
         dists = []
@@ -344,19 +345,22 @@ def safe_hstack(arrays):
         # If no valid arrays are found, return an empty array with the correct number of rows
         return np.empty((arrays[0].shape[0], 0))
 
-def draw_plots(frame,  angles_tuple, lines_tuple, lines_hor_tuple, path, frame1, frame2):
+def draw_plots(frame,  angles_tuple, lines_tuple, lines_hor_tuple, dists_tuple, path, frame1, frame2):
 
     user_angles, expert_angles, joint_angles = angles_tuple
     user_lines, expert_lines, joints_lines_relative = lines_tuple
     user_hor_lines, expert_hor_lines, joint_lines_hor = lines_hor_tuple
+    user_distances, expert_distances, joints_distance = dists_tuple
 
     joints = []
     if len(joint_angles) > 0:
         joints.extend(joint_angles)
     if len(joints_lines_relative) > 0:
         joints.extend(joints_lines_relative)
-    if len(joints_lines_relative) > 0:
+    if len(joint_lines_hor) > 0:
         joints.extend(joint_lines_hor)
+    if len(joints_distance) > 0:
+        joints.extend(joints_distance)
 
     if 0 < len(joints) <= 4:
         cols = 2
@@ -381,10 +385,12 @@ def draw_plots(frame,  angles_tuple, lines_tuple, lines_hor_tuple, path, frame1,
     expert_lines_arr = np.array(expert_lines)
     user_lines_hor_arr = np.array(user_hor_lines)
     expert_lines_hor_arr = np.array(expert_hor_lines)
+    user_dists_arr = np.array(user_distances)
+    expert_dists_arr = np.array(expert_distances)
 
 
-    user_features = safe_hstack([user_angles_arr, user_lines_arr, user_lines_hor_arr])
-    expert_features = safe_hstack([expert_angles_arr, expert_lines_arr, expert_lines_hor_arr])
+    user_features = safe_hstack([user_angles_arr, user_lines_arr, user_lines_hor_arr, user_dists_arr])
+    expert_features = safe_hstack([expert_angles_arr, expert_lines_arr, expert_lines_hor_arr, expert_dists_arr])
 
     for i, joint_tuple in enumerate(joints):
         fig, ax = dtw_visualisation.plot_warping_single_ax(user_features[:, i], expert_features[:, i], path, filename=None)
