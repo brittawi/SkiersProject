@@ -199,6 +199,7 @@ def main():
 
         
         direction = expert_cycle.get("Direction")
+        # TODO make it work for empty lists!
         if video_angle == "Front":
             # Joint 1 and 2 create one line, joint 3 and 4 another line. 
             joints_lines_relative = [("RShoulder", "LShoulder", "RHip", "LHip")]
@@ -206,7 +207,8 @@ def main():
 
             # Mistake biathlon
             #joint_angles = [("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
-            joint_angles = [("RShoulder", "RHip", "RKnee"), ("RElbow", "RShoulder", "RHip"), ("LElbow", "LShoulder", "LHip"), ("LShoulder", "LHip", "LAnkle")]
+            #joint_angles = [("RShoulder", "RHip", "RKnee"), ("RElbow", "RShoulder", "RHip"), ("LElbow", "LShoulder", "LHip"), ("LShoulder", "LHip", "LAnkle")]
+            joint_angles = [("RShoulder", "RElbow", "RWrist")]
             joints_lines_horizontal = [("Hip", "Neck"), ("LHip", "RHip")]
             joints_distance = [("LAnkle", "RAnkle")]
         elif video_angle == "Left":
@@ -238,12 +240,6 @@ def main():
         user_distances, _ = extract_multivariate_series_for_distances(cycle, joints_distance, run_args)
         expert_distances, _ = extract_multivariate_series_for_distances(expert_cycle, joints_distance, run_args)
         
-        # print(f"user dist {user_distances}")
-        # print(f"user dist {expert_distances}")
-        # print(f"user angles {user_angles}")
-
-        #print(user_horizontal_lines)
-        
         # Match using DTW and calculate difference in angle between the lines
         diff_lines_relative = calculate_differences(user_lines, expert_lines, path)
         sim_lines_relative = calculate_similarity(user_lines, expert_lines, path)
@@ -256,7 +252,6 @@ def main():
         
         diff_distances = calculate_differences(user_distances, expert_distances, path)
         sim_distances = calculate_similarity(user_distances, expert_distances, path)
-
 
         # Plotting
         # TODO make parameter?
@@ -311,6 +306,9 @@ def main():
 
             user_points_horizontal_lines = get_line_points(cycle, joints_lines_horizontal, frame1, run_args)
             expert_points_horizontal_lines = get_line_points(expert_cycle, joints_lines_horizontal, frame2, run_args)
+            
+            user_points_distances = get_line_points(cycle, joints_distance, frame1, run_args)
+            expert_points_distances = get_line_points(expert_cycle, joints_distance, frame2, run_args)
 
             # Draw lines
             draw_joint_relative_lines(joints_lines_relative, user_frame, user_points_lines)
@@ -319,6 +317,9 @@ def main():
             draw_joint_angles(joint_angles, expert_frame, expert_points_angles)
             draw_joint_single_lines(joints_lines_horizontal, user_frame, user_points_horizontal_lines)
             draw_joint_single_lines(joints_lines_horizontal, expert_frame, expert_points_horizontal_lines)
+            draw_joint_single_lines(joints_distance, user_frame, user_points_distances)
+            draw_joint_single_lines(joints_distance, expert_frame, expert_points_distances)
+            
 
             height, width, channels = user_frame.shape
             empty_image = np.zeros((height,width,channels), np.uint8)
