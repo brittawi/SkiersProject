@@ -193,7 +193,6 @@ def plot_avg_std_combined(metrics_dict, cfg, start_time, show_plots=False):
 
 
 def plot_training_final_metrics(results, root):
-
     metrics = {
         "train_losses": "Loss",
         "train_accs": "Accuracy",
@@ -233,7 +232,6 @@ def plot_training_final_metrics(results, root):
                 skier_accuracies[skier].append(epoch_data.get(skier, None))  # None if skier missing
 
         # Generate unique colors and line styles
-        color_map = plt.get_cmap("tab10")  # 10 distinct colors
         line_styles = ["-", "--", "-.", ":", (0, (3, 5, 1, 5))]  # Different line styles
 
         # Plot each skier's accuracy
