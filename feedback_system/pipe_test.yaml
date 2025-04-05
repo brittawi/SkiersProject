@@ -1,5 +1,5 @@
   
-VIDEO_PATH: e:\SkiProject\Cut_videos\Edited\DJI_0065.MP4
+VIDEO_PATH: C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\NewData\Film2025-02-22\DJI_0092.MP4
 ALPHA_ARGS:
   SAVE_VIDEO: false
   VIS_FAST: true
@@ -16,7 +16,7 @@ CLS_GEAR:
   NETTYPE: mlp
   MODEL_PATH: ./pretrained_models/best_model_2025_02_26_15_36_lr0.0001_seed5.pth
 DTW:
-  VIS_VID_PATH: E:\SkiProject\Cut_videos\Cut_videos_v1
+  VIS_VID_PATH: C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\expert_videos
   VIS_VIDEO: False
   SPLIT:
     LEFT: 
