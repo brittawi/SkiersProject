@@ -32,18 +32,60 @@ def extract_multivariate_series_for_lines(cycle_data, line_joint_quadruplets, ru
     for i in range(len(cycle_data[line_joint_quadruplets[0][0] + "_x"])):
         angles = []
         for joint1, joint2, joint3, joint4 in line_joint_quadruplets:
-            # TODO Change json to add Hip_x/Hip_y (the reference realtive too)?
             if joint1 == run_args.DTW.CHOOSEN_REF:
-                p1 = (cycle_data[joint1 + "_x_ref"][i], cycle_data[joint1 + "_y_ref"][i])
+                p1 = (0, 0)
             else:
                 p1 = (cycle_data[joint1 + "_x"][i], cycle_data[joint1 + "_y"][i])
-            p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
+            if joint2 == run_args.DTW.CHOOSEN_REF:
+                p2 = (0, 0)
+            else:
+                p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
             if joint3 == run_args.DTW.CHOOSEN_REF:
-                p3 = (cycle_data[joint3 + "_x_ref"][i], cycle_data[joint3 + "_y_ref"][i])
+                p3 = (0, 0)
             else:
                 p3 = (cycle_data[joint3 + "_x"][i], cycle_data[joint3 + "_y"][i])
-            p4 = (cycle_data[joint4 + "_x"][i], cycle_data[joint4 + "_y"][i])
+            if joint4 == run_args.DTW.CHOOSEN_REF:
+                p4 = (0, 0)
+            else:
+                p4 = (cycle_data[joint4 + "_x"][i], cycle_data[joint4 + "_y"][i])
             angles.append(compute_angle_between_lines(p1, p2, p3, p4))
+        all_angles.append(angles)
+        frames.append(i)
+    return np.array(all_angles), frames
+
+def extract_multivariate_series_for_single_lines(cycle_data, line_joint_pairs, run_args):
+    """
+    Extract the angle of joint pairs compared to a horizontal line
+    """
+    all_angles = []
+    frames = []
+
+    try:
+        if cycle_data[line_joint_pairs[0][0]] == run_args.DTW.CHOOSEN_REF:
+            check_term = "_x"
+    except KeyError:
+        check_term = "_x_ref"
+
+    # TODO Make option?
+    joints_list = [joint for tuple_joints in line_joint_pairs for joint in tuple_joints]
+    if run_args.DTW.GAUS_FILTER:
+        cycle_data = smooth_cycle(cycle_data, joints_list, sigma=run_args.DTW.SIGMA_VALUE)
+    for i in range(len(cycle_data[line_joint_pairs[0][0] + check_term])):
+        angles = []
+        for joint1, joint2 in line_joint_pairs:
+            # TODO Change json to add Hip_x/Hip_y (the reference realtive too)?
+            if joint1 == run_args.DTW.CHOOSEN_REF:
+                p1 = (0, 0)
+            else:
+                p1 = (cycle_data[joint1 + "_x"][i], cycle_data[joint1 + "_y"][i])
+            if joint2 == run_args.DTW.CHOOSEN_REF:
+                p2 = (0, 0)
+            else:
+                p2 = (cycle_data[joint2 + "_x"][i], cycle_data[joint2 + "_y"][i])
+            
+            print(p1, p2)
+            angles.append(compute_angle_between_lines(p1, p2, (1,0), (0,0)))
+            print(compute_angle_between_lines(p1, p2, (0,2), (0,0)))
         all_angles.append(angles)
         frames.append(i)
     return np.array(all_angles), frames
@@ -97,11 +139,18 @@ def get_line_points(cycle, joints_list, frame, run_args):
             points.append((p_x,p_y))
     return points
 
-def draw_joint_lines(joints_lines, frame, points, l_color=(0,255,0), p_color=(0,0,255), l_thickness = 2, p_radius = 2):
+def draw_joint_relative_lines(joints_lines, frame, points, l_color=(0,255,0), p_color=(0,0,255), l_thickness = 2, p_radius = 2):
     for i in range(len(joints_lines)):
         j = i*4
         cv2.line(frame, points[0+j], points[1+j], color=l_color, thickness=l_thickness)  # First pair
         cv2.line(frame, points[2+j], points[3+j], color=l_color, thickness=l_thickness)  # Second pair
+        for point in points:
+            cv2.circle(frame, point, radius=p_radius, color=p_color, thickness=-1)
+
+def draw_joint_single_lines(joints_lines, frame, points, l_color=(0,255,0), p_color=(0,0,255), l_thickness = 2, p_radius = 2):
+    for i in range(len(joints_lines)):
+        j = i*2
+        cv2.line(frame, points[0+j], points[1+j], color=l_color, thickness=l_thickness)
         for point in points:
             cv2.circle(frame, point, radius=p_radius, color=p_color, thickness=-1)
 
@@ -136,11 +185,12 @@ def draw_joint_angles(joint_angles, frame, points, l_color=(0,255,0), p_color=(0
             cv2.ellipse(frame, points[1+j], (e_radius, e_radius), 0, end_angle, end_angle - angle_diff, l_color, l_thickness)
 
 
-def draw_table(frame, angles_tuple, lines_tuple, match, iter):
+def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, match, iter):
 
     # Unpack tuples
     joint_angles, user_angles, expert_angles, diff_angles, sim_angles = angles_tuple
-    joint_lines, user_lines, expert_lines, diff_lines, sim_lines = lines_tuple
+    joint_lines, user_lines, expert_lines, diff_lines, sim_lines = lines_rel_tuple
+    joint_hor_lines, user_hor_lines, expert_hor_lines, diff_hor_lines, sim_hor_lines = lines_hor_tuple
 
     height, width, _ = frame.shape
     rows = 0
@@ -148,6 +198,8 @@ def draw_table(frame, angles_tuple, lines_tuple, match, iter):
         rows += len(joint_angles) + 1 # +1 for header
     if len(joint_lines) > 0:
         rows += len(joint_lines) + 1 # +1 for header
+    if len(joint_hor_lines) > 0:
+        rows += len(joint_hor_lines)
     cols = 5
     cell_width = int(width*0.9 // cols)
     cell_height = height // 20
@@ -187,6 +239,15 @@ def draw_table(frame, angles_tuple, lines_tuple, match, iter):
         row.append(f"{diff_lines[iter][i]:.2f}")
         row.append(f"{sim_lines[iter][i]:.2%}")
         table_data.append(row)
+    for i, lines in enumerate(joint_hor_lines):
+        row = []
+        row.append(str(lines))
+        row.append(f"{user_hor_lines[match[0]][i]:.2f}")
+        row.append(f"{expert_hor_lines[match[1]][i]:.2f}")
+        row.append(f"{diff_hor_lines[iter][i]:.2f}")
+        row.append(f"{sim_hor_lines[iter][i]:.2%}")
+        table_data.append(row)
+    
 
 
     for row in range(rows):
