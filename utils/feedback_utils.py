@@ -2,6 +2,8 @@ import numpy as np
 import cv2
 from utils.dtw import smooth_cycle, compute_angle
 import matplotlib.pyplot as plt
+from dtaidistance import dtw_visualisation
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 def compute_angle_between_lines(p1, p2, p3, p4):
     """Computes the angle between two lines formed by points (p1, p2) and (p3, p4)."""
@@ -287,15 +289,28 @@ def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, match, ite
             cv2.putText(frame, text, (text_x, text_y), font, font_scale, text_color, font_thickness)
     return frame
 
-def draw_plots(frame, user_angles, expert_angles, path, joint_angles, frame1, frame2):
+def draw_plots(frame,  angles_tuple, lines_tuple, lines_hor_tuple, path, frame1, frame2):
 
-    import matplotlib.pyplot as plt
-    from dtaidistance import dtw_visualisation
-    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    user_angles, expert_angles, joint_angles = angles_tuple
+    user_lines, expert_lines, joints_lines_relative = lines_tuple
+    user_hor_lines, expert_hor_lines, joint_lines_hor = lines_hor_tuple
 
-    cols = 2
+    joints = []
+    if len(joint_angles) > 0:
+        joints.extend(joint_angles)
+    if len(joints_lines_relative) > 0:
+        joints.extend(joints_lines_relative)
+    if len(joints_lines_relative) > 0:
+        joints.extend(joint_lines_hor)
+
+    if 0 < len(joints) <= 4:
+        cols = 2
+    elif 4 < len(joints) <= 9:
+        cols = 3
+    else:
+        cols = 4
     # Determine the grid layout
-    num_plots = len(joint_angles)
+    num_plots = len(joints)
     rows = int(np.ceil(num_plots / cols))  # Calculate how many rows based on number of plots and columns
 
     # Get frame dimensions
@@ -305,16 +320,26 @@ def draw_plots(frame, user_angles, expert_angles, path, joint_angles, frame1, fr
 
     user_angles_arr = np.array(user_angles)
     expert_angles_arr = np.array(expert_angles)
-    for i, angle in enumerate(joint_angles):
+    user_lines_arr = np.array(user_lines)
+    expert_lines_arr = np.array(expert_lines)
+    user_lines_hor_arr = np.array(user_hor_lines)
+    expert_lines_hor_arr = np.array(expert_hor_lines)
+
+
+    user_features = np.hstack((user_angles_arr, user_lines_arr, user_lines_hor_arr))
+    expert_features = np.hstack((expert_angles_arr, expert_lines_arr, expert_lines_hor_arr))
+
+    for i, joint_tuple in enumerate(joints):
+        print(joint_tuple)
         #fig, ax = dtw_visualisation.plot_warping_single_ax(user_angles_arr[:, i], expert_angles_arr[:, i], path, filename=None)
-        fig, ax = dtw_visualisation.plot_warping_single_ax(user_angles_arr[:, i], expert_angles_arr[:, i], path, filename=None)
+        fig, ax = dtw_visualisation.plot_warping_single_ax(user_features[:, i], expert_features[:, i], path, filename=None)
         fig.patch.set_facecolor('black')
         ax.set_facecolor('black')
-        ax.plot(user_angles_arr[:, i], label=f"User", color='c')
-        ax.plot(expert_angles_arr[:, i], label=f"Expert", color='y')
+        ax.plot(user_features[:, i], label=f"User", color='c')
+        ax.plot(expert_features[:, i], label=f"Expert", color='y')
         ax.legend(facecolor='black', edgecolor='white', labelcolor='white')
         ax.tick_params(axis='both', colors='white')
-        ax.set_title(f"DTW Alignment: {angle}", color='white', fontsize=12, fontweight='bold')
+        ax.set_title(f"DTW Alignment: {joint_tuple}", color='white', fontsize=12, fontweight='bold')
         ax.set_xlabel("Frame", color='white', fontsize=10, fontweight='bold')
         #ax.set_ylabel(f"Degree angle of {angle}", color='white', fontsize=10, fontweight='bold')
         ax.set_ylabel(f"Degree", color='white', fontsize=10, fontweight='bold')
@@ -323,8 +348,8 @@ def draw_plots(frame, user_angles, expert_angles, path, joint_angles, frame1, fr
             spine.set_edgecolor('white')  # Set the border color to white
 
         # Plot dots at the specified timestamps
-        ax.plot(frame1, user_angles_arr[frame1, i], marker='o', markersize=10, color='b')
-        ax.plot(frame2, expert_angles_arr[frame2, i], marker='o', markersize=10, color='b')
+        ax.plot(frame1, user_features[frame1, i], marker='o', markersize=10, color='b')
+        ax.plot(frame2, expert_features[frame2, i], marker='o', markersize=10, color='b')
 
 
 

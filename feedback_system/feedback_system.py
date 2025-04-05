@@ -236,8 +236,6 @@ def main():
         expert_angles, _ = extract_multivariate_series(expert_cycle, joint_angles, run_args)
         user_horizontal_lines, _ = extract_multivariate_series_for_single_lines(cycle, joints_lines_horizontal, run_args)
         expert_horizontal_lines, _= extract_multivariate_series_for_single_lines(expert_cycle, joints_lines_horizontal, run_args)
-
-        print(user_horizontal_lines)
         
         # Match using DTW and calculate difference in angle between the lines
         diff_lines_relative = calculate_differences(user_lines, expert_lines, path)
@@ -322,7 +320,14 @@ def main():
                                     (frame1, frame2), 
                                     i)
             
-            plot_image = draw_plots(np.zeros((height,width,channels), np.uint8), user_angles, expert_angles, path, joint_angles, frame1, frame2)
+            plot_image = draw_plots(np.zeros((height,width,channels), 
+                                             np.uint8), 
+                                             (user_angles, expert_angles, joint_angles,),
+                                             (user_lines, expert_lines, joints_lines_relative),
+                                             (user_horizontal_lines, expert_horizontal_lines, joints_lines_horizontal),
+                                             path, 
+                                             frame1, 
+                                             frame2)
 
 
             side_image = cv2.vconcat([info_image, plot_image])
