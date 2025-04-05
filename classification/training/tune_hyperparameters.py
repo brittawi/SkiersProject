@@ -198,10 +198,9 @@ def tune_hyperparameters():
             raise ValueError(f"Error: Different config ({cfg.TRAIN.NETWORK.NETWORKTYPE})"
                             f" and serach space network ({ssp.NETWORK.NETWORKTYPE}) type!")
         if cfg.TRAIN.EPOCHS != ssp.MAX_EPOCHS:
-            print("#"*100)
-            print(f"***WARNING***")
-            print(f"Not the same amount of epochs in config and search space, search might end sooner than given MAX_EPOCHS")
-            print("#"*100)
+            raise ValueError(f"Error: Different amount of epochs in config.yaml({cfg.TRAIN.EPOCHS})"
+                            f" and serach space network search_space.yaml({ssp.MAX_EPOCHS})!"
+                            f" Make sure they are the same!")
 
         if  ssp.NETWORK.NETWORKTYPE == "mlp":
             # Define search space for hyperparameters

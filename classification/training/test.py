@@ -22,7 +22,7 @@ from utils.CustomDataset import CustomDataset
 from utils.training_utils import validation, initialize_loss
 
 
-MODEL_PATH = "./pretrained_models/trained_model_2025_04_03_12_11_lr0.001.pth"
+MODEL_PATH = "./pretrained_models/trained_model_2025_04_04_08_33_lr0.001.pth"
 TEST_DATA_PATH = "./data/split_data/test_full.json"
 TEST_OUTPUT = "./classification/training/runs/test"
 
@@ -43,6 +43,7 @@ def main():
     print("Loading test data...")
     test_data = []
     labels = []
+    skiers_ids = []
     with open(TEST_DATA_PATH, 'r') as f:
         data_json = json.load(f)
         
@@ -56,6 +57,7 @@ def main():
 
         test_data.append(cycle_tensor)
         labels.append(cycle["Label"])
+        skiers_ids.append(cycle["Skier_id"])
 
     # Preprocess data based on train data
     print("Preprocessing data...")
@@ -80,7 +82,7 @@ def main():
     # convert data to a tensor
     test_data = torch.tensor(test_data, dtype=torch.float32)
 
-    test_dataset = CustomDataset(test_data, labels, custom_params["labels"])
+    test_dataset = CustomDataset(test_data, labels, custom_params["labels"], skier_id=skiers_ids)
 
     test_loader = DataLoader(test_dataset, batch_size=custom_params["batch_size"], shuffle=False)
     
@@ -113,7 +115,7 @@ def main():
 
     loss_func = initialize_loss(custom_params, custom_params, output_channels)
 
-    avg_test_loss, epoch_accuracy, precision, recall, f1, conf_matrix = validation(test_loader, net, loss_func, device, custom_params["network_type"])
+    avg_test_loss, epoch_accuracy, precision, recall, f1, conf_matrix, skiers_acc = validation(test_loader, net, loss_func, device, custom_params["network_type"])
 
     test_results_text = (
         f"Test Loss: {avg_test_loss:.4f}\n"
@@ -122,6 +124,9 @@ def main():
         f"Test Recall: {recall:.4f}\n"
         f"Test F1 Score: {f1:.4f}\n"
     )
+
+    for skier_id, acc in skiers_acc.items():
+        test_results_text += f"Skier {skier_id} Accuracy: {acc:.2f}%\n"
 
     # Print results
     print(test_results_text)
