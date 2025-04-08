@@ -207,13 +207,14 @@ def validation(val_loader, net, criterion, device, network_type):
 
         # Compute confusion matrix
         conf_matrix = confusion_matrix(all_labels, all_predictions)
+        conf_matrix_norm = confusion_matrix(all_labels, all_predictions, normalize="true")
 
         # Compute accuracy per skier
         if track_skiers:
             for skier in skier_accuracy:
                 skier_accuracy[skier] = 100 * skier_accuracy[skier]["correct"] / skier_accuracy[skier]["total"]
     
-    return avg_val_loss, epoch_accuracy, precision, recall, f1, conf_matrix, skier_accuracy if track_skiers else None
+    return avg_val_loss, epoch_accuracy, precision, recall, f1, (conf_matrix, conf_matrix_norm), skier_accuracy if track_skiers else None
 
 def train_and_validate(seed, net, criterion, optimizer, cfg, train_loader, val_loader, device, fold, start_time, custom_params):
     """
