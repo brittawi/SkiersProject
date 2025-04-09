@@ -6,7 +6,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 
 from utils.load_data import load_json
-from utils.dtw import compare_selected_cycles, extract_frame, extract_frame_second, extract_frame_imageio, extract_frame_ffmpeg, extract_multivariate_series
+from utils.dtw import compare_selected_cycles, extract_multivariate_series
 from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_relative_lines, draw_table, calculate_similarity, draw_plots, extract_multivariate_series_for_single_lines, draw_joint_single_lines, extract_multivariate_series_for_distances
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
@@ -17,6 +17,7 @@ from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
 from utils.feedback_utils import get_line_points
 from utils.classify_angle import classify_angle
+from utils.frame_extraction import get_image_by_id, extract_frame, extract_frame_second, extract_frame_imageio, extract_frame_ffmpeg
 from scipy.signal import argrelextrema, find_peaks
 
 import torch
@@ -29,14 +30,14 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "148"
+ID = "169"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
 # INPUT_PATH = os.path.join("E:\SkiProject\\annotations_test_DJI_0044\After_Mixed_level_output\coco_json",  f"DJI_{int(ID):04d}_coco.json")
-INPUT_PATH = os.path.join(r"e:\SkiProject\Results_AlphaPose\Expert_mistake_iter_1\All",  f"{ID}.json")
+INPUT_PATH = os.path.join(r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\annotations_finetuned_v1\Expert_mistake",  f"{ID}.json")
 #INPUT_VIDEO = r"E:\SkiProject\Cut_videos\DJI_00" + ID + ".mp4"
-INPUT_VIDEO = r"e:\SkiProject\Expert_mistake_videos\DJI_01" + ID + ".mp4"
+INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Expert_mistakes_data\Film 2025-03-07\DJI_0" + ID + ".mp4"
 # # path to where all videos are stored
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
@@ -295,66 +296,66 @@ def main():
             sim_distances = calculate_similarity(user_distances, expert_distances, path)
 
         # TODO Extract frames where the difference is big to highlight in cycle where the mistakes appears
-
-        counter_left = 0
-        counter_right = 0
-        for idx_user, idx_expert in path:
-            if user_angles[idx_user] > expert_angles[idx_expert]:
-                counter_right += 1
-            # if user_angles[idx_user][1] > expert_angles[idx_expert][1]:
-            #     counter_left += 1
-        right_ratio = counter_right / len(path)
-        print("Right", counter_right, " Ratio right ", right_ratio)
-        #print("Left", counter_left, " Ratio left ", counter_left / len(path))
-
-
-        expert_peaks_pos = find_peaks(np.concatenate(expert_horizontal_lines), height=0)
-        user_peaks_pos = find_peaks(np.concatenate(user_horizontal_lines), height=0)
-        expert_peaks_neg = find_peaks(-(np.concatenate(expert_horizontal_lines)), height=-float("inf"))
-        user_peaks_neg = find_peaks(-(np.concatenate(user_horizontal_lines)), height=-float("inf"))
-        print("exp",expert_peaks_pos, expert_peaks_neg)
-        print("user", user_peaks_pos, user_peaks_neg)
+        if video_angle == "Left":
+            counter_left = 0
+            counter_right = 0
+            for idx_user, idx_expert in path:
+                if user_angles[idx_user] > expert_angles[idx_expert]:
+                    counter_right += 1
+                # if user_angles[idx_user][1] > expert_angles[idx_expert][1]:
+                #     counter_left += 1
+            right_ratio = counter_right / len(path)
+            print("Right", counter_right, " Ratio right ", right_ratio)
+            #print("Left", counter_left, " Ratio left ", counter_left / len(path))
 
 
-        # Get the values of the lowest and highest peaks for user and expert
+            expert_peaks_pos = find_peaks(np.concatenate(expert_horizontal_lines), height=0)
+            user_peaks_pos = find_peaks(np.concatenate(user_horizontal_lines), height=0)
+            expert_peaks_neg = find_peaks(-(np.concatenate(expert_horizontal_lines)), height=-float("inf"))
+            user_peaks_neg = find_peaks(-(np.concatenate(user_horizontal_lines)), height=-float("inf"))
+            print("exp",expert_peaks_pos, expert_peaks_neg)
+            print("user", user_peaks_pos, user_peaks_neg)
+
+
+            # Get the values of the lowest and highest peaks for user and expert
+                # Get highest and lowest peaks for the user
+                    # If no min/max take minimum/maxiumum value
+                    # If multiple min/max peaks take average of peaks
+                        # Look if it works or change by peak distance average
+            
             # Get highest and lowest peaks for the user
-                # If no min/max take minimum/maxiumum value
-                # If multiple min/max peaks take average of peaks
-                    # Look if it works or change by peak distance average
-        
-        # Get highest and lowest peaks for the user
-        if len(user_peaks_pos[0]) > 0:
-            user_avg_peak_max = np.mean(user_peaks_pos[1]["peak_heights"])
-        else:
-            user_avg_peak_max = np.max(np.concatenate(user_horizontal_lines))
+            if len(user_peaks_pos[0]) > 0:
+                user_avg_peak_max = np.mean(user_peaks_pos[1]["peak_heights"])
+            else:
+                user_avg_peak_max = np.max(np.concatenate(user_horizontal_lines))
 
-        if len(user_peaks_neg[0]) > 0:
-            user_avg_peak_min = np.mean(-user_peaks_neg[1]["peak_heights"])
-        else:
-            user_avg_peak_min = np.min(np.concatenate(user_horizontal_lines))
+            if len(user_peaks_neg[0]) > 0:
+                user_avg_peak_min = np.mean(-user_peaks_neg[1]["peak_heights"])
+            else:
+                user_avg_peak_min = np.min(np.concatenate(user_horizontal_lines))
 
-        # Get highest and lowest peaks for the expert
-        if len(expert_peaks_pos[0]) > 0:
-            expert_avg_peak_max = np.mean(expert_peaks_pos[1]["peak_heights"])
-        else:
-            expert_avg_peak_max = np.max(np.concatenate(expert_horizontal_lines))
+            # Get highest and lowest peaks for the expert
+            if len(expert_peaks_pos[0]) > 0:
+                expert_avg_peak_max = np.mean(expert_peaks_pos[1]["peak_heights"])
+            else:
+                expert_avg_peak_max = np.max(np.concatenate(expert_horizontal_lines))
 
-        if len(expert_peaks_neg[0]) > 0:
-            expert_avg_peak_min = np.mean(-expert_peaks_neg[1]["peak_heights"])
-        else:
-            expert_avg_peak_min = np.min(np.concatenate(expert_horizontal_lines))
-        
-        print(f"Max peak user {user_avg_peak_max}| Expert {expert_avg_peak_max}")
-        print(f"Min peak user {user_avg_peak_min}| Expert {expert_avg_peak_min}")
-        print(f"User dist {user_avg_peak_max-user_avg_peak_min}| Expert {expert_avg_peak_max-expert_avg_peak_min}")
+            if len(expert_peaks_neg[0]) > 0:
+                expert_avg_peak_min = np.mean(-expert_peaks_neg[1]["peak_heights"])
+            else:
+                expert_avg_peak_min = np.min(np.concatenate(expert_horizontal_lines))
+            
+            print(f"Max peak user {user_avg_peak_max}| Expert {expert_avg_peak_max}")
+            print(f"Min peak user {user_avg_peak_min}| Expert {expert_avg_peak_min}")
+            print(f"User dist {user_avg_peak_max-user_avg_peak_min}| Expert {expert_avg_peak_max-expert_avg_peak_min}")
 
-        
+            
 
 
-        if right_ratio > 0.6 and user_avg_peak_max-user_avg_peak_min < expert_avg_peak_max-expert_avg_peak_min:
-            print("Definitely stiff ankle!")
-        else:
-            print("Not stiff ankle!")
+            if right_ratio > 0.6 and user_avg_peak_max-user_avg_peak_min < expert_avg_peak_max-expert_avg_peak_min:
+                print("Definitely stiff ankle!")
+            else:
+                print("Not stiff ankle!")
 
 
         
@@ -392,19 +393,22 @@ def main():
                 labels=['User', 'Expert']
             )
 
-        
-        user_start_frame = cycle.get("Start_frame")
-
         # Loops through the DTW match pair and shows lines on user video
         for i, (frame1, frame2) in enumerate(path):
-            user_frame = extract_frame(run_args.VIDEO_PATH, frame1 + user_start_frame)
+            # get acual frame
+            imgage_id = cycle["Image_ids"][frame1]
+            image_video_id = get_image_by_id(coco_data["images"], imgage_id)
+            image_video_id = int(image_video_id["file_name"].split('.')[0])
+            user_frame = extract_frame_second(run_args.VIDEO_PATH, image_video_id)
             # # TODO Make this a parameter?
             # if True:
             expert_start_frame = expert_cycle.get("Start_frame")
             #expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
             vid_id = int(expert_cycle.get("Video"))
             expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, f"DJI_{vid_id:04d}" + ".mp4")
-            expert_frame = extract_frame(expert_video, frame2 + expert_start_frame)
+            # for the expert frame a -1 is added to the index as we get the image ids here and they start at 1 but frames actually 
+            # start at 0. For the user id we can get the frame id directly as we have the full json file. 
+            expert_frame = extract_frame_second(expert_video, frame2 + expert_start_frame - 1)
             
             # draw lines on to each frame
             user_points_lines = get_line_points(cycle, joints_lines_relative, frame1, run_args)
