@@ -30,7 +30,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "142"
+ID = "169"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -296,66 +296,66 @@ def main():
             sim_distances = calculate_similarity(user_distances, expert_distances, path)
 
         # TODO Extract frames where the difference is big to highlight in cycle where the mistakes appears
-
-        counter_left = 0
-        counter_right = 0
-        for idx_user, idx_expert in path:
-            if user_angles[idx_user] > expert_angles[idx_expert]:
-                counter_right += 1
-            # if user_angles[idx_user][1] > expert_angles[idx_expert][1]:
-            #     counter_left += 1
-        right_ratio = counter_right / len(path)
-        print("Right", counter_right, " Ratio right ", right_ratio)
-        #print("Left", counter_left, " Ratio left ", counter_left / len(path))
-
-
-        expert_peaks_pos = find_peaks(np.concatenate(expert_horizontal_lines), height=0)
-        user_peaks_pos = find_peaks(np.concatenate(user_horizontal_lines), height=0)
-        expert_peaks_neg = find_peaks(-(np.concatenate(expert_horizontal_lines)), height=-float("inf"))
-        user_peaks_neg = find_peaks(-(np.concatenate(user_horizontal_lines)), height=-float("inf"))
-        print("exp",expert_peaks_pos, expert_peaks_neg)
-        print("user", user_peaks_pos, user_peaks_neg)
+        if video_angle == "Left":
+            counter_left = 0
+            counter_right = 0
+            for idx_user, idx_expert in path:
+                if user_angles[idx_user] > expert_angles[idx_expert]:
+                    counter_right += 1
+                # if user_angles[idx_user][1] > expert_angles[idx_expert][1]:
+                #     counter_left += 1
+            right_ratio = counter_right / len(path)
+            print("Right", counter_right, " Ratio right ", right_ratio)
+            #print("Left", counter_left, " Ratio left ", counter_left / len(path))
 
 
-        # Get the values of the lowest and highest peaks for user and expert
+            expert_peaks_pos = find_peaks(np.concatenate(expert_horizontal_lines), height=0)
+            user_peaks_pos = find_peaks(np.concatenate(user_horizontal_lines), height=0)
+            expert_peaks_neg = find_peaks(-(np.concatenate(expert_horizontal_lines)), height=-float("inf"))
+            user_peaks_neg = find_peaks(-(np.concatenate(user_horizontal_lines)), height=-float("inf"))
+            print("exp",expert_peaks_pos, expert_peaks_neg)
+            print("user", user_peaks_pos, user_peaks_neg)
+
+
+            # Get the values of the lowest and highest peaks for user and expert
+                # Get highest and lowest peaks for the user
+                    # If no min/max take minimum/maxiumum value
+                    # If multiple min/max peaks take average of peaks
+                        # Look if it works or change by peak distance average
+            
             # Get highest and lowest peaks for the user
-                # If no min/max take minimum/maxiumum value
-                # If multiple min/max peaks take average of peaks
-                    # Look if it works or change by peak distance average
-        
-        # Get highest and lowest peaks for the user
-        if len(user_peaks_pos[0]) > 0:
-            user_avg_peak_max = np.mean(user_peaks_pos[1]["peak_heights"])
-        else:
-            user_avg_peak_max = np.max(np.concatenate(user_horizontal_lines))
+            if len(user_peaks_pos[0]) > 0:
+                user_avg_peak_max = np.mean(user_peaks_pos[1]["peak_heights"])
+            else:
+                user_avg_peak_max = np.max(np.concatenate(user_horizontal_lines))
 
-        if len(user_peaks_neg[0]) > 0:
-            user_avg_peak_min = np.mean(-user_peaks_neg[1]["peak_heights"])
-        else:
-            user_avg_peak_min = np.min(np.concatenate(user_horizontal_lines))
+            if len(user_peaks_neg[0]) > 0:
+                user_avg_peak_min = np.mean(-user_peaks_neg[1]["peak_heights"])
+            else:
+                user_avg_peak_min = np.min(np.concatenate(user_horizontal_lines))
 
-        # Get highest and lowest peaks for the expert
-        if len(expert_peaks_pos[0]) > 0:
-            expert_avg_peak_max = np.mean(expert_peaks_pos[1]["peak_heights"])
-        else:
-            expert_avg_peak_max = np.max(np.concatenate(expert_horizontal_lines))
+            # Get highest and lowest peaks for the expert
+            if len(expert_peaks_pos[0]) > 0:
+                expert_avg_peak_max = np.mean(expert_peaks_pos[1]["peak_heights"])
+            else:
+                expert_avg_peak_max = np.max(np.concatenate(expert_horizontal_lines))
 
-        if len(expert_peaks_neg[0]) > 0:
-            expert_avg_peak_min = np.mean(-expert_peaks_neg[1]["peak_heights"])
-        else:
-            expert_avg_peak_min = np.min(np.concatenate(expert_horizontal_lines))
-        
-        print(f"Max peak user {user_avg_peak_max}| Expert {expert_avg_peak_max}")
-        print(f"Min peak user {user_avg_peak_min}| Expert {expert_avg_peak_min}")
-        print(f"User dist {user_avg_peak_max-user_avg_peak_min}| Expert {expert_avg_peak_max-expert_avg_peak_min}")
+            if len(expert_peaks_neg[0]) > 0:
+                expert_avg_peak_min = np.mean(-expert_peaks_neg[1]["peak_heights"])
+            else:
+                expert_avg_peak_min = np.min(np.concatenate(expert_horizontal_lines))
+            
+            print(f"Max peak user {user_avg_peak_max}| Expert {expert_avg_peak_max}")
+            print(f"Min peak user {user_avg_peak_min}| Expert {expert_avg_peak_min}")
+            print(f"User dist {user_avg_peak_max-user_avg_peak_min}| Expert {expert_avg_peak_max-expert_avg_peak_min}")
 
-        
+            
 
 
-        if right_ratio > 0.6 and user_avg_peak_max-user_avg_peak_min < expert_avg_peak_max-expert_avg_peak_min:
-            print("Definitely stiff ankle!")
-        else:
-            print("Not stiff ankle!")
+            if right_ratio > 0.6 and user_avg_peak_max-user_avg_peak_min < expert_avg_peak_max-expert_avg_peak_min:
+                print("Definitely stiff ankle!")
+            else:
+                print("Not stiff ankle!")
 
 
         
@@ -392,17 +392,6 @@ def main():
                 expert_angles,  # Additional positional argument for *line_data
                 labels=['User', 'Expert']
             )
-
-    
-        
-        # print(cycle["Image_ids"])
-        # frames_to_extract = []
-        # for img_id in cycle["Image_ids"]:
-        #     image_video_id = get_image_by_id(coco_data["images"], img_id)
-        #     image_video_id = int(image_video_id["file_name"].split('.')[0])
-        #     frames_to_extract.append(image_video_id)
-            
-        # print(frames_to_extract)
 
         # Loops through the DTW match pair and shows lines on user video
         for i, (frame1, frame2) in enumerate(path):
