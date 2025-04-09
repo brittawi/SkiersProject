@@ -219,6 +219,7 @@ def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, distances_
     
     height, width, _ = frame.shape
     rows = 0
+    header = False
     if len(joint_angles) > 0:
         rows += len(joint_angles) + 1 # +1 for header
     if len(joint_lines) > 0:
