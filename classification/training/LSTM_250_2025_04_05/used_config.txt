@@ -1,0 +1,8 @@
+lr = 0.0001
+batch_size = 16
+hideen_size = 256
+num_layers = 3
+loss = cross_entropy
+dropout = 0.2
+
+Tiebreaker for batch size went to 16 because lower loss overall (with same loss function)

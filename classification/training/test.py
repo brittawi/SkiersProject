@@ -15,6 +15,7 @@ import json
 from sklearn.metrics import ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 from datetime import datetime
+import seaborn as sns
 
 from utils.preprocess_signals import pad_sequences, normalize_full_signal, normalize_per_timestamp, replace_nan_with_first_value, gaussian_filter1d
 from utils.nets import LSTMNet, SimpleMLP
@@ -22,7 +23,7 @@ from utils.CustomDataset import CustomDataset
 from utils.training_utils import validation, initialize_loss
 
 
-MODEL_PATH = "./pretrained_models/trained_model_2025_04_04_08_33_lr0.001.pth"
+MODEL_PATH = "./pretrained_models/trained_model_2025_04_05_13_42_lr0.0001.pth"
 TEST_DATA_PATH = "./data/split_data/test_full.json"
 TEST_OUTPUT = "./classification/training/runs/test"
 
@@ -115,7 +116,7 @@ def main():
 
     loss_func = initialize_loss(custom_params, custom_params, output_channels)
 
-    avg_test_loss, epoch_accuracy, precision, recall, f1, conf_matrix, skiers_acc = validation(test_loader, net, loss_func, device, custom_params["network_type"])
+    avg_test_loss, epoch_accuracy, precision, recall, f1, (conf_matrix, conf_matrix_norm), skiers_acc = validation(test_loader, net, loss_func, device, custom_params["network_type"])
 
     test_results_text = (
         f"Test Loss: {avg_test_loss:.4f}\n"
@@ -131,8 +132,26 @@ def main():
     # Print results
     print(test_results_text)
 
-    disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=[*custom_params["labels"]])
-    disp.plot()
+    # disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=[*custom_params["labels"]])
+    # disp.plot()
+    fig, ax = plt.subplots(figsize=(8, 6))
+    # Annotate with both values: count and percentage
+    annot = np.empty_like(conf_matrix).astype(str)
+    for i in range(conf_matrix.shape[0]):
+        for j in range(conf_matrix.shape[1]):
+            count = conf_matrix[i, j]
+            perc = conf_matrix_norm[i, j] * 100
+            annot[i, j] = f"{count}\n{perc:.1f}%"
+
+    # Plot using seaborn heatmap
+    sns.heatmap(conf_matrix_norm, annot=annot, fmt='', cmap="Blues", xticklabels=[*custom_params["labels"]], yticklabels=[*custom_params["labels"]], cbar=True, ax=ax)
+
+    # Labeling
+    ax.set_xlabel("Predicted Label")
+    ax.set_ylabel("True Label")
+    ax.set_title("Confusion Matrix: Count and %")
+
+    plt.tight_layout()
 
     # Save cm and output
     cm_out_path = os.path.join(TEST_OUTPUT, f"cm_{start_time}.png")
