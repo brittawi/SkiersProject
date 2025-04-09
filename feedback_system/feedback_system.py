@@ -17,7 +17,7 @@ from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
 from utils.feedback_utils import get_line_points
 from utils.classify_angle import classify_angle
-from scipy.signal import argrelextrema, find_peaks
+from scipy.signal import find_peaks
 
 import torch
 import numpy as np
@@ -29,7 +29,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "148"
+ID = "147"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -41,6 +41,64 @@ INPUT_VIDEO = r"e:\SkiProject\Expert_mistake_videos\DJI_01" + ID + ".mp4"
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
 testing_with_inference = False
+
+def determine_stiff_ankle_leaning(user_horizontal_lines, expert_horizontal_lines):
+    expert_peaks_pos = find_peaks(np.concatenate(expert_horizontal_lines), height=0)
+    user_peaks_pos = find_peaks(np.concatenate(user_horizontal_lines), height=0)
+    expert_peaks_neg = find_peaks(-(np.concatenate(expert_horizontal_lines)), height=-float("inf"))
+    user_peaks_neg = find_peaks(-(np.concatenate(user_horizontal_lines)), height=-float("inf"))
+    # print("exp",expert_peaks_pos, expert_peaks_neg)
+    # print("user", user_peaks_pos, user_peaks_neg)
+
+
+    # Get the values of the lowest and highest peaks for user and expert
+        # Get highest and lowest peaks for the user
+            # If no min/max take minimum/maxiumum value
+            # If multiple min/max peaks take average of peaks
+                # Look if it works or change by peak distance average
+    
+    # Get highest and lowest peaks for the user
+    if len(user_peaks_pos[0]) > 0:
+        user_avg_peak_max = np.mean(user_peaks_pos[1]["peak_heights"])
+    else:
+        user_avg_peak_max = np.max(np.concatenate(user_horizontal_lines))
+
+    if len(user_peaks_neg[0]) > 0:
+        user_avg_peak_min = np.mean(-user_peaks_neg[1]["peak_heights"])
+    else:
+        user_avg_peak_min = np.min(np.concatenate(user_horizontal_lines))
+
+    # Get highest and lowest peaks for the expert
+    if len(expert_peaks_pos[0]) > 0:
+        expert_avg_peak_max = np.mean(expert_peaks_pos[1]["peak_heights"])
+    else:
+        expert_avg_peak_max = np.max(np.concatenate(expert_horizontal_lines))
+
+    if len(expert_peaks_neg[0]) > 0:
+        expert_avg_peak_min = np.mean(-expert_peaks_neg[1]["peak_heights"])
+    else:
+        expert_avg_peak_min = np.min(np.concatenate(expert_horizontal_lines))
+    
+    # print(f"Max peak user {user_avg_peak_max}| Expert {expert_avg_peak_max}")
+    # print(f"Min peak user {user_avg_peak_min}| Expert {expert_avg_peak_min}")
+    # print(f"User dist {user_avg_peak_max-user_avg_peak_min}| Expert {expert_avg_peak_max-expert_avg_peak_min}")
+    user_peak_diff = user_avg_peak_max-user_avg_peak_min
+    expert_peak_diff = expert_avg_peak_max-expert_avg_peak_min
+    if user_peak_diff < expert_peak_diff:
+        print("User peak diff suggest stiff ankles")
+    else:
+        print("User peak diff DOES NOT suggest stiff ankles")
+    
+    peak_ratio = user_peak_diff / expert_peak_diff
+
+    print("Peak ratio:", peak_ratio)
+    peak_ratio_thr = 0.8
+    if peak_ratio < peak_ratio_thr:
+        print("Peak ratio Threshold suggest stiff ankles!")
+    else:
+        print("Peak ratio DOES NOT SUGGEST stiff ankles")
+
+
 
 def main():
     
@@ -175,6 +233,8 @@ def main():
         else:
             print(f"The system cannot give feedback for {predicted_label}")
             continue
+
+        #expert_path = "./data/expert_data/labeled_cycles_146.json"
         
         expert_data = load_json(expert_path)
         
@@ -229,22 +289,36 @@ def main():
             #joints_lines_horizontal = [("Hip", "Neck")]
 
             # Stiff ankles 
-            joints_lines_relative = []
-            joint_angles = [("RHip", "RKnee", "RAnkle"), # Right knee angle
-                            #("LHip", "LKnee", "LAnkle") # Left knee angle
-                            ]
-            joints_lines_horizontal = [("Hip", "Neck") # Leaning forward 
-                                       ]
-            joints_distance = []
+            joints_lines_relative = [("RAnkle", "RKnee", "Hip", "Neck")]
+            joint_angles = [
+                            ("RHip", "RKnee", "RAnkle"), # Right knee angle, put knee angle first for 
+                            ("RKnee", "RHeel", "RSmallToe"), # Right heel angle
+                            #("RShoulder", "RHip", "RKnee") # Very similar to knee and heel angle, prob does not work
+                            #("RHip", "Neck", "Head") Did not help 
+                            ("RElbow", "RShoulder", "RHip")
+                           ]
+            joints_lines_horizontal = [
+                                        ("Hip", "Neck") # Leaning forward 
+                                      ]
+            joints_distance = [("RHeel", "RHip")]
 
         elif video_angle == "Right":
             #joints_lines_relative = [("LAnkle", "LKnee", "Hip", "Neck"), ("LElbow", "LWrist", "RAnkle", "RKnee")]
-            joint_angles = [("LHip", "LKnee", "LAnkle"), ("RHip", "RKnee", "RAnkle"), ("LAnkle", "LHeel", "LBigToe"), ("LWrist", "LElbow", "LShoulder")]
-            joints_lines_relative = [("LAnkle", "LKnee", "Hip", "Neck")]
-            joints_lines_horizontal = [("Hip", "Neck"), ("LHip", "RHip")]
+            # joint_angles = [("LHip", "LKnee", "LAnkle"), ("RHip", "RKnee", "RAnkle"), ("LAnkle", "LHeel", "LBigToe"), ("LWrist", "LElbow", "LShoulder")]
+            # joints_lines_relative = [("LAnkle", "LKnee", "Hip", "Neck")]
+            # joints_lines_horizontal = [("Hip", "Neck"), ("LHip", "RHip")]
             #joint_angles = [("LHip", "LKnee", "LAnkle")]
 
             # Stiff ankles 
+            joints_lines_relative = []
+            joint_angles = [
+                            ("LHip", "LKnee", "LAnkle"), # Left knee angle
+                            ("LKnee", "LHeel", "LSmallToe"), # Left heel angle
+                           ]
+            joints_lines_horizontal = [
+                                        ("Hip", "Neck") # Leaning forward 
+                                      ]
+            joints_distance = []
 
         
         user_lines = []
@@ -276,7 +350,7 @@ def main():
         if len(joint_angles):
             user_angles, _ = extract_multivariate_series(cycle, joint_angles, run_args)
             expert_angles, _ = extract_multivariate_series(expert_cycle, joint_angles, run_args)
-             # Match using DTW and calculate difference in angle between the lines
+             # Match using DTW and calculate difference in angle
             diff_angles = calculate_differences(user_angles, expert_angles, path)
             sim_angles = calculate_similarity(user_angles, expert_angles, path)
 
@@ -296,70 +370,36 @@ def main():
 
         # TODO Extract frames where the difference is big to highlight in cycle where the mistakes appears
 
-        counter_left = 0
-        counter_right = 0
-        for idx_user, idx_expert in path:
-            if user_angles[idx_user] > expert_angles[idx_expert]:
-                counter_right += 1
-            # if user_angles[idx_user][1] > expert_angles[idx_expert][1]:
-            #     counter_left += 1
-        right_ratio = counter_right / len(path)
-        print("Right", counter_right, " Ratio right ", right_ratio)
-        #print("Left", counter_left, " Ratio left ", counter_left / len(path))
+        counter_angles = {}
+        for i, angle in enumerate(joint_angles):
+            if angle not in counter_angles:
+                counter_angles[angle] = 0
+            for idx_user, idx_expert in path:
+                if user_angles[idx_user][i] > expert_angles[idx_expert][i]:
+                    counter_angles[angle] += 1
 
-
-        expert_peaks_pos = find_peaks(np.concatenate(expert_horizontal_lines), height=0)
-        user_peaks_pos = find_peaks(np.concatenate(user_horizontal_lines), height=0)
-        expert_peaks_neg = find_peaks(-(np.concatenate(expert_horizontal_lines)), height=-float("inf"))
-        user_peaks_neg = find_peaks(-(np.concatenate(user_horizontal_lines)), height=-float("inf"))
-        print("exp",expert_peaks_pos, expert_peaks_neg)
-        print("user", user_peaks_pos, user_peaks_neg)
-
-
-        # Get the values of the lowest and highest peaks for user and expert
-            # Get highest and lowest peaks for the user
-                # If no min/max take minimum/maxiumum value
-                # If multiple min/max peaks take average of peaks
-                    # Look if it works or change by peak distance average
-        
-        # Get highest and lowest peaks for the user
-        if len(user_peaks_pos[0]) > 0:
-            user_avg_peak_max = np.mean(user_peaks_pos[1]["peak_heights"])
+        knee_angle_ratio = counter_angles[joint_angles[0]] / len(path)
+        print("Knee angles:", counter_angles[joint_angles[0]], " Knee ratio ", knee_angle_ratio)
+        if knee_angle_ratio > 0.6:
+            print("KNEE RATIO SAY Definitely stiff ankle!")
         else:
-            user_avg_peak_max = np.max(np.concatenate(user_horizontal_lines))
+            print("KNEE RATIO SAY Not stiff ankle!")
 
-        if len(user_peaks_neg[0]) > 0:
-            user_avg_peak_min = np.mean(-user_peaks_neg[1]["peak_heights"])
+        heel_angle_ratio = counter_angles[joint_angles[1]] / len(path)
+        print("Feet ankle ratio", heel_angle_ratio)
+        print("Heel angles:", counter_angles[joint_angles[1]], " Heel ratio ", heel_angle_ratio)
+        if heel_angle_ratio > 0.6:
+            print("HEEL RATIO SAY Definitely stiff ankle!")
         else:
-            user_avg_peak_min = np.min(np.concatenate(user_horizontal_lines))
+            print("HEEL RATIO SAYNot stiff ankle!")
 
-        # Get highest and lowest peaks for the expert
-        if len(expert_peaks_pos[0]) > 0:
-            expert_avg_peak_max = np.mean(expert_peaks_pos[1]["peak_heights"])
-        else:
-            expert_avg_peak_max = np.max(np.concatenate(expert_horizontal_lines))
+        # Does not help much 
+        determine_stiff_ankle_leaning(user_horizontal_lines=user_horizontal_lines, 
+                                      expert_horizontal_lines=expert_horizontal_lines)
 
-        if len(expert_peaks_neg[0]) > 0:
-            expert_avg_peak_min = np.mean(-expert_peaks_neg[1]["peak_heights"])
-        else:
-            expert_avg_peak_min = np.min(np.concatenate(expert_horizontal_lines))
-        
-        print(f"Max peak user {user_avg_peak_max}| Expert {expert_avg_peak_max}")
-        print(f"Min peak user {user_avg_peak_min}| Expert {expert_avg_peak_min}")
-        print(f"User dist {user_avg_peak_max-user_avg_peak_min}| Expert {expert_avg_peak_max-expert_avg_peak_min}")
 
         
 
-
-        if right_ratio > 0.6 and user_avg_peak_max-user_avg_peak_min < expert_avg_peak_max-expert_avg_peak_min:
-            print("Definitely stiff ankle!")
-        else:
-            print("Not stiff ankle!")
-
-
-        
-            
-            
         
 
         # Plotting
