@@ -29,7 +29,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "142"
+ID = "148"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -348,14 +348,8 @@ def main():
         print(f"Min peak user {user_avg_peak_min}| Expert {expert_avg_peak_min}")
         print(f"User dist {user_avg_peak_max-user_avg_peak_min}| Expert {expert_avg_peak_max-expert_avg_peak_min}")
 
+        
 
-        # if user_avg_peak_max < expert_avg_peak_max and user_avg_peak_min > expert_avg_peak_min:
-        #     print("Stiff body")
-        # if user_avg_peak_max-user_avg_peak_min < expert_avg_peak_max-expert_avg_peak_min:
-        #     print("Stiff body dist")
-
-        # if ((user_avg_peak_max-user_avg_peak_min)  (expert_avg_peak_max-expert_avg_peak_min)) < thr:
-        #     print("Stiff body dist")
 
         if right_ratio > 0.6 and user_avg_peak_max-user_avg_peak_min < expert_avg_peak_max-expert_avg_peak_min:
             print("Definitely stiff ankle!")
