@@ -1,0 +1,118 @@
+Epoch with highest val acc: 100
+Best epoch with lowest val loss: 13
+Folds: 5
+Train Loss: 0.0183 ± 0.0010
+Train Acc: 93.41% ± 0.37
+Train Precision: 0.9337 ± 0.0038
+Train Recall: 0.9341 ± 0.0037
+Train F1 Score: 0.9336 ± 0.0038
+Val Loss: 0.0432 ± 0.0070
+Val Acc: 86.77% ± 2.25
+Val Precision: 0.8653 ± 0.0234
+Val Recall: 0.8677 ± 0.0225
+Val F1 Score: 0.8646 ± 0.0236
+Skier 1 Train Acc: 98.3965 ± 0.3623 | Val Acc: 96.3692 ± 2.3646
+Skier 2 Train Acc: 97.8190 ± 0.6128 | Val Acc: 93.9205 ± 0.6991
+Skier 3 Train Acc: 95.9209 ± 0.7226 | Val Acc: 91.4486 ± 3.1010
+Skier 4 Train Acc: 94.5242 ± 0.4573 | Val Acc: 92.5000 ± 8.3666
+Skier 5 Train Acc: 96.0024 ± 0.5896 | Val Acc: 88.4556 ± 5.2852
+Skier 7 Train Acc: 95.3675 ± 1.1754 | Val Acc: 87.2920 ± 4.7837
+Skier 8 Train Acc: 97.1418 ± 0.5518 | Val Acc: 92.8432 ± 2.8857
+Skier 9 Train Acc: 91.8484 ± 2.1238 | Val Acc: 84.0031 ± 4.0012
+Skier 10 Train Acc: 82.0833 ± 2.7876 | Val Acc: 80.5050 ± 10.8901
+Skier 11 Train Acc: 82.5917 ± 2.0848 | Val Acc: 70.1154 ± 11.5990
+Skier 12 Train Acc: 91.1972 ± 1.1552 | Val Acc: 84.0679 ± 3.1742
+Skier 13 Train Acc: 93.8505 ± 1.1747 | Val Acc: 84.7689 ± 4.5910
+train_mean [[  7.074473 ]
+ [-58.36238  ]
+ [ -9.855277 ]
+ [-58.040558 ]
+ [ 14.588438 ]
+ [-33.529564 ]
+ [-17.185999 ]
+ [-32.969368 ]
+ [ 13.930916 ]
+ [-22.48742  ]
+ [-17.198694 ]
+ [-22.468334 ]
+ [  5.446846 ]
+ [  2.1498404]
+ [ -5.415994 ]
+ [  2.2155032]
+ [  7.830359 ]
+ [ 47.83379  ]
+ [ -8.058888 ]
+ [ 47.95599  ]
+ [ 10.863746 ]
+ [ 91.303154 ]
+ [-10.420364 ]
+ [ 91.018196 ]
+ [ -2.2562907]
+ [-85.044914 ]
+ [ -1.6141905]
+ [-62.48125  ]
+ [ 12.804366 ]
+ [103.66563  ]
+ [-13.017323 ]
+ [103.38808  ]
+ [ 14.304674 ]
+ [102.43105  ]
+ [-14.525147 ]
+ [102.09348  ]
+ [ 10.160442 ]
+ [100.08809  ]
+ [ -9.446009 ]
+ [ 99.74454  ]]
+train_std [[25.337494 ]
+ [19.530226 ]
+ [24.368996 ]
+ [19.157942 ]
+ [27.976068 ]
+ [15.225472 ]
+ [25.71913  ]
+ [15.353879 ]
+ [44.44706  ]
+ [25.044992 ]
+ [41.021484 ]
+ [27.363235 ]
+ [ 4.670644 ]
+ [ 1.1060168]
+ [ 4.6996713]
+ [ 1.1583734]
+ [20.462774 ]
+ [14.848204 ]
+ [20.072378 ]
+ [15.393763 ]
+ [20.572664 ]
+ [28.682936 ]
+ [21.86002  ]
+ [29.933163 ]
+ [40.654167 ]
+ [26.366758 ]
+ [30.040815 ]
+ [20.488943 ]
+ [30.473679 ]
+ [31.064135 ]
+ [30.94944  ]
+ [32.606266 ]
+ [30.279142 ]
+ [31.838974 ]
+ [30.6257   ]
+ [33.824986 ]
+ [22.879242 ]
+ [32.78273  ]
+ [24.62614  ]
+ [34.091537 ]]
+train_max_length 118
+normalization True
+norm_type full_signal
+smoothing 2
+choosen_joints ['LShoulder_x', 'LShoulder_y', 'RShoulder_x', 'RShoulder_y', 'LElbow_x', 'LElbow_y', 'RElbow_x', 'RElbow_y', 'LWrist_x', 'LWrist_y', 'RWrist_x', 'RWrist_y', 'LHip_x', 'LHip_y', 'RHip_x', 'RHip_y', 'LKnee_x', 'LKnee_y', 'RKnee_x', 'RKnee_y', 'LAnkle_x', 'LAnkle_y', 'RAnkle_x', 'RAnkle_y', 'Head_x', 'Head_y', 'Neck_x', 'Neck_y', 'LBigToe_x', 'LBigToe_y', 'RBigToe_x', 'RBigToe_y', 'LSmallToe_x', 'LSmallToe_y', 'RSmallToe_x', 'RSmallToe_y', 'LHeel_x', 'LHeel_y', 'RHeel_x', 'RHeel_y']
+labels {'unknown': 0, 'gear2': 1, 'gear3': 2, 'gear4': 3}
+network_type mlp
+batch_size 16
+loss_type focal_loss
+hidden1 256
+hidden2 128
+input_channels 4720
+output_channels 4
