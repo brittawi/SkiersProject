@@ -1,0 +1,12 @@
+{
+    "best_config": {
+        "lr": 0.0001,
+        "batch_size": 16,
+        "hidden_1": 256,
+        "hidden_2": 128,
+        "loss_type": "focal_loss"
+    },
+    "final_validation_loss": 0.042622609198793834,
+    "final_validation_accuracy": 0.9287833827893175,
+    "seed": 3
+}
