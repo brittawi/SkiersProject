@@ -30,7 +30,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "169"
+ID = "165"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -170,7 +170,7 @@ def main():
         
         # based on cycle choose the expert data we want to compare the cycle to
         if predicted_label == "gear3":
-            expert_path = "./data/expert_data/expert_cycles_gear3.json"
+            expert_path = "./data/expert_data/expert_cycles_gear3_real.json"
         elif predicted_label == "gear2":
             expert_path = "./data/expert_data/expert_cycles_gear2_real.json"
         else:
@@ -190,7 +190,7 @@ def main():
         cycle = cycle_data[f"Cycle {i+1}"]
         
         dtw_comparisons, path, expert_cycle = compare_selected_cycles(expert_data, cycle, joints, run_args.VIDEO_PATH, run_args.DTW.VIS_VID_PATH, use_keypoints=True, visualize=False)
-       
+        print("Chosen expert cycle id", expert_cycle.get("Video"))
         # Step 5: Give feedback
         """
         TODO:
@@ -209,14 +209,16 @@ def main():
             #joint_angles = [("RHip", "RKnee", "RAnkle"), ("LHip", "LKnee", "LAnkle")]
 
             # Mistake biathlon
-            joint_angles = [("RElbow", "RShoulder", "RHip"), ("LElbow", "LShoulder", "LHip"),("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
-            joints_lines_horizontal = [("Hip", "Neck")]
-            joints_distance = []
-            joints_lines_relative = []
+            # joint_angles = [("RElbow", "RShoulder", "RHip"), ("LElbow", "LShoulder", "LHip"),("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
+            # joints_lines_horizontal = [("Hip", "Neck")]
+            # joints_distance = []
+            # joints_lines_relative = []
             
             # Wide leg mistake
-            #joint_angles = []
-            #joints_distance = [("LAnkle", "RAnkle")]
+            joint_angles = []
+            joints_distance = [("LAnkle", "RAnkle")]
+            joints_lines_relative = []
+            joints_lines_horizontal = []
             
         elif video_angle == "Left":
             joints_lines_relative = [("RAnkle", "RKnee", "Hip", "Neck")]
@@ -296,6 +298,45 @@ def main():
             sim_distances = calculate_similarity(user_distances, expert_distances, path)
 
         # TODO Extract frames where the difference is big to highlight in cycle where the mistakes appears
+        if video_angle == "Front":
+            expert_distances_arr = np.concatenate(expert_distances)
+            user_distances_arr = np.concatenate(user_distances)
+            diff_distances_arr = np.concatenate(diff_distances)
+            print(f"max: {np.max(diff_distances_arr)}, min: {np.min(diff_distances_arr)}")
+            # find both minima and maxima for expert cycle to determine the phase he is in
+            expert_peaks_pos = find_peaks(expert_distances_arr, height=0)
+            expert_peaks_neg = find_peaks(-expert_distances_arr, height=-float("inf"))
+            # compare minimum of expert to matched user frame
+            if len(expert_peaks_neg[0]):
+                for peak_min_idx in expert_peaks_neg[0]:
+                    #print(f"Expert dist at legs together: {expert_distances_arr[peak_min_idx]}, idx = {peak_min_idx}")
+                    matches = [pair for pair in path if pair[1] == peak_min_idx]
+                    avg_dist_user = 0
+                    if len(matches) <= 0:
+                        print("Could not find any matches to expert maxima")
+                    for match in matches:
+                        #print(f"User dist legs together: {user_distances_arr[match[0]]}")
+                        avg_dist_user += user_distances_arr[match[0]]
+                    avg_dist_user /= len(matches)
+                    if abs(avg_dist_user-expert_distances_arr[peak_min_idx]) < 10:  
+                        print("You need to focus on bringing the legs more together!")
+                    #print(f"Difference at legs together = {avg_dist_user-expert_distances_arr[peak_min_idx]}")        
+            # compare maximum of expert to matched user frame
+            if len(expert_peaks_pos[0]):
+                for peak_max_idx in expert_peaks_pos[0]:
+                    #print(f"Expert dist at push: {expert_distances_arr[peak_max_idx]}, idx = {peak_max_idx}")
+                    matches = [pair for pair in path if pair[1] == peak_max_idx]
+                    avg_dist_user = 0
+                    if len(matches) <= 0:
+                        print("Could not find any matches to expert maxima")
+                    for match in matches:
+                        #print(f"User dist at push: {user_distances_arr[match[0]]}")
+                        avg_dist_user += user_distances_arr[match[0]]
+                    avg_dist_user /= len(matches)
+                    if abs(avg_dist_user-expert_distances_arr[peak_max_idx]) < 10:  
+                        print("You need to focus on the push!")
+                    #print(f"Difference at push = {avg_dist_user-expert_distances_arr[peak_max_idx]}")
+            
         if video_angle == "Left":
             counter_left = 0
             counter_right = 0

@@ -101,7 +101,7 @@ def extract_multivariate_series_for_distances(cycle_data, joints_distance, run_a
     joints_list = [joint for tuple_joints in joints_distance for joint in tuple_joints]
     if run_args.DTW.GAUS_FILTER:
         # with normalization for distances!
-        cycle_data = smooth_cycle(cycle_data, joints_list, sigma=run_args.DTW.SIGMA_VALUE, norm = True)
+        cycle_data = smooth_cycle(cycle_data, joints_list, sigma=run_args.DTW.SIGMA_VALUE, norm = False)
 
     for i in range(len(cycle_data[joints_distance[0][0]+ "_x"])):
         dists = []
