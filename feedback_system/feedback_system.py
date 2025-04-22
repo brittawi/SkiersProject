@@ -15,7 +15,7 @@ from utils.preprocess_signals import *
 from utils.annotation_format import halpe26_to_coco
 from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
-from utils.feedback_utils import get_line_points
+from utils.feedback_utils import get_line_points, feedback_stiff_ankle
 from utils.classify_angle import classify_angle
 from scipy.signal import find_peaks
 
@@ -29,7 +29,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "147"
+ID = "155"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -205,6 +205,11 @@ def main():
         video_writer = None
     else:
         video_writer = 1 # skips video writing
+
+    heel_count_stiff = 0
+    knee_count_stiff = 0
+    knee_good_stiff = 0
+    tot_count = 0
     
     # classify each cycle
     for i, cycle_input in enumerate(input_data):
@@ -234,7 +239,8 @@ def main():
             print(f"The system cannot give feedback for {predicted_label}")
             continue
 
-        #expert_path = "./data/expert_data/labeled_cycles_146.json"
+        expert_path = "./data/expert_data/labeled_cycles_146.json"
+        tot_count += 1
         
         expert_data = load_json(expert_path)
         
@@ -242,7 +248,10 @@ def main():
         # TODO to compare cycles we can either input joint triplets, then we need to set use_keypoints to false
         # otherwise we can input joints, then it will use raw keypoints for DTW
         joint_triplets = [("RHip", "RKnee", "RAnkle"), ("LHip", "LKnee", "LAnkle"), ("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
+        # Full
         joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist"]
+        # Only lower body
+        #joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle"]
         #joints = ["RHip", "LHip", "RShoulder", "LShoulder"]
         
         # send in data in json format
@@ -278,8 +287,8 @@ def main():
             #joints_distance = [("LAnkle", "RAnkle")]
             
         elif video_angle == "Left":
-            joints_lines_relative = [("RAnkle", "RKnee", "Hip", "Neck")]
-            #joints_lines_relative = []
+            #joints_lines_relative = [("RAnkle", "RKnee", "Hip", "Neck")]
+            joints_lines_relative = []
             #joint_angles = [("RHip", "RKnee", "RAnkle"), ("RWrist", "RElbow", "RShoulder")]
 
             # For Ankle mistake
@@ -289,18 +298,20 @@ def main():
             #joints_lines_horizontal = [("Hip", "Neck")]
 
             # Stiff ankles 
-            joints_lines_relative = [("RAnkle", "RKnee", "Hip", "Neck")]
+            #joints_lines_relative = [("RAnkle", "RKnee", "Hip", "Neck")]
             joint_angles = [
                             ("RHip", "RKnee", "RAnkle"), # Right knee angle, put knee angle first for 
-                            ("RKnee", "RHeel", "RSmallToe"), # Right heel angle
+                            #("RKnee", "RHeel", "RSmallToe"), # Right heel angle
                             #("RShoulder", "RHip", "RKnee") # Very similar to knee and heel angle, prob does not work
                             #("RHip", "Neck", "Head") Did not help 
-                            ("RElbow", "RShoulder", "RHip")
+                            #("RElbow", "RShoulder", "RHip")
                            ]
-            joints_lines_horizontal = [
-                                        ("Hip", "Neck") # Leaning forward 
-                                      ]
-            joints_distance = [("RHeel", "RHip")]
+            joints_distance = []
+            joints_lines_horizontal = []
+            # joints_lines_horizontal = [
+            #                             ("Hip", "Neck") # Leaning forward 
+            #                           ]
+            # joints_distance = [("RHeel", "RHip")]
 
         elif video_angle == "Right":
             #joints_lines_relative = [("LAnkle", "LKnee", "Hip", "Neck"), ("LElbow", "LWrist", "RAnkle", "RKnee")]
@@ -370,36 +381,8 @@ def main():
 
         # TODO Extract frames where the difference is big to highlight in cycle where the mistakes appears
 
-        counter_angles = {}
-        for i, angle in enumerate(joint_angles):
-            if angle not in counter_angles:
-                counter_angles[angle] = 0
-            for idx_user, idx_expert in path:
-                if user_angles[idx_user][i] > expert_angles[idx_expert][i]:
-                    counter_angles[angle] += 1
 
-        knee_angle_ratio = counter_angles[joint_angles[0]] / len(path)
-        print("Knee angles:", counter_angles[joint_angles[0]], " Knee ratio ", knee_angle_ratio)
-        if knee_angle_ratio > 0.6:
-            print("KNEE RATIO SAY Definitely stiff ankle!")
-        else:
-            print("KNEE RATIO SAY Not stiff ankle!")
-
-        heel_angle_ratio = counter_angles[joint_angles[1]] / len(path)
-        print("Feet ankle ratio", heel_angle_ratio)
-        print("Heel angles:", counter_angles[joint_angles[1]], " Heel ratio ", heel_angle_ratio)
-        if heel_angle_ratio > 0.6:
-            print("HEEL RATIO SAY Definitely stiff ankle!")
-        else:
-            print("HEEL RATIO SAYNot stiff ankle!")
-
-        # Does not help much 
-        determine_stiff_ankle_leaning(user_horizontal_lines=user_horizontal_lines, 
-                                      expert_horizontal_lines=expert_horizontal_lines)
-
-
-        
-
+        feedback_pre_frame = feedback_stiff_ankle(joint_angles, user_angles, expert_angles, path)
         
 
         # Plotting
