@@ -536,20 +536,20 @@ def feedback_stiff_ankle(joint_angles, user_angles, expert_angles, path):
             if abs(user_angles[idx_user][j] - expert_angles[idx_expert][j]) <= thr_exp_sim * abs(expert_angles[idx_expert][j]):
                 counter_exp_sim[angle] += 1
     
-    # Determines if the knee angle is similar enough to the expert
-    similar_angle = False
+    # Calculate ratios for determining feedback
+    knee_angle_ratio = counter_angles[joint_angles[0]] / len(path)
     knee_good_ratio = counter_exp_sim[joint_angles[0]] / len(path)
     if knee_good_ratio > thr_exp_rat:
         feedback = f"Knee angle is within {thr_exp_sim} of expert angle {thr_exp_rat} of the time!"
-        similar_angle = True
+    elif knee_angle_ratio > thr_stiff_ankle:
+        feedback = (
+            f"The knee angle indicate you might not flex your ankles enough! Maybe review if your ankles are stiff, "
+            f"and if they are you can try to push your knee forward to make them flex more!"
+        )
+    else:
+        feedback = ""
 
-    stiff_ankle = False
-    # Determines if the knee angle is too big which suggest not enough flex in ankle
-    knee_angle_ratio = counter_angles[joint_angles[0]] / len(path)
-    if knee_angle_ratio > thr_stiff_ankle:
-        stiff_ankle = True
-        feedback = f"KNEE RATIO SAY Definitely stiff ankle!"
-    
+    # Filling feedback dict
     for _, expert_frame in path:
         feedBack_per_frame[expert_frame] = feedback
 
