@@ -4,6 +4,7 @@ from utils.dtw import smooth_cycle, compute_angle
 import matplotlib.pyplot as plt
 from dtaidistance import dtw_visualisation
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from scipy.signal import find_peaks
 
 def compute_angle_between_lines(p1, p2, p3, p4):
     """Computes the angle between two lines formed by points (p1, p2) and (p3, p4)."""
@@ -515,3 +516,86 @@ def choose_id(results_list, video_path):
         return selected_id
 
 
+def save_feedback(feedback_dict, frame, feedback, range_):
+    for f in range(frame - range_, frame + range_ + 1):
+        if f >= 0:
+            feedback_dict[f] = feedback
+            
+# feedback for wide legs
+def feedback_wide_legs(expert_distances, user_distances, diff_distances, path, feedback_range):
+    
+    feedback_per_frame = {}
+
+    expert_distances_arr = np.concatenate(expert_distances)
+    user_distances_arr = np.concatenate(user_distances)
+    diff_distances_arr = np.concatenate(diff_distances)
+    print(f"max: {np.max(diff_distances_arr)}, min: {np.min(diff_distances_arr)}")
+    # find both minima and maxima for expert cycle to determine the phase he is in
+    expert_peaks_pos = find_peaks(expert_distances_arr, height=0)
+    expert_peaks_neg = find_peaks(-expert_distances_arr, height=-float("inf"))
+    # compare minimum of expert to matched user frame
+    if len(expert_peaks_neg[0]):
+        for peak_min_idx in expert_peaks_neg[0]:
+            #print(f"Expert dist at legs together: {expert_distances_arr[peak_min_idx]}, idx = {peak_min_idx}")
+            matches = [pair for pair in path if pair[1] == peak_min_idx]
+            avg_dist_user = 0
+            if len(matches) <= 0:
+                print("Could not find any matches to expert maxima")
+            for match in matches:
+                #print(f"User dist legs together: {user_distances_arr[match[0]]}")
+                avg_dist_user += user_distances_arr[match[0]]
+            avg_dist_user /= len(matches)
+            #print(f"User avg dist legs together: {avg_dist_user}")
+            if abs(avg_dist_user-expert_distances_arr[peak_min_idx]) < 3: 
+                feedback =  "You are doing great and bringing the legs close together!"
+                print(feedback)
+                save_feedback(feedback_per_frame, peak_min_idx, feedback, feedback_range)
+            elif abs(avg_dist_user-expert_distances_arr[peak_min_idx]) < 10: 
+                continue
+            elif abs(avg_dist_user-expert_distances_arr[peak_min_idx]) < 15: 
+                feedback = "You might have to bring your legs closer together. You can do this by trying to move the arms faster and the legs will follow."
+                print(feedback)
+                save_feedback(feedback_per_frame, peak_min_idx, feedback, feedback_range)
+            else:
+                feedback = "You should bring your legs closer together. You can do this by trying to move the arms faster and the legs will follow."
+                print(feedback)
+                save_feedback(feedback_per_frame, peak_min_idx, feedback, feedback_range)
+            #print(f"Difference at legs together = {abs(avg_dist_user-expert_distances_arr[peak_min_idx])}") 
+            print("")       
+    # compare maximum of expert to matched user frame
+    if len(expert_peaks_pos[0]):
+        for peak_max_idx in expert_peaks_pos[0]:
+            #print(f"Expert dist at push: {expert_distances_arr[peak_max_idx]}, idx = {peak_max_idx}")
+            matches = [pair for pair in path if pair[1] == peak_max_idx]
+            avg_dist_user = 0
+            if len(matches) <= 0:
+                print("Could not find any matches to expert maxima")
+            for match in matches:
+                #print(f"User dist at push: {user_distances_arr[match[0]]}")
+                avg_dist_user += user_distances_arr[match[0]]
+            avg_dist_user /= len(matches)
+            #print(f"User avg dist at push: {avg_dist_user}")
+            if abs(avg_dist_user-expert_distances_arr[peak_max_idx]) < 3:
+                feedback = "You are doing great and really using your legs to push yourself forward!"
+                print(feedback)
+                save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
+            elif abs(avg_dist_user-expert_distances_arr[peak_max_idx]) < 10: 
+                continue
+            elif abs(avg_dist_user-expert_distances_arr[peak_max_idx]) < 15:
+                if avg_dist_user-expert_distances_arr[peak_max_idx] > 0:
+                    feedback = "You are pushing with your feet a lot more than the expert your data is compared to."
+                    print(feedback)
+                    save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
+                else:
+                    feedback = "It looks like you should try to use your legs more and try to push yourself more forward."
+                    print(feedback)
+                    save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
+            else:
+                feedback = "You should use your legs more and try to push yourself more forward."
+                print(feedback)
+                save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
+            #print(f"Difference at push = {abs(avg_dist_user-expert_distances_arr[peak_max_idx])}")
+            print("")  
+    
+    return feedback_per_frame
+    

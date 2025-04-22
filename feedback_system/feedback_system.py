@@ -15,7 +15,7 @@ from utils.preprocess_signals import *
 from utils.annotation_format import halpe26_to_coco
 from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
-from utils.feedback_utils import get_line_points
+from utils.feedback_utils import get_line_points, feedback_wide_legs
 from utils.classify_angle import classify_angle
 from utils.frame_extraction import get_image_by_id, extract_frame, extract_frame_second, extract_frame_imageio, extract_frame_ffmpeg
 from scipy.signal import argrelextrema, find_peaks
@@ -30,7 +30,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "165"
+ID = "139"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -179,12 +179,19 @@ def main():
         
         expert_data = load_json(expert_path)
         
+        # get mistake that we want to give feedback on
+        mistake_type = run_args.FEEDBACK.MISTAKE_TYPE
+        
         # Define joint triplets for angle comparisons
         # TODO to compare cycles we can either input joint triplets, then we need to set use_keypoints to false
         # otherwise we can input joints, then it will use raw keypoints for DTW
         joint_triplets = [("RHip", "RKnee", "RAnkle"), ("LHip", "LKnee", "LAnkle"), ("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
-        joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist"]
-        #joints = ["RHip", "LHip", "RShoulder", "LShoulder"]
+        
+        # define what joints we want to look at for the matching
+        if mistake_type == "wide_legs":
+            joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle"]
+        else:
+            joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist"]
         
         # send in data in json format
         cycle = cycle_data[f"Cycle {i+1}"]
@@ -198,57 +205,47 @@ def main():
         Look at distance between keypoints (eg feet)
         
         """
-
         
         direction = expert_cycle.get("Direction")
         # TODO make it work for empty lists!
         if video_angle == "Front":
-            # Joint 1 and 2 create one line, joint 3 and 4 another line. 
-            # joints_lines_relative = [("RShoulder", "LShoulder", "RHip", "LHip")]
-
-            #joint_angles = [("RHip", "RKnee", "RAnkle"), ("LHip", "LKnee", "LAnkle")]
-
-            # Mistake biathlon
-            # joint_angles = [("RElbow", "RShoulder", "RHip"), ("LElbow", "LShoulder", "LHip"),("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
-            # joints_lines_horizontal = [("Hip", "Neck")]
-            # joints_distance = []
-            # joints_lines_relative = []
-            
-            # Wide leg mistake
-            joint_angles = []
-            joints_distance = [("LAnkle", "RAnkle")]
-            joints_lines_relative = []
-            joints_lines_horizontal = []
+            if mistake_type == "wide_legs":
+                joint_angles = []
+                joints_distance = [("LAnkle", "RAnkle")]
+                joints_lines_relative = []
+                joints_lines_horizontal = []
+            elif mistake_type == "biathlon":
+                joint_angles = [("RElbow", "RShoulder", "RHip"), ("LElbow", "LShoulder", "LHip"),("RShoulder", "RElbow", "RWrist"), ("LShoulder", "LElbow", "LWrist")]
+                joints_lines_horizontal = [("Hip", "Neck")]
+                joints_distance = []
+                joints_lines_relative = []
+                
+            else:
+                print(f"We cannot give feedback for this mistake {mistake_type} from the front, please provide a video from the side.")
+                break
             
         elif video_angle == "Left":
-            joints_lines_relative = [("RAnkle", "RKnee", "Hip", "Neck")]
-            #joints_lines_relative = []
-            #joint_angles = [("RHip", "RKnee", "RAnkle"), ("RWrist", "RElbow", "RShoulder")]
-
-            # For Ankle mistake
-            #joint_angles = [("RHip", "RKnee", "RAnkle"), ("RKnee", "RHeel", "RSmallToe"), ("RKnee", "RHip", "Neck")]
-
-            #joint_angles = [("RElbow", "RShoulder", "Neck"), ("RElbow", "RShoulder", "RHip")]
-            #joints_lines_horizontal = [("Hip", "Neck")]
-
-            # Stiff ankles 
-            joints_lines_relative = []
-            joint_angles = [("RHip", "RKnee", "RAnkle"), # Right knee angle
-                            #("LHip", "LKnee", "LAnkle") # Left knee angle
-                            ]
-            joints_lines_horizontal = [("Hip", "Neck") # Leaning forward 
-                                       ]
-            joints_distance = []
+            
+            if mistake_type == "stiff_ankle":
+                joints_lines_relative = []
+                joint_angles = [("RHip", "RKnee", "RAnkle"), # Right knee angle
+                                #("LHip", "LKnee", "LAnkle") # Left knee angle
+                                ]
+                joints_lines_horizontal = [("Hip", "Neck") # Leaning forward 
+                                        ]
+                joints_distance = []
+            else:
+                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front.")
+                break
 
         elif video_angle == "Right":
-            #joints_lines_relative = [("LAnkle", "LKnee", "Hip", "Neck"), ("LElbow", "LWrist", "RAnkle", "RKnee")]
-            joint_angles = [("LHip", "LKnee", "LAnkle"), ("RHip", "RKnee", "RAnkle"), ("LAnkle", "LHeel", "LBigToe"), ("LWrist", "LElbow", "LShoulder")]
-            joints_lines_relative = [("LAnkle", "LKnee", "Hip", "Neck")]
-            joints_lines_horizontal = [("Hip", "Neck"), ("LHip", "RHip")]
-            #joint_angles = [("LHip", "LKnee", "LAnkle")]
-
-            # Stiff ankles 
-
+            if mistake_type == "stiff_ankle":
+                joint_angles = [("LHip", "LKnee", "LAnkle"), ("RHip", "RKnee", "RAnkle"), ("LAnkle", "LHeel", "LBigToe"), ("LWrist", "LElbow", "LShoulder")]
+                joints_lines_relative = [("LAnkle", "LKnee", "Hip", "Neck")]
+                joints_lines_horizontal = [("Hip", "Neck"), ("LHip", "RHip")]
+            else:
+                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front.")
+                break
         
         user_lines = []
         expert_lines = []
@@ -297,47 +294,11 @@ def main():
             diff_distances = calculate_differences(user_distances, expert_distances, path)
             sim_distances = calculate_similarity(user_distances, expert_distances, path)
 
-        # TODO Extract frames where the difference is big to highlight in cycle where the mistakes appears
-        if video_angle == "Front":
-            expert_distances_arr = np.concatenate(expert_distances)
-            user_distances_arr = np.concatenate(user_distances)
-            diff_distances_arr = np.concatenate(diff_distances)
-            print(f"max: {np.max(diff_distances_arr)}, min: {np.min(diff_distances_arr)}")
-            # find both minima and maxima for expert cycle to determine the phase he is in
-            expert_peaks_pos = find_peaks(expert_distances_arr, height=0)
-            expert_peaks_neg = find_peaks(-expert_distances_arr, height=-float("inf"))
-            # compare minimum of expert to matched user frame
-            if len(expert_peaks_neg[0]):
-                for peak_min_idx in expert_peaks_neg[0]:
-                    #print(f"Expert dist at legs together: {expert_distances_arr[peak_min_idx]}, idx = {peak_min_idx}")
-                    matches = [pair for pair in path if pair[1] == peak_min_idx]
-                    avg_dist_user = 0
-                    if len(matches) <= 0:
-                        print("Could not find any matches to expert maxima")
-                    for match in matches:
-                        #print(f"User dist legs together: {user_distances_arr[match[0]]}")
-                        avg_dist_user += user_distances_arr[match[0]]
-                    avg_dist_user /= len(matches)
-                    if abs(avg_dist_user-expert_distances_arr[peak_min_idx]) < 10:  
-                        print("You need to focus on bringing the legs more together!")
-                    #print(f"Difference at legs together = {avg_dist_user-expert_distances_arr[peak_min_idx]}")        
-            # compare maximum of expert to matched user frame
-            if len(expert_peaks_pos[0]):
-                for peak_max_idx in expert_peaks_pos[0]:
-                    #print(f"Expert dist at push: {expert_distances_arr[peak_max_idx]}, idx = {peak_max_idx}")
-                    matches = [pair for pair in path if pair[1] == peak_max_idx]
-                    avg_dist_user = 0
-                    if len(matches) <= 0:
-                        print("Could not find any matches to expert maxima")
-                    for match in matches:
-                        #print(f"User dist at push: {user_distances_arr[match[0]]}")
-                        avg_dist_user += user_distances_arr[match[0]]
-                    avg_dist_user /= len(matches)
-                    if abs(avg_dist_user-expert_distances_arr[peak_max_idx]) < 10:  
-                        print("You need to focus on the push!")
-                    #print(f"Difference at push = {avg_dist_user-expert_distances_arr[peak_max_idx]}")
+        feedback_range = 3
+        if mistake_type == "wide_legs":
+            feedback_per_frame = feedback_wide_legs(expert_distances, user_distances, diff_distances, path, feedback_range)
             
-        if video_angle == "Left":
+        elif mistake_type == "stiff_ankle":
             counter_left = 0
             counter_right = 0
             for idx_user, idx_expert in path:
@@ -495,6 +456,15 @@ def main():
                                              path, 
                                              frame1, 
                                              frame2)
+            
+            # print feedback
+            #feedback_image = np.zeros((height,width,channels), np.uint8)
+            if frame2 in list(feedback_per_frame.keys()):
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                font_scale = 0.8
+                font_thickness = 2
+                text_color = (255, 255, 255)
+                cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
 
 
             side_image = cv2.vconcat([info_image, plot_image])
