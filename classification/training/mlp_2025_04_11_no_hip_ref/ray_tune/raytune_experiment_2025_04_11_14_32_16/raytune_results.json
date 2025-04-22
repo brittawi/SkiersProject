@@ -1,0 +1,12 @@
+{
+    "best_config": {
+        "lr": 0.0001,
+        "batch_size": 8,
+        "hidden_1": 32,
+        "hidden_2": 256,
+        "loss_type": "cross_entropy"
+    },
+    "final_validation_loss": 0.5061369968309305,
+    "final_validation_accuracy": 0.9198813056379822,
+    "seed": 5
+}
