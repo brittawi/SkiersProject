@@ -43,62 +43,6 @@ INPUT_VIDEO = r"e:\SkiProject\Expert_mistake_videos\DJI_" + f"DJI_{int(ID):04d}.
 # video_path = r"E:\SkiProject\Cut_videos"
 testing_with_inference = False
 
-def determine_stiff_ankle_leaning(user_horizontal_lines, expert_horizontal_lines):
-    expert_peaks_pos = find_peaks(np.concatenate(expert_horizontal_lines), height=0)
-    user_peaks_pos = find_peaks(np.concatenate(user_horizontal_lines), height=0)
-    expert_peaks_neg = find_peaks(-(np.concatenate(expert_horizontal_lines)), height=-float("inf"))
-    user_peaks_neg = find_peaks(-(np.concatenate(user_horizontal_lines)), height=-float("inf"))
-    # print("exp",expert_peaks_pos, expert_peaks_neg)
-    # print("user", user_peaks_pos, user_peaks_neg)
-
-
-    # Get the values of the lowest and highest peaks for user and expert
-        # Get highest and lowest peaks for the user
-            # If no min/max take minimum/maxiumum value
-            # If multiple min/max peaks take average of peaks
-                # Look if it works or change by peak distance average
-    
-    # Get highest and lowest peaks for the user
-    if len(user_peaks_pos[0]) > 0:
-        user_avg_peak_max = np.mean(user_peaks_pos[1]["peak_heights"])
-    else:
-        user_avg_peak_max = np.max(np.concatenate(user_horizontal_lines))
-
-    if len(user_peaks_neg[0]) > 0:
-        user_avg_peak_min = np.mean(-user_peaks_neg[1]["peak_heights"])
-    else:
-        user_avg_peak_min = np.min(np.concatenate(user_horizontal_lines))
-
-    # Get highest and lowest peaks for the expert
-    if len(expert_peaks_pos[0]) > 0:
-        expert_avg_peak_max = np.mean(expert_peaks_pos[1]["peak_heights"])
-    else:
-        expert_avg_peak_max = np.max(np.concatenate(expert_horizontal_lines))
-
-    if len(expert_peaks_neg[0]) > 0:
-        expert_avg_peak_min = np.mean(-expert_peaks_neg[1]["peak_heights"])
-    else:
-        expert_avg_peak_min = np.min(np.concatenate(expert_horizontal_lines))
-    
-    # print(f"Max peak user {user_avg_peak_max}| Expert {expert_avg_peak_max}")
-    # print(f"Min peak user {user_avg_peak_min}| Expert {expert_avg_peak_min}")
-    # print(f"User dist {user_avg_peak_max-user_avg_peak_min}| Expert {expert_avg_peak_max-expert_avg_peak_min}")
-    user_peak_diff = user_avg_peak_max-user_avg_peak_min
-    expert_peak_diff = expert_avg_peak_max-expert_avg_peak_min
-    if user_peak_diff < expert_peak_diff:
-        print("User peak diff suggest stiff ankles")
-    else:
-        print("User peak diff DOES NOT suggest stiff ankles")
-    
-    peak_ratio = user_peak_diff / expert_peak_diff
-
-    print("Peak ratio:", peak_ratio)
-    peak_ratio_thr = 0.8
-    if peak_ratio < peak_ratio_thr:
-        print("Peak ratio Threshold suggest stiff ankles!")
-    else:
-        print("Peak ratio DOES NOT SUGGEST stiff ankles")
-
 
 
 def main():
