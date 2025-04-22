@@ -30,7 +30,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "156"
+ID = "169"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -180,6 +180,7 @@ def main():
             expert_path = "./data/expert_data/expert_cycles_gear3_real.json"
         elif predicted_label == "gear2":
             expert_path = "./data/expert_data/expert_cycles_gear2_real.json"
+            continue
         else:
             print(f"The system cannot give feedback for {predicted_label}")
             continue
@@ -196,6 +197,8 @@ def main():
         
         # define what joints we want to look at for the matching
         if mistake_type == "wide_legs":
+            joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle"]
+        elif mistake_type == "leg_push":
             joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle"]
         else:
             joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist"]
@@ -220,7 +223,11 @@ def main():
                 joints_lines_horizontal = [("Hip", "Neck")]
                 joints_distance = []
                 joints_lines_relative = []
-                
+            elif mistake_type == "leg_push":
+                joint_angles = []
+                joints_distance = [("LAnkle", "RAnkle"), ("LHeel", "LBigToe"), ("RHeel", "RBigToe")] # Maybe most visible here, but the expert 151 video is even wider angle
+                joints_lines_relative = [("LHeel", "LBigToe", "RHeel", "RBigToe")] # 
+                joints_lines_horizontal = []
             else:
                 print(f"We cannot give feedback for this mistake {mistake_type} from the front, please provide a video from the side.")
                 break
@@ -233,6 +240,11 @@ def main():
                             ]
                 joints_lines_horizontal = []
                 joints_distance = []
+            elif mistake_type == "leg_push":
+                joint_angles = []
+                joints_distance = [("LAnkle", "RAnkle")]
+                joints_lines_relative = []
+                joints_lines_horizontal = []
             else:
                 print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front.")
                 break
@@ -243,6 +255,11 @@ def main():
                 joints_lines_relative = []
                 joints_lines_horizontal = []
                 joints_distance = []
+            elif mistake_type == "leg_push":
+                joint_angles = []
+                joints_distance = [("LAnkle", "RAnkle")]
+                joints_lines_relative = []
+                joints_lines_horizontal = []
             else:
                 print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front.")
                 break
@@ -300,6 +317,9 @@ def main():
             
         elif mistake_type == "stiff_ankle":
             feedback_per_frame = feedback_stiff_ankle(joint_angles, user_angles, expert_angles, path)
+
+        elif mistake_type == "leg_push":
+            pass
 
 
         
@@ -401,12 +421,12 @@ def main():
             
             # print feedback
             #feedback_image = np.zeros((height,width,channels), np.uint8)
-            if frame2 in list(feedback_per_frame.keys()):
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                font_scale = 0.8
-                font_thickness = 2
-                text_color = (255, 255, 255)
-                cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
+            # if frame2 in list(feedback_per_frame.keys()):
+            #     font = cv2.FONT_HERSHEY_SIMPLEX
+            #     font_scale = 0.8
+            #     font_thickness = 2
+            #     text_color = (255, 255, 255)
+            #     cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
 
 
             side_image = cv2.vconcat([info_image, plot_image])
