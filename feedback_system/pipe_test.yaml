@@ -1,5 +1,5 @@
   
-VIDEO_PATH: C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Expert_mistakes_data\Film 2025-03-07\DJI_0165.MP4
+VIDEO_PATH: C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Expert_mistakes_data\Film 2025-03-07\DJI_0139.MP4
 ALPHA_ARGS:
   SAVE_VIDEO: false
   VIS_FAST: true
@@ -36,3 +36,4 @@ DTW:
 FEEDBACK:
   SAVE_VIDEO: False
   OUTPUT_PATH: ./data/feedback_videos
+  MISTAKE_TYPE: wide_legs
