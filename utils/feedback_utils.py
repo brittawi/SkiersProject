@@ -514,6 +514,47 @@ def choose_id(results_list, video_path):
         cv2.destroyAllWindows()
         
         return selected_id
+    
+def feedback_stiff_ankle(joint_angles, user_angles, expert_angles, path):
+
+    feedBack_per_frame = {}
+    counter_angles = {}
+    counter_exp_sim = {}
+    thr_exp_sim = 0.1
+    thr_exp_rat = 0.9
+    thr_stiff_ankle = 0.8
+    for j, angle in enumerate(joint_angles):
+        if angle not in counter_angles:
+            counter_angles[angle] = 0
+        if angle not in counter_exp_sim:
+            counter_exp_sim[angle] = 0
+        
+        # Count how many times the angle is bigger than expert or within threshold to expert
+        for idx_user, idx_expert in path:
+            if user_angles[idx_user][j] > expert_angles[idx_expert][j]:
+                counter_angles[angle] += 1
+            if abs(user_angles[idx_user][j] - expert_angles[idx_expert][j]) <= thr_exp_sim * abs(expert_angles[idx_expert][j]):
+                counter_exp_sim[angle] += 1
+    
+    # Calculate ratios for determining feedback
+    knee_angle_ratio = counter_angles[joint_angles[0]] / len(path)
+    knee_good_ratio = counter_exp_sim[joint_angles[0]] / len(path)
+    if knee_good_ratio > thr_exp_rat:
+        feedback = f"Knee angle is within {thr_exp_sim} of expert angle {thr_exp_rat} of the time!"
+    elif knee_angle_ratio > thr_stiff_ankle:
+        feedback = (
+            f"The knee angle indicate you might not flex your ankles enough! Maybe review if your ankles are stiff, "
+            f"and if they are you can try to push your knee forward to make them flex more!"
+        )
+    else:
+        feedback = ""
+
+    # Filling feedback dict
+    for _, expert_frame in path:
+        feedBack_per_frame[expert_frame] = feedback
+
+    return feedBack_per_frame
+
 
 
 def save_feedback(feedback_dict, frame, feedback, range_):

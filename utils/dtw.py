@@ -147,7 +147,7 @@ def compare_selected_cycles(expert_data, cycle, joint_triplets, user_video, vide
     expert_start_frame = closest_cycle.get("Start_frame")
     
     # get video path
-    expert_video = os.path.join(video_path, "DJI_00" + closest_cycle.get("Video") + ".mp4")
+    expert_video = os.path.join(video_path, f"DJI_{int(closest_cycle.get('Video')):04d}" + ".mp4")
 
     
     if visualize:
