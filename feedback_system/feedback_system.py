@@ -203,9 +203,9 @@ def main():
     reversed_labels = {v: k for k, v in custom_params["labels"].items()}
 
     if run_args.FEEDBACK.SAVE_VIDEO:
-        video_writer = None
+        video_writer = 1
     else:
-        video_writer = 1 # skips video writing
+        video_writer = None # skips video writing
 
     heel_count_stiff = 0
     knee_count_stiff = 0
@@ -474,7 +474,7 @@ def main():
             if True:
                 cv2.imshow("User video", resize_frame)
 
-            if video_writer is None:
+            if video_writer == 1:
                 # Define the video codec and output file
                 os.makedirs(run_args.FEEDBACK.OUTPUT_PATH, exist_ok=True)
                 output_video_path = os.path.join(run_args.FEEDBACK.OUTPUT_PATH, "output_video_" + run_args.VIDEO_PATH.split("\\")[-1].split(".")[0] + ".mp4")
