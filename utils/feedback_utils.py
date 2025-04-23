@@ -63,17 +63,17 @@ def extract_multivariate_series_for_single_lines(cycle_data, line_joint_pairs, r
     all_angles = []
     frames = []
 
-    try:
-        if cycle_data[line_joint_pairs[0][0]] == run_args.DTW.CHOOSEN_REF:
-            check_term = "_x"
-    except KeyError:
-        check_term = "_x_ref"
+    # try:
+    #     if cycle_data[line_joint_pairs[0][0]] == run_args.DTW.CHOOSEN_REF:
+    #         check_term = "_x"
+    # except KeyError:
+    #     check_term = "_x_ref"
 
     # TODO Make option?
     joints_list = [joint for tuple_joints in line_joint_pairs for joint in tuple_joints]
     if run_args.DTW.GAUS_FILTER:
         cycle_data = smooth_cycle(cycle_data, joints_list, sigma=run_args.DTW.SIGMA_VALUE)
-    for i in range(len(cycle_data[line_joint_pairs[0][0] + check_term])):
+    for i in range(len(cycle_data[line_joint_pairs[0][0] +"_x"])):
         angles = []
         for joint1, joint2 in line_joint_pairs:
             # TODO Change json to add Hip_x/Hip_y (the reference realtive too)?
@@ -602,7 +602,7 @@ def feedback_wide_legs(expert_distances, user_distances, diff_distances, path, f
                 print(feedback)
                 save_feedback(feedback_per_frame, peak_min_idx, feedback, feedback_range)
             #print(f"Difference at legs together = {abs(avg_dist_user-expert_distances_arr[peak_min_idx])}") 
-            print("")       
+            print("") 
     # compare maximum of expert to matched user frame
     if len(expert_peaks_pos[0]):
         for peak_max_idx in expert_peaks_pos[0]:
@@ -639,4 +639,166 @@ def feedback_wide_legs(expert_distances, user_distances, diff_distances, path, f
             print("")  
     
     return feedback_per_frame
-    
+
+def feedback_leg_push_1(user_distances, expert_distances, diff_distances, path, feedback_range):
+
+    feedback_per_frame = {}
+
+    # Find peaks when distance between ankles is the biggest of expert
+    expert_peaks_pos = find_peaks(expert_distances[:,1], height=0)
+
+    if len(expert_peaks_pos[0]):
+        # Loop through the peaks of distances between expert legs
+        for peak_max_idx in expert_peaks_pos[0]:
+            feedback = None
+            user_left_foot_diff = 0
+            user_right_foot_diff = 0
+            # Find all user matches from DTW to the expert peak
+            matches = [pair for pair in path if pair[1] == peak_max_idx]
+            # Calculate average of the matches user frames (Most likely only 1)
+            for match in matches:
+                user_left_foot_diff += user_distances[:,0][match[0]]
+                user_right_foot_diff += user_distances[:,2][match[0]]
+            user_left_foot_diff /= len(matches)
+            user_right_foot_diff /= len(matches)
+            # Select the pushing leg depending on distance between heel and big toe -> biggest diff pushing leg
+            pushing_leg = "left" if user_left_foot_diff > user_right_foot_diff else "right"
+            user_foot_dist = max(user_left_foot_diff, user_right_foot_diff)
+            print(f"Pushing leg: {pushing_leg} at frame {peak_max_idx}")
+            if pushing_leg == "left":
+                expert_foot_dist = expert_distances[:,0][peak_max_idx]
+            else:
+                expert_foot_dist = expert_distances[:,2][peak_max_idx]
+            print(f"Expert foot distance {expert_foot_dist}")
+            print(f"User foot distance {user_foot_dist}")
+
+            if user_foot_dist - expert_foot_dist > 5:
+                feedback = "You might be twitsing the foot on the return which can mean you push too far back!"  
+            elif user_foot_dist - expert_foot_dist > 2:
+                feedback = "Idk not as much twisting"
+            
+            if feedback is not None:
+                print(feedback)
+                save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
+    return feedback_per_frame
+
+def feedback_leg_push_2(user_distances, expert_distances, user_lines, expert_lines, path, feedback_range):
+
+    feedback_per_frame = {}
+    leg_push_detected = False
+    weak_push_detectd = False
+
+    # Find peaks when distance between ankles is the biggest or smallest of expert
+    expert_peaks_pos = find_peaks(expert_distances[:,1], height=0)
+    expert_peaks_neg = find_peaks(-expert_distances[:,1], height=-float("inf"))
+
+    print(expert_peaks_pos)
+    print(expert_peaks_neg)
+
+    # Match the biggest distance frames to the next lowest distance of expert
+    peak_pos_neg_pairs = []
+    for peak in expert_peaks_pos[0]:
+        future_neg_peaks = expert_peaks_neg[0][expert_peaks_neg[0] > peak]
+        if len(future_neg_peaks) > 0:
+            next_valley = future_neg_peaks[0]
+            peak_pos_neg_pairs.append((peak, next_valley))
+
+    if len(peak_pos_neg_pairs):
+        for pos_peak_frame, neg_peak_frame in peak_pos_neg_pairs:
+            pos_matches = [pair for pair in path if pair[1] == pos_peak_frame]
+            neg_matches = [pair for pair in path if pair[1] == neg_peak_frame]
+            
+            # Only keep the tuple with lowest user start frame
+            pos_matches = [min(pos_matches, key=lambda x: x[0])]
+            neg_matches = [max(neg_matches, key=lambda x: x[0])]
+
+
+            # Average change between the lines of the feet
+            user_avg_change = (user_lines[neg_matches[0][0],0] - user_lines[pos_matches[0][0],0]) / (neg_matches[0][0]-pos_matches[0][0])
+            expert_avg_change = (expert_lines[neg_matches[0][1],0] - expert_lines[pos_matches[0][1],0])  / (neg_matches[0][1]-pos_matches[0][1])
+            print(user_avg_change)
+            print(expert_avg_change)
+
+            # Difference between max and min value of angle when pulling the feet together
+            user_diff = np.max(user_lines[pos_matches[0][0]:neg_matches[0][0], 0]) - np.min(user_lines[pos_matches[0][0]:neg_matches[0][0], 0])
+            expert_diff = np.max(expert_lines[pos_matches[0][1]:neg_matches[0][1], 0]) - np.min(expert_lines[pos_matches[0][1]:neg_matches[0][1], 0])
+            print(user_diff)
+            print(expert_diff)
+
+            precent_change = abs(user_avg_change - expert_avg_change) / ((abs(user_avg_change) + abs(expert_avg_change)) / 2)
+            percent_diff = abs(user_diff - expert_diff) / ((abs(user_diff) + abs(expert_diff)) / 2)
+            feedback = None
+            print(precent_change)
+            print(percent_diff)
+            if percent_diff > 0.6:
+                feedback = "You might be twitsing the foot on the return which can mean you push too far back!"  
+                leg_push_detected = True
+            elif percent_diff > 0.3:
+                feedback = "Idk not as much twisting"
+                weak_push_detectd = True
+                
+            
+            if feedback is not None:
+                print(feedback)
+                for index in range(pos_peak_frame, neg_peak_frame):
+                    save_feedback(feedback_per_frame, index, feedback, feedback_range)
+    return feedback_per_frame, leg_push_detected, weak_push_detectd
+
+def feedback_leg_push(user_distances, expert_distances, user_lines, expert_lines, user_angles, expert_angles, path, feedback_range):
+
+    feedback_per_frame = {}
+    leg_push_detected = False
+    weak_push_detectd = False
+
+    # Find peaks when distance between ankles is the biggest or smallest of expert
+    expert_peaks_pos = find_peaks(expert_distances[:,1], height=0)
+    expert_peaks_neg = find_peaks(-expert_distances[:,1], height=-float("inf"))
+
+    print(expert_peaks_pos)
+    print(expert_peaks_neg)
+
+    # Match the biggest distance frames to the next lowest distance of expert
+    peak_pos_neg_pairs = []
+    for peak in expert_peaks_pos[0]:
+        future_neg_peaks = expert_peaks_neg[0][expert_peaks_neg[0] > peak]
+        if len(future_neg_peaks) > 0:
+            next_valley = future_neg_peaks[0]
+            peak_pos_neg_pairs.append((peak, next_valley))
+
+    if len(peak_pos_neg_pairs):
+        for pos_peak_frame, neg_peak_frame in peak_pos_neg_pairs:
+            pos_matches = [pair for pair in path if pair[1] == pos_peak_frame]
+            neg_matches = [pair for pair in path if pair[1] == neg_peak_frame]
+            
+            # Only keep the tuple with lowest user start frame
+            pos_matches = [min(pos_matches, key=lambda x: x[0])]
+            neg_matches = [max(neg_matches, key=lambda x: x[0])]
+
+            # Find lowest knee-heel-toe angle during pullback
+            user_lowest_angle = np.min(user_angles[pos_matches[0][0]:neg_matches[0][0],0])
+            expert_lowest_angle = np.min(expert_angles[pos_matches[0][1]:neg_matches[0][1],0])
+            print(pos_matches)
+            print(neg_matches)
+            print(user_angles[pos_matches[0][0]:neg_matches[0][0],0])
+
+            print(user_lowest_angle)
+            print(expert_lowest_angle)
+
+            precent_change = abs(user_lowest_angle - expert_lowest_angle) / ((abs(user_lowest_angle) + abs(expert_lowest_angle)) / 2)
+            #percent_diff = abs(user_diff - expert_diff) / ((abs(user_diff) + abs(expert_diff)) / 2)
+            feedback = None
+            print(precent_change)
+            # print(percent_diff)
+            if precent_change > 0.12:
+                feedback = "You might be twitsing the foot on the return which can mean you push too far back!"  
+                leg_push_detected = True
+            elif precent_change > 0.08:
+                feedback = "Idk not as much twisting"
+                weak_push_detectd = True
+                
+            
+            if feedback is not None:
+                print(feedback)
+                for index in range(pos_peak_frame, neg_peak_frame):
+                    save_feedback(feedback_per_frame, index, feedback, feedback_range)
+    return feedback_per_frame, leg_push_detected, weak_push_detectd
