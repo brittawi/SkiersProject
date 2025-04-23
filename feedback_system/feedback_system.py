@@ -17,12 +17,13 @@ from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
 from utils.feedback_utils import get_line_points, feedback_wide_legs, feedback_stiff_ankle
 from utils.classify_angle import classify_angle
-from utils.frame_extraction import get_image_by_id, extract_frame, extract_frame_second, extract_frame_imageio, extract_frame_ffmpeg
+from utils.frame_extraction import get_image_by_id, extract_frame, extract_frame_second, extract_frame_imageio, extract_frame_ffmpeg, extract_frame_fast, reencode_to_all_keyframes_temp
 from scipy.signal import argrelextrema, find_peaks
 
 import torch
 import numpy as np
 import cv2
+import shutil
 
 # # TODO put in different config??
 # # Type of network that we want to use for the classification
@@ -30,7 +31,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "156"
+ID = "169"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -151,13 +152,13 @@ def main():
     else:
         video_writer = None # skips video writing
 
-    heel_count_stiff = 0
-    knee_count_stiff = 0
-    knee_good_stiff = 0
-    tot_count = 0
+    # Create temp quick frame lookup video for user frames
+    user_temp_video = reencode_to_all_keyframes_temp(run_args.VIDEO_PATH)
+
     
     # classify each cycle
     for i, cycle_input in enumerate(input_data):
+
         # this is done in the dataloader 
         cycle_input = cycle_input.T # (12, 97) => (97, 12), 12 joints, 97 timesteps
         # add batch size
@@ -200,11 +201,13 @@ def main():
         else:
             joints = ["RHip", "RKnee", "RAnkle", "LHip", "LKnee", "LAnkle", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist"]
         
+
         # send in data in json format
         cycle = cycle_data[f"Cycle {i+1}"]
-        
+
         dtw_comparisons, path, expert_cycle = compare_selected_cycles(expert_data, cycle, joints, run_args.VIDEO_PATH, run_args.DTW.VIS_VID_PATH, use_keypoints=True, visualize=False)
         print("Chosen expert cycle id", expert_cycle.get("Video"))
+
         # Step 5: Give feedback
         
         direction = expert_cycle.get("Direction")
@@ -337,22 +340,24 @@ def main():
                 labels=['User', 'Expert']
             )
 
+        # Create temp quick frame lookup video for expert frames
+        expert_start_frame = expert_cycle.get("Start_frame")
+        vid_id = int(expert_cycle.get("Video"))
+        expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, f"DJI_{vid_id:04d}" + ".mp4")
+        # for the expert frame a -1 is added to the index as we get the image ids here and they start at 1 but frames actually 
+        # start at 0. For the user id we can get the frame id directly as we have the full json file. 
+        temp_dir="./temp_videos"
+        expert_temp_video = reencode_to_all_keyframes_temp(expert_video, temp_dir)
+
         # Loops through the DTW match pair and shows lines on user video
         for i, (frame1, frame2) in enumerate(path):
             # get acual frame
             imgage_id = cycle["Image_ids"][frame1]
             image_video_id = get_image_by_id(coco_data["images"], imgage_id)
             image_video_id = int(image_video_id["file_name"].split('.')[0])
-            user_frame = extract_frame_second(run_args.VIDEO_PATH, image_video_id)
-            # # TODO Make this a parameter?
-            # if True:
-            expert_start_frame = expert_cycle.get("Start_frame")
-            #expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, "DJI_00" + expert_cycle.get("Video") + ".mp4")
-            vid_id = int(expert_cycle.get("Video"))
-            expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, f"DJI_{vid_id:04d}" + ".mp4")
-            # for the expert frame a -1 is added to the index as we get the image ids here and they start at 1 but frames actually 
-            # start at 0. For the user id we can get the frame id directly as we have the full json file. 
-            expert_frame = extract_frame_second(expert_video, frame2 + expert_start_frame - 1)
+            user_frame = extract_frame(user_temp_video, image_video_id)
+            # Get expert frame
+            expert_frame = extract_frame(expert_temp_video, frame2 + expert_start_frame - 1)    
             
             # draw lines on to each frame
             user_points_lines = get_line_points(cycle, joints_lines_relative, frame1, run_args)
@@ -414,7 +419,7 @@ def main():
             stacked_frame = cv2.hconcat([stacked_frame, side_image])
 
             resize_frame = cv2.resize(stacked_frame, None, fx=0.5, fy=0.5)
-    
+
             if True:
                 cv2.imshow("User video", resize_frame)
 
@@ -437,6 +442,7 @@ def main():
         video_writer.release()
 
     cv2.destroyAllWindows()
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 if __name__ == '__main__':
