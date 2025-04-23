@@ -1,5 +1,5 @@
   
-VIDEO_PATH: C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Expert_mistakes_data\Film 2025-03-07\DJI_0139.MP4
+VIDEO_PATH: e:\SkiProject\Expert_mistake_videos\DJI_0059.MP4
 ALPHA_ARGS:
   SAVE_VIDEO: false
   VIS_FAST: true
@@ -16,7 +16,7 @@ CLS_GEAR:
   NETTYPE: mlp
   MODEL_PATH: ./pretrained_models/trained_model_2025_04_05_13_42_lr0.0001.pth
 DTW:
-  VIS_VID_PATH: C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\expert_videos
+  VIS_VID_PATH: e:\SkiProject\Expert_reference_videos
   VIS_VIDEO: False
   SPLIT:
     LEFT: 
@@ -36,4 +36,4 @@ DTW:
 FEEDBACK:
   SAVE_VIDEO: False
   OUTPUT_PATH: ./data/feedback_videos
-  MISTAKE_TYPE: wide_legs
+  MISTAKE_TYPE: leg_push

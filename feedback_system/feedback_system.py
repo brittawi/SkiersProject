@@ -15,7 +15,7 @@ from utils.preprocess_signals import *
 from utils.annotation_format import halpe26_to_coco
 from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
-from utils.feedback_utils import get_line_points, feedback_wide_legs, feedback_stiff_ankle
+from utils.feedback_utils import get_line_points, feedback_wide_legs, feedback_stiff_ankle, feedback_leg_push
 from utils.classify_angle import classify_angle
 from utils.frame_extraction import get_image_by_id, extract_frame, extract_frame_second, extract_frame_imageio, extract_frame_ffmpeg
 from scipy.signal import argrelextrema, find_peaks
@@ -30,7 +30,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "169"
+ID = "59"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -151,9 +151,8 @@ def main():
     else:
         video_writer = None # skips video writing
 
-    heel_count_stiff = 0
-    knee_count_stiff = 0
-    knee_good_stiff = 0
+    strong_positive = 0
+    weak_positive = 0
     tot_count = 0
     
     # classify each cycle
@@ -162,6 +161,7 @@ def main():
         cycle_input = cycle_input.T # (12, 97) => (97, 12), 12 joints, 97 timesteps
         # add batch size
         cycle_input = cycle_input.unsqueeze(0)
+
         
         if run_args.CLS_GEAR.NETTYPE.lower() == "mlp":
             cycle_input = cycle_input.contiguous().view(cycle_input.size(0), -1)
@@ -177,7 +177,7 @@ def main():
         
         # based on cycle choose the expert data we want to compare the cycle to
         if predicted_label == "gear3":
-            expert_path = "./data/expert_data/expert_cycles_gear3_real.json"
+            expert_path = "./data/expert_data/expert_cycles_gear3 copy.json"
         elif predicted_label == "gear2":
             expert_path = "./data/expert_data/expert_cycles_gear2_real.json"
             continue
@@ -224,9 +224,9 @@ def main():
                 joints_distance = []
                 joints_lines_relative = []
             elif mistake_type == "leg_push":
-                joint_angles = []
-                joints_distance = [("LAnkle", "RAnkle"), ("LHeel", "LBigToe"), ("RHeel", "RBigToe")] # Maybe most visible here, but the expert 151 video is even wider angle
-                joints_lines_relative = [("LHeel", "LBigToe", "RHeel", "RBigToe")] # 
+                joint_angles = [("LKnee", "LHeel", "LBigToe"), ("RKnee", "RHeel", "RBigToe")]
+                joints_distance = [ ("LHeel", "LBigToe"), ("LAnkle", "RAnkle"), ("RHeel", "RBigToe")]  
+                joints_lines_relative = [("LHeel", "LBigToe", "RHeel", "RBigToe")] # Maybe most visible here, but the expert 151 video is even wider angle -> Other expert skiers doe it too
                 joints_lines_horizontal = []
             else:
                 print(f"We cannot give feedback for this mistake {mistake_type} from the front, please provide a video from the side.")
@@ -319,8 +319,20 @@ def main():
             feedback_per_frame = feedback_stiff_ankle(joint_angles, user_angles, expert_angles, path)
 
         elif mistake_type == "leg_push":
-            pass
+            feedback_per_frame, leg_push_detected, weak_push_detectd = feedback_leg_push(user_distances, expert_distances, user_lines, expert_lines, user_angles, expert_angles, path, feedback_range)
 
+        tot_count += 1
+        if leg_push_detected:
+            strong_positive += 1
+            print(f"Strong leg push far detected | {strong_positive} / {tot_count}")
+        if weak_push_detectd:
+            weak_positive += 1
+            print(f"Strong leg push far detected | {weak_positive} / {tot_count}")
+
+        print(f"Counts detected | Strong {strong_positive} / {tot_count} | Weak {weak_positive} / {tot_count} | Normal {tot_count-weak_positive-strong_positive} / {tot_count}")
+
+
+        
 
         
             
@@ -419,14 +431,13 @@ def main():
                                              frame1, 
                                              frame2)
             
-            # print feedback
-            #feedback_image = np.zeros((height,width,channels), np.uint8)
-            # if frame2 in list(feedback_per_frame.keys()):
-            #     font = cv2.FONT_HERSHEY_SIMPLEX
-            #     font_scale = 0.8
-            #     font_thickness = 2
-            #     text_color = (255, 255, 255)
-            #     cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
+            feedback_image = np.zeros((height,width,channels), np.uint8)
+            if frame2 in list(feedback_per_frame.keys()):
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                font_scale = 0.8
+                font_thickness = 2
+                text_color = (255, 255, 255)
+                cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
 
 
             side_image = cv2.vconcat([info_image, plot_image])
