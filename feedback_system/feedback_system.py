@@ -15,7 +15,7 @@ from utils.preprocess_signals import *
 from utils.annotation_format import halpe26_to_coco
 from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
-from utils.feedback_utils import get_line_points, feedback_wide_legs
+from utils.feedback_utils import get_line_points, feedback_wide_legs, feedback_shift_weight
 from utils.classify_angle import classify_angle
 from utils.frame_extraction import get_image_by_id, extract_frame, extract_frame_second, extract_frame_imageio, extract_frame_ffmpeg
 from scipy.signal import argrelextrema, find_peaks
@@ -30,7 +30,7 @@ import cv2
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "139"
+ID = "166"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -219,6 +219,11 @@ def main():
                 joints_lines_horizontal = [("Hip", "Neck")]
                 joints_distance = []
                 joints_lines_relative = []
+            elif mistake_type == "shift_weight":
+                joint_angles = [("RShoulder", "RHip", "RAnkle"), ("LShoulder", "LHip", "LAnkle")]
+                joints_lines_horizontal = [("Hip", "Neck")]
+                joints_distance = [("LAnkle", "RAnkle")]
+                joints_lines_relative = [("RShoulder", "LShoulder", "RHip", "LHip")]
                 
             else:
                 print(f"We cannot give feedback for this mistake {mistake_type} from the front, please provide a video from the side.")
@@ -359,8 +364,8 @@ def main():
             else:
                 print("Not stiff ankle!")
 
-
-        
+        elif mistake_type == "shift_weight":
+            feedback_per_frame = feedback_shift_weight(expert_distances, user_distances, diff_distances, expert_angles, user_angles, diff_angles, expert_horizontal_lines, user_horizontal_lines, diff_lines_horizontal, path, feedback_range)
             
             
         
@@ -464,7 +469,7 @@ def main():
                 font_scale = 0.8
                 font_thickness = 2
                 text_color = (255, 255, 255)
-                cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
+                cv2.putText(info_image, feedback_per_frame[frame2], (0, 500), font, font_scale, text_color, font_thickness)
 
 
             side_image = cv2.vconcat([info_image, plot_image])

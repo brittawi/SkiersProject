@@ -529,7 +529,7 @@ def feedback_wide_legs(expert_distances, user_distances, diff_distances, path, f
     expert_distances_arr = np.concatenate(expert_distances)
     user_distances_arr = np.concatenate(user_distances)
     diff_distances_arr = np.concatenate(diff_distances)
-    print(f"max: {np.max(diff_distances_arr)}, min: {np.min(diff_distances_arr)}")
+    #print(f"max: {np.max(diff_distances_arr)}, min: {np.min(diff_distances_arr)}")
     # find both minima and maxima for expert cycle to determine the phase he is in
     expert_peaks_pos = find_peaks(expert_distances_arr, height=0)
     expert_peaks_neg = find_peaks(-expert_distances_arr, height=-float("inf"))
@@ -599,3 +599,402 @@ def feedback_wide_legs(expert_distances, user_distances, diff_distances, path, f
     
     return feedback_per_frame
     
+# def feedback_shift_weight(expert_distances, user_distances, diff_distances, expert_angles, user_angles,  diff_angles,expert_horizontal_lines, user_horizontal_lines, diff_lines_horizontal, path, feedback_range):
+#     feedback_per_frame = {}
+
+#     # based on distances between the feet, we want to determine what phase the skier is in
+#     expert_distances_arr = np.concatenate(expert_distances)
+#     user_distances_arr = np.concatenate(user_distances)
+#     diff_distances_arr = np.concatenate(diff_distances)
+
+#     # find both minima and maxima for expert cycle to determine the phase he is in
+#     expert_peaks_pos = find_peaks(expert_distances_arr, height=0)
+#     expert_peaks_neg = find_peaks(-expert_distances_arr, height=-float("inf"))
+    
+#     # compare minimum of expert to matched user frame, that is when the feet are together
+#     if len(expert_peaks_neg[0]):
+#         for peak_min_idx in expert_peaks_neg[0]:
+#             # find the matches
+#             matches = [pair for pair in path if pair[1] == peak_min_idx]
+#             if len(matches) <= 0:
+#                 print("Could not find any matches to expert maxima")
+#             for match in matches:
+#                 right_diff = abs(expert_angles[peak_min_idx][0]-user_angles[match[0]][0])
+#                 left_diff = abs(expert_angles[peak_min_idx][1]-user_angles[match[0]][1])
+#                 horizontal_diff = abs(expert_horizontal_lines[peak_min_idx]-user_horizontal_lines[match[0]])
+#                 sum_diffs = right_diff + left_diff + horizontal_diff
+#                 vals = [right_diff, left_diff, horizontal_diff]
+#                 max_idx = vals.index(max(vals))
+#                 #print(f"Legs together sum: {sum_diffs}, max idx: {max_idx}, right: {right_diff}, left: {left_diff}, horizontal: {horizontal_diff}")
+                
+#                 # print(f"When Legs are together, right side:{abs(expert_angles[peak_min_idx][0]-user_angles[match[0]][0])} Expert angle {expert_angles[peak_min_idx][0]}, matched user angle {user_angles[match[0]][0]}")
+#                 # print(f"When Legs are together, left side: {abs(expert_angles[peak_min_idx][1]-user_angles[match[0]][1])} Expert angle {expert_angles[peak_min_idx][1]}, matched user angle {user_angles[match[0]][1]}")
+#                 # print(f"When Legs are together, horizontal: {abs(expert_horizontal_lines[peak_min_idx]-user_horizontal_lines[match[0]])} Expert angle {expert_horizontal_lines[peak_min_idx]}, matched user angle {user_horizontal_lines[match[0]]}")
+#                 expert_hip_angle_diff = expert_angles[peak_min_idx][0] - expert_angles[peak_min_idx][1]
+#                 expert_normalized_diff = expert_hip_angle_diff / (expert_angles[peak_min_idx][0] + expert_angles[peak_min_idx][1])
+#                 user_hip_angle_diff = user_angles[peak_min_idx][0] - user_angles[peak_min_idx][1]
+#                 user_normalized_diff = user_hip_angle_diff / (user_angles[peak_min_idx][0] + user_angles[peak_min_idx][1])
+#                 expert_dist = expert_distances_arr[peak_min_idx]
+#                 user_dist = user_distances_arr[match[0]]
+#                 alpha = 0.7
+#                 beta = 0.3
+#                 weight_shift_score = alpha * expert_normalized_diff + beta * expert_dist
+                
+#                 print("Together", expert_hip_angle_diff, user_hip_angle_diff, expert_dist, user_dist)
+#     if len(expert_peaks_pos[0]):
+#         for peak_max_idx in expert_peaks_pos[0]:
+#             # find the matches
+#             matches = [pair for pair in path if pair[1] == peak_max_idx]
+#             if len(matches) <= 0:
+#                 print("Could not find any matches to expert maxima")
+#             for match in matches:
+                
+#                 right_diff = abs(expert_angles[peak_max_idx][0]-user_angles[match[0]][0])
+#                 left_diff = abs(expert_angles[peak_max_idx][1]-user_angles[match[0]][1])
+#                 horizontal_diff = abs(expert_horizontal_lines[peak_max_idx]-user_horizontal_lines[match[0]])
+#                 sum_diffs = right_diff + left_diff + horizontal_diff
+#                 vals = [right_diff, left_diff, horizontal_diff]
+#                 max_idx = vals.index(max(vals))
+#                 #print(f"At push: {sum_diffs}, max idx: {max_idx}, right: {right_diff}, left: {left_diff}, horizontal: {horizontal_diff}")
+#                 # if sum_diffs > 15:
+#                 #     print("Sum ist bigger than 15 at push!")
+#                 # print(f"At push, right side: {abs(expert_angles[peak_max_idx][0]-user_angles[match[0]][0])} Expert angle {expert_angles[peak_max_idx][0]}, matched user angle {user_angles[match[0]][0]}")
+#                 # print(f"At push, left side: {abs(expert_angles[peak_max_idx][1]-user_angles[match[0]][1])} Expert angle {expert_angles[peak_max_idx][1]}, matched user angle {user_angles[match[0]][1]}")
+#                 # print(f"At push, horizontal: {abs(expert_horizontal_lines[peak_max_idx]-user_horizontal_lines[match[0]])} Expert angle {expert_horizontal_lines[peak_max_idx]}, matched user angle {user_horizontal_lines[match[0]]}")
+                
+#                 expert_hip_angle_diff = expert_angles[peak_max_idx][0] - expert_angles[peak_max_idx][1]
+#                 expert_normalized_diff = expert_hip_angle_diff / (expert_angles[peak_max_idx][0] + expert_angles[peak_max_idx][1])
+#                 user_hip_angle_diff = user_angles[peak_max_idx][0] - user_angles[peak_max_idx][1]
+#                 user_normalized_diff = user_hip_angle_diff / (user_angles[peak_max_idx][0] + user_angles[peak_max_idx][1])
+#                 expert_dist = expert_distances_arr[peak_max_idx]
+#                 user_dist = user_distances_arr[match[0]]
+#                 alpha = 0.7
+#                 beta = 0.3
+#                 weight_shift_score = alpha * expert_normalized_diff + beta * expert_dist
+                
+#                 print("Push", expert_hip_angle_diff, user_hip_angle_diff, expert_dist, user_dist)
+#     return feedback_per_frame
+
+# def feedback_shift_weight(
+#     expert_distances, user_distances, diff_distances,
+#     expert_angles, user_angles, diff_angles,
+#     expert_horizontal_lines, user_horizontal_lines, diff_lines_horizontal,
+#     path, feedback_range
+# ):
+#     feedback_per_frame = {}
+
+#     # Flatten arrays
+#     expert_distances_arr = np.concatenate(expert_distances)
+#     user_distances_arr = np.concatenate(user_distances)
+
+#     # Identify stride keyframes
+#     expert_peaks_max = find_peaks(expert_distances_arr, height=0)[0]  # Push-offs
+#     expert_peaks_min = find_peaks(-expert_distances_arr, height=-float("inf"))[0]  # Legs together
+
+#     # Parameters
+#     alpha = 0.7  # Weight for angle diff
+#     beta = 0.3   # Weight for foot distance
+
+#     def normalized_hip_diff(angles):
+#         # angles = (right, left)
+#         return (angles[0] - angles[1]) / (angles[0] + angles[1] + 1e-5)  # Prevent division by 0
+
+#     # Use expert's stride max to normalize distances
+#     stride_max = np.max(expert_distances_arr)
+
+#     # Loop through all key phases (minima = glide, maxima = push)
+#     for phase_type, peak_indices in [('Glide', expert_peaks_min), ('Push', expert_peaks_max)]:
+#         for expert_idx in peak_indices:
+#             # Find all user frames matched to this expert frame
+#             user_frame_indices = [pair[0] for pair in path if pair[1] == expert_idx]
+#             if not user_frame_indices:
+#                 continue
+
+#             # Compute average user angles and distance
+#             avg_user_angles = np.mean([user_angles[i] for i in user_frame_indices], axis=0)
+#             avg_user_dist = np.mean([user_distances_arr[i] for i in user_frame_indices])
+
+#             # Expert values
+#             expert_diff = normalized_hip_diff(expert_angles[expert_idx])
+#             expert_dist_norm = expert_distances_arr[expert_idx] / stride_max
+#             expert_score = alpha * expert_diff + beta * expert_dist_norm
+
+#             # User values (averaged)
+#             user_diff = normalized_hip_diff(avg_user_angles)
+#             user_dist_norm = avg_user_dist / stride_max
+#             user_score = alpha * user_diff + beta * user_dist_norm
+
+
+#             error = abs(user_score - expert_score)
+#             print("Error", error)
+#             feedback = generate_feedback_comment(phase_type, error)
+#             print(feedback)
+
+#             # Save frame-level feedback
+#             # feedback_per_frame[user_idx] = {
+#             #     "phase": phase_type,
+#             #     "user_score": user_score,
+#             #     "expert_score": expert_score,
+#             #     "error": error,
+#             #     "comment": generate_feedback_comment(phase_type, error)
+#             # }
+
+#     return feedback_per_frame
+
+
+# def generate_feedback_comment(phase, error, low=0.05, med=0.15):
+#     if error < low:
+#         return f"{phase}: Excellent weight shift — closely matches expert."
+#     elif error < med:
+#         return f"{phase}: Decent weight transfer, but could be smoother or more complete."
+#     else:
+#         return f"{phase}: Needs better weight transfer — try shifting more clearly to one side."
+
+# def feedback_shift_weight(
+#     expert_distances, user_distances, diff_distances,
+#     expert_angles, user_angles, diff_angles,
+#     expert_horizontal_lines, user_horizontal_lines, diff_lines_horizontal,
+#     path, feedback_range,
+#     num_samples_per_phase=5
+# ):
+#     feedback_per_frame = {}
+
+#     # Flatten arrays
+#     expert_distances_arr = np.concatenate(expert_distances)
+#     user_distances_arr = np.concatenate(user_distances)
+
+#     # Identify push-offs and glides
+#     expert_peaks_max = find_peaks(expert_distances_arr)[0]  # Push
+#     expert_peaks_min = find_peaks(-expert_distances_arr)[0]  # Glide
+
+#     # Combine and sort peaks to define full stride cycles
+#     all_peaks = np.sort(np.concatenate([expert_peaks_min, expert_peaks_max]))
+
+#     alpha = 0.7
+#     beta = 0.3
+
+#     def hip_diff(angles):
+#         return angles[0] - angles[1]
+
+#     for i in range(len(all_peaks) - 1):
+#         start = all_peaks[i]
+#         end = all_peaks[i + 1]
+#         phase_type = "Glide→Push" if expert_distances_arr[start] < expert_distances_arr[end] else "Push→Glide"
+
+#         # Sample expert indices between start and end
+#         sampled_idxs = np.linspace(start, end, num_samples_per_phase, dtype=int)
+
+#         for expert_idx in sampled_idxs:
+#             # Find matched user frames from DTW path
+#             user_frame_indices = [pair[0] for pair in path if pair[1] == expert_idx]
+#             if not user_frame_indices:
+#                 continue
+
+#             # Average user data
+#             avg_user_angles = np.mean([user_angles[i] for i in user_frame_indices], axis=0)
+#             avg_user_dist = np.mean([user_distances_arr[i] for i in user_frame_indices])
+
+#             # Expert data
+#             expert_diff = hip_diff(expert_angles[expert_idx])
+#             expert_dist = expert_distances_arr[expert_idx]
+#             expert_score = alpha * expert_diff + beta * expert_dist
+
+#             # User data
+#             user_diff = hip_diff(avg_user_angles)
+#             user_score = alpha * user_diff + beta * avg_user_dist
+
+#             error = abs(user_score - expert_score)
+#             print(error)
+#             feedback = generate_feedback_comment(phase_type, error)
+#             print(feedback)
+            
+#             feedback_per_frame[expert_idx] = feedback
+
+#             # # Feedback per user frame
+#             # for user_idx in user_frame_indices:
+#             #     feedback_per_frame[user_idx] = {
+#             #         "phase": phase_type,
+#             #         "user_score": user_score,
+#             #         "expert_score": expert_score,
+#             #         "error": error,
+#             #         "comment": generate_feedback_comment(phase_type, error)
+#             #     }
+
+#     return feedback_per_frame
+
+
+# def generate_feedback_comment(phase, error, low=5.0, med=15.0):
+#     if error < low:
+#         return f"{phase}: Excellent weight shift — very close to expert."
+#     elif error < med:
+#         return f"{phase}: Decent weight transfer — consider smoother motion or fuller extension."
+#     else:
+#         return f"{phase}: Needs improvement — weight shift is off compared to expert."
+
+# def feedback_shift_weight(
+#     expert_distances, user_distances, diff_distances,
+#     expert_angles, user_angles, diff_angles,
+#     expert_horizontal_lines, user_horizontal_lines, diff_lines_horizontal,
+#     path, feedback_range,
+#     alpha=0.7,
+#     beta=0.3,
+#     error_threshold=10.0  # threshold for "close enough"
+# ):
+#     feedback_per_phase = {}
+
+#     expert_distances_arr = np.concatenate(expert_distances)
+#     user_distances_arr = np.concatenate(user_distances)
+
+#     expert_peaks_max = find_peaks(expert_distances_arr)[0]
+#     expert_peaks_min = find_peaks(-expert_distances_arr)[0]
+#     all_peaks = np.sort(np.concatenate([expert_peaks_min, expert_peaks_max]))
+
+#     def hip_diff(angles):
+#         return angles[0] - angles[1]
+
+#     for i in range(len(all_peaks) - 1):
+#         start = all_peaks[i]
+#         end = all_peaks[i + 1]
+
+#         if start == end:
+#             continue
+
+#         direction = "glide → push" if expert_distances_arr[start] < expert_distances_arr[end] else "push → glide"
+#         expert_idxs = np.arange(start, end + 1)
+#         matched_pairs = [pair for pair in path if start <= pair[1] <= end]
+
+#         if not matched_pairs:
+#             continue
+
+#         good_match_count = 0
+#         total_matches = len(matched_pairs)
+
+#         for user_idx, expert_idx in matched_pairs:
+#             expert_diff = hip_diff(expert_angles[expert_idx])
+#             expert_dist = expert_distances_arr[expert_idx]
+#             expert_score = alpha * expert_diff + beta * expert_dist
+
+#             user_diff = hip_diff(user_angles[user_idx])
+#             user_dist = user_distances_arr[user_idx]
+#             user_score = alpha * user_diff + beta * user_dist
+
+#             error = abs(user_score - expert_score)
+#             #print(error)
+#             if error < error_threshold:
+#                 good_match_count += 1
+
+#         match_percentage = good_match_count / total_matches * 100
+#         feedback = generate_feedback_consistency_comment(direction, match_percentage)
+#         feedback_per_phase[start] = feedback
+#         print(feedback)
+
+#         # feedback = {
+#         #     "phase": direction,
+#         #     "frame_range": f"{start}-{end}",
+#         #     "match_percentage": round(match_percentage, 1),
+#         #     "matched_frames": total_matches,
+#         #     "good_matches": good_match_count,
+#         #     "comment": generate_feedback_consistency_comment(direction, match_percentage),
+#         #     "expert_frames": list(expert_idxs),
+#         #     "user_frames": [pair[0] for pair in matched_pairs]
+#         # }
+#         # feedback_per_phase.append(feedback)
+
+#     return feedback_per_phase
+
+
+# def generate_feedback_consistency_comment(phase, percentage, good=75, okay=50):
+#     if percentage >= good:
+#         return f"{phase.capitalize()}: Excellent consistency — strong technique!"
+#     elif percentage >= okay:
+#         return f"{phase.capitalize()}: Decent execution, but improve timing or posture."
+#     else:
+#         return f"{phase.capitalize()}: Needs work — weight shift is off from expert motion."
+
+def feedback_shift_weight(
+    expert_distances, user_distances, diff_distances,
+    expert_angles, user_angles, diff_angles,
+    expert_horizontal_lines, user_horizontal_lines, diff_lines_horizontal,
+    path, feedback_range,
+    alpha=0.85,
+    beta=0.15,
+    error_threshold=10.0,  # threshold for "good match"
+    window_size=10  # ±5 frames around each peak
+):
+    feedback_per_phase = {}
+
+    expert_distances_arr = np.concatenate(expert_distances)
+    user_distances_arr = np.concatenate(user_distances)
+
+    expert_peaks_max = find_peaks(expert_distances_arr)[0]
+    expert_peaks_min = find_peaks(-expert_distances_arr)[0]
+    all_peaks = np.sort(np.concatenate([expert_peaks_min, expert_peaks_max]))
+
+    def hip_diff(angles):
+        return angles[0] - angles[1]
+
+    for peak_idx in all_peaks:
+        # Define the window around each peak (±5 frames)
+        start = max(0, peak_idx - window_size)
+        end = min(len(expert_distances_arr) - 1, peak_idx + window_size)
+
+        # Determine if it's glide → push or push → glide based on min or max
+        if peak_idx in expert_peaks_max:
+            direction = "push → glide"
+        else:
+            direction = "glide → push"
+
+        # Collect the expert frames and the matched user frames in this window
+        expert_idxs = np.arange(start, end + 1)
+        matched_pairs = [pair for pair in path if start <= pair[1] <= end]
+
+        if not matched_pairs:
+            continue
+
+        good_match_count = 0
+        total_matches = len(matched_pairs)
+
+        for user_idx, expert_idx in matched_pairs:
+            # Calculate score for expert and user at this frame
+            expert_diff = hip_diff(expert_angles[expert_idx])
+            expert_dist = expert_distances_arr[expert_idx]
+            expert_score = alpha * expert_diff + beta * expert_dist
+
+            user_diff = hip_diff(user_angles[user_idx])
+            user_dist = user_distances_arr[user_idx]
+            user_score = alpha * user_diff + beta * user_dist
+
+            # Calculate the error between user and expert
+            error = abs(user_score - expert_score)
+            if error < error_threshold:
+                good_match_count += 1
+
+        match_percentage = good_match_count / total_matches * 100
+        feedback = generate_feedback_consistency_comment(direction, match_percentage)
+        save_feedback(feedback_per_phase, peak_idx, feedback, 5)
+        print(feedback)
+
+        # # Prepare feedback
+        # feedback = {
+        #     "phase": direction,
+        #     "peak_idx": peak_idx,
+        #     "frame_range": f"{start}-{end}",
+        #     "match_percentage": round(match_percentage, 1),
+        #     "matched_frames": total_matches,
+        #     "good_matches": good_match_count,
+        #     "comment": generate_feedback_consistency_comment(direction, match_percentage),
+        #     "expert_frames": list(expert_idxs),
+        #     "user_frames": [pair[0] for pair in matched_pairs]
+        # }
+        # feedback_per_phase.append(feedback)
+
+    return feedback_per_phase
+
+
+def generate_feedback_consistency_comment(phase, percentage, good=75, okay=50):
+    if percentage >= good:
+        return f"{phase.capitalize()}: Excellent consistency — strong technique!"
+    elif percentage >= okay:
+        return f"{phase.capitalize()}: Decent execution, but improve timing or posture."
+    else:
+        return f"{phase.capitalize()}: Needs work — weight shift is off from expert motion."
