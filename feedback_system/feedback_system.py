@@ -5,9 +5,9 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 
-from utils.load_data import load_json
+from utils.load_data import load_json, load_summary_json
 from utils.dtw import compare_selected_cycles, extract_multivariate_series
-from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_relative_lines, draw_table, calculate_similarity, draw_plots, extract_multivariate_series_for_single_lines, draw_joint_single_lines, extract_multivariate_series_for_distances
+from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_relative_lines, draw_table, calculate_similarity, draw_plots, extract_multivariate_series_for_single_lines, draw_joint_single_lines, extract_multivariate_series_for_distances, save_summary_for_video
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
 from utils.split_cycles import split_into_cycles
@@ -17,8 +17,8 @@ from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
 from utils.feedback_utils import get_line_points, feedback_wide_legs, feedback_stiff_ankle
 from utils.classify_angle import classify_angle
-from utils.frame_extraction import get_image_by_id, extract_frame, extract_frame_second, extract_frame_imageio, extract_frame_ffmpeg, extract_frame_fast, reencode_to_all_keyframes_temp
-from scipy.signal import argrelextrema, find_peaks
+from utils.frame_extraction import get_image_by_id, extract_frame, reencode_to_all_keyframes_temp
+from collections import defaultdict
 
 import torch
 import numpy as np
@@ -31,14 +31,14 @@ import shutil
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "169"
+ID = "136"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
-INPUT_PATH = os.path.join("e:\SkiProject\Results_AlphaPose\Expert_mistake_iter_1\All",  f"{ID}.json")
-#INPUT_PATH = os.path.join(r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\annotations_finetuned_v1\Expert_mistake",  f"{ID}.json")
-INPUT_VIDEO = r"e:\SkiProject\Expert_mistake_videos\DJI_" + f"DJI_{int(ID):04d}.mp4"
-#INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Expert_mistakes_data\Film 2025-03-07\DJI_0" + ID + ".mp4"
+#INPUT_PATH = os.path.join("e:\SkiProject\Results_AlphaPose\Expert_mistake_iter_1\All",  f"{ID}.json")
+INPUT_PATH = os.path.join(r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\annotations_finetuned_v1\Expert_mistake",  f"{ID}.json")
+#INPUT_VIDEO = r"e:\SkiProject\Expert_mistake_videos\DJI_" + f"DJI_{int(ID):04d}.mp4"
+INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Expert_mistakes_data\Film2025-03-07\DJI_0" + ID + ".mp4"
 # # path to where all videos are stored
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
@@ -56,6 +56,8 @@ def main():
     
     print("Loading config...")
     run_args = update_config("./feedback_system/pipe_test.yaml") # TODO Testing set up fix for full pipeline
+    # for evaluation purposes
+    evaluation_file = f'./data/feedback_evaluation/evaluation_{run_args.FEEDBACK.MISTAKE_TYPE}.json'
     if testing_with_inference:
         output_path, results_list = run_inference(run_args)
         
@@ -157,6 +159,8 @@ def main():
 
     
     # classify each cycle
+    # for evaluation purposes
+    summary_feedback = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     for i, cycle_input in enumerate(input_data):
 
         # this is done in the dataloader 
@@ -299,8 +303,11 @@ def main():
 
         feedback_range = 3
         if mistake_type == "wide_legs":
-            feedback_per_frame = feedback_wide_legs(expert_distances, user_distances, diff_distances, path, feedback_range)
-            
+            feedback_per_frame, feedback_per_category = feedback_wide_legs(expert_distances, user_distances, diff_distances, path, feedback_range)
+            for category, feedbacks in feedback_per_category.items():
+                for sentiment, count in feedbacks.items():
+                    summary_feedback[predicted_label][category][sentiment] += count
+                    summary_feedback[predicted_label]["all"][sentiment] += count
         elif mistake_type == "stiff_ankle":
             feedback_per_frame = feedback_stiff_ankle(joint_angles, user_angles, expert_angles, path)
 
@@ -443,7 +450,12 @@ def main():
 
     cv2.destroyAllWindows()
     shutil.rmtree(temp_dir, ignore_errors=True)
-
+    
+    # for evaluation purposes
+    
+    print(summary_feedback)
+    save_summary_for_video(ID,  evaluation_file, summary_feedback)
+    
 
 if __name__ == '__main__':
     main()
