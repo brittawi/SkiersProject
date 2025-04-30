@@ -31,7 +31,7 @@ import shutil
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "141"
+ID = "136"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -58,7 +58,7 @@ def main():
     print("Loading config...")
     run_args = update_config("./feedback_system/pipe_test.yaml") # TODO Testing set up fix for full pipeline
     # for evaluation purposes
-    evaluation_file = f'./data/feedback_evaluation/evaluation_{run_args.FEEDBACK.MISTAKE_TYPE}.json'
+    evaluation_file = f'{run_args.FEEDBACK.OUTPUT_STATS}/evaluation_{run_args.FEEDBACK.MISTAKE_TYPE}.json'
     if testing_with_inference:
         output_path, results_list = run_inference(run_args)
         
