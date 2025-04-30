@@ -7,7 +7,7 @@ if project_root not in sys.path:
 
 from utils.load_data import load_json, load_summary_json
 from utils.dtw import compare_selected_cycles, extract_multivariate_series
-from utils.feedback_utils import extract_multivariate_series_for_lines, calculate_differences, draw_joint_angles, draw_joint_relative_lines, draw_table, calculate_similarity, draw_plots, extract_multivariate_series_for_single_lines, draw_joint_single_lines, extract_multivariate_series_for_distances, save_summary_for_video
+from utils.feedback_utils import *
 from utils.nets import LSTMNet, SimpleMLP
 from utils.config import update_config
 from utils.split_cycles import split_into_cycles
@@ -31,7 +31,7 @@ import shutil
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "136"
+ID = "141"
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -43,6 +43,7 @@ INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Expert_mis
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
 testing_with_inference = False
+show_feedback = False
 
 
 
@@ -155,12 +156,13 @@ def main():
         video_writer = None # skips video writing
 
     # Create temp quick frame lookup video for user frames
-    user_temp_video = reencode_to_all_keyframes_temp(run_args.VIDEO_PATH)
+    if show_feedback:
+        user_temp_video = reencode_to_all_keyframes_temp(run_args.VIDEO_PATH)
 
     
     # classify each cycle
     # for evaluation purposes
-    summary_feedback = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+    summary_feedback = generate_evaluation_dict(run_args.FEEDBACK.MISTAKE_TYPE)
     for i, cycle_input in enumerate(input_data):
 
         # this is done in the dataloader 
@@ -309,14 +311,10 @@ def main():
                     summary_feedback[predicted_label][category][sentiment] += count
                     summary_feedback[predicted_label]["all"][sentiment] += count
         elif mistake_type == "stiff_ankle":
-            feedback_per_frame = feedback_stiff_ankle(joint_angles, user_angles, expert_angles, path)
-
-
+            feedback_per_frame, feedback_per_category = feedback_stiff_ankle(joint_angles, user_angles, expert_angles, path)
+            for category, count in feedback_per_category.items():
+                summary_feedback[predicted_label][category] += count
         
-            
-            
-        
-
         # Plotting
         # TODO make parameter?
         if False:
@@ -347,114 +345,115 @@ def main():
                 labels=['User', 'Expert']
             )
 
-        # Create temp quick frame lookup video for expert frames
-        expert_start_frame = expert_cycle.get("Start_frame")
-        vid_id = int(expert_cycle.get("Video"))
-        expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, f"DJI_{vid_id:04d}" + ".mp4")
-        # for the expert frame a -1 is added to the index as we get the image ids here and they start at 1 but frames actually 
-        # start at 0. For the user id we can get the frame id directly as we have the full json file. 
-        temp_dir="./temp_videos"
-        expert_temp_video = reencode_to_all_keyframes_temp(expert_video, temp_dir)
+        if show_feedback:
+            # Create temp quick frame lookup video for expert frames
+            expert_start_frame = expert_cycle.get("Start_frame")
+            vid_id = int(expert_cycle.get("Video"))
+            expert_video = os.path.join(run_args.DTW.VIS_VID_PATH, f"DJI_{vid_id:04d}" + ".mp4")
+            # for the expert frame a -1 is added to the index as we get the image ids here and they start at 1 but frames actually 
+            # start at 0. For the user id we can get the frame id directly as we have the full json file. 
+            temp_dir="./temp_videos"
+            expert_temp_video = reencode_to_all_keyframes_temp(expert_video, temp_dir)
 
-        # Loops through the DTW match pair and shows lines on user video
-        for i, (frame1, frame2) in enumerate(path):
-            # get acual frame
-            imgage_id = cycle["Image_ids"][frame1]
-            image_video_id = get_image_by_id(coco_data["images"], imgage_id)
-            image_video_id = int(image_video_id["file_name"].split('.')[0])
-            user_frame = extract_frame(user_temp_video, image_video_id)
-            # Get expert frame
-            expert_frame = extract_frame(expert_temp_video, frame2 + expert_start_frame - 1)    
+            # Loops through the DTW match pair and shows lines on user video
+            for i, (frame1, frame2) in enumerate(path):
+                # get acual frame
+                imgage_id = cycle["Image_ids"][frame1]
+                image_video_id = get_image_by_id(coco_data["images"], imgage_id)
+                image_video_id = int(image_video_id["file_name"].split('.')[0])
+                user_frame = extract_frame(user_temp_video, image_video_id)
+                # Get expert frame
+                expert_frame = extract_frame(expert_temp_video, frame2 + expert_start_frame - 1)    
+                
+                # draw lines on to each frame
+                user_points_lines = get_line_points(cycle, joints_lines_relative, frame1, run_args)
+                expert_points_lines = get_line_points(expert_cycle, joints_lines_relative, frame2, run_args)
+                
+                user_points_angles = get_line_points(cycle, joint_angles, frame1, run_args)
+                expert_points_angles = get_line_points(expert_cycle, joint_angles, frame2, run_args)
+
+                user_points_horizontal_lines = get_line_points(cycle, joints_lines_horizontal, frame1, run_args)
+                expert_points_horizontal_lines = get_line_points(expert_cycle, joints_lines_horizontal, frame2, run_args)
+                
+                user_points_distances = get_line_points(cycle, joints_distance, frame1, run_args)
+                expert_points_distances = get_line_points(expert_cycle, joints_distance, frame2, run_args)
+
+                # Draw lines
+                draw_joint_relative_lines(joints_lines_relative, user_frame, user_points_lines)
+                draw_joint_relative_lines(joints_lines_relative, expert_frame, expert_points_lines)
+                draw_joint_angles(joint_angles, user_frame, user_points_angles)
+                draw_joint_angles(joint_angles, expert_frame, expert_points_angles)
+                draw_joint_single_lines(joints_lines_horizontal, user_frame, user_points_horizontal_lines)
+                draw_joint_single_lines(joints_lines_horizontal, expert_frame, expert_points_horizontal_lines)
+                draw_joint_single_lines(joints_distance, user_frame, user_points_distances)
+                draw_joint_single_lines(joints_distance, expert_frame, expert_points_distances)
+                
+
+                height, width, channels = user_frame.shape
+                empty_image = np.zeros((height,width,channels), np.uint8)
+
+                info_image = draw_table(empty_image, 
+                                        (joint_angles, user_angles, expert_angles, diff_angles, sim_angles),
+                                        (joints_lines_relative, user_lines, expert_lines, diff_lines_relative, sim_lines_relative),
+                                        (joints_lines_horizontal, user_horizontal_lines, expert_horizontal_lines, diff_lines_horizontal, sim_lines_horizontal),
+                                        (joints_distance, user_distances, expert_distances, diff_distances, sim_distances),
+                                        (frame1, frame2), 
+                                        i)
+                
+                plot_image = draw_plots(np.zeros((height,width,channels), 
+                                                np.uint8), 
+                                                (user_angles, expert_angles, joint_angles,),
+                                                (user_lines, expert_lines, joints_lines_relative),
+                                                (user_horizontal_lines, expert_horizontal_lines, joints_lines_horizontal),
+                                                (user_distances, expert_distances, joints_distance),
+                                                path, 
+                                                frame1, 
+                                                frame2)
+                
+                # print feedback
+                #feedback_image = np.zeros((height,width,channels), np.uint8)
+                if frame2 in list(feedback_per_frame.keys()):
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    font_scale = 0.8
+                    font_thickness = 2
+                    text_color = (255, 255, 255)
+                    cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
+
+
+                side_image = cv2.vconcat([info_image, plot_image])
+                stacked_frame = cv2.vconcat([user_frame, expert_frame])
+                stacked_frame = cv2.hconcat([stacked_frame, side_image])
+
+                resize_frame = cv2.resize(stacked_frame, None, fx=0.5, fy=0.5)
+
+                if True:
+                    cv2.imshow("User video", resize_frame)
+
+                if video_writer == 1:
+                    # Define the video codec and output file
+                    os.makedirs(run_args.FEEDBACK.OUTPUT_PATH, exist_ok=True)
+                    output_video_path = os.path.join(run_args.FEEDBACK.OUTPUT_PATH, "output_video_" + run_args.VIDEO_PATH.split("\\")[-1].split(".")[0] + ".mp4")
+                    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4
+                    video_output_size = (resize_frame.shape[1], resize_frame.shape[0])  # Set the desired output size
+                    fps = 5
+                    video_writer = cv2.VideoWriter(output_video_path, fourcc, fps, video_output_size)
+
+                if run_args.FEEDBACK.SAVE_VIDEO:
+                    video_writer.write(resize_frame)
             
-            # draw lines on to each frame
-            user_points_lines = get_line_points(cycle, joints_lines_relative, frame1, run_args)
-            expert_points_lines = get_line_points(expert_cycle, joints_lines_relative, frame2, run_args)
-            
-            user_points_angles = get_line_points(cycle, joint_angles, frame1, run_args)
-            expert_points_angles = get_line_points(expert_cycle, joint_angles, frame2, run_args)
-
-            user_points_horizontal_lines = get_line_points(cycle, joints_lines_horizontal, frame1, run_args)
-            expert_points_horizontal_lines = get_line_points(expert_cycle, joints_lines_horizontal, frame2, run_args)
-            
-            user_points_distances = get_line_points(cycle, joints_distance, frame1, run_args)
-            expert_points_distances = get_line_points(expert_cycle, joints_distance, frame2, run_args)
-
-            # Draw lines
-            draw_joint_relative_lines(joints_lines_relative, user_frame, user_points_lines)
-            draw_joint_relative_lines(joints_lines_relative, expert_frame, expert_points_lines)
-            draw_joint_angles(joint_angles, user_frame, user_points_angles)
-            draw_joint_angles(joint_angles, expert_frame, expert_points_angles)
-            draw_joint_single_lines(joints_lines_horizontal, user_frame, user_points_horizontal_lines)
-            draw_joint_single_lines(joints_lines_horizontal, expert_frame, expert_points_horizontal_lines)
-            draw_joint_single_lines(joints_distance, user_frame, user_points_distances)
-            draw_joint_single_lines(joints_distance, expert_frame, expert_points_distances)
-            
-
-            height, width, channels = user_frame.shape
-            empty_image = np.zeros((height,width,channels), np.uint8)
-
-            info_image = draw_table(empty_image, 
-                                    (joint_angles, user_angles, expert_angles, diff_angles, sim_angles),
-                                    (joints_lines_relative, user_lines, expert_lines, diff_lines_relative, sim_lines_relative),
-                                    (joints_lines_horizontal, user_horizontal_lines, expert_horizontal_lines, diff_lines_horizontal, sim_lines_horizontal),
-                                    (joints_distance, user_distances, expert_distances, diff_distances, sim_distances),
-                                    (frame1, frame2), 
-                                    i)
-            
-            plot_image = draw_plots(np.zeros((height,width,channels), 
-                                             np.uint8), 
-                                             (user_angles, expert_angles, joint_angles,),
-                                             (user_lines, expert_lines, joints_lines_relative),
-                                             (user_horizontal_lines, expert_horizontal_lines, joints_lines_horizontal),
-                                             (user_distances, expert_distances, joints_distance),
-                                             path, 
-                                             frame1, 
-                                             frame2)
-            
-            # print feedback
-            #feedback_image = np.zeros((height,width,channels), np.uint8)
-            if frame2 in list(feedback_per_frame.keys()):
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                font_scale = 0.8
-                font_thickness = 2
-                text_color = (255, 255, 255)
-                cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
-
-
-            side_image = cv2.vconcat([info_image, plot_image])
-            stacked_frame = cv2.vconcat([user_frame, expert_frame])
-            stacked_frame = cv2.hconcat([stacked_frame, side_image])
-
-            resize_frame = cv2.resize(stacked_frame, None, fx=0.5, fy=0.5)
-
-            if True:
-                cv2.imshow("User video", resize_frame)
-
-            if video_writer == 1:
-                # Define the video codec and output file
-                os.makedirs(run_args.FEEDBACK.OUTPUT_PATH, exist_ok=True)
-                output_video_path = os.path.join(run_args.FEEDBACK.OUTPUT_PATH, "output_video_" + run_args.VIDEO_PATH.split("\\")[-1].split(".")[0] + ".mp4")
-                fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4
-                video_output_size = (resize_frame.shape[1], resize_frame.shape[0])  # Set the desired output size
-                fps = 5
-                video_writer = cv2.VideoWriter(output_video_path, fourcc, fps, video_output_size)
-
-            if run_args.FEEDBACK.SAVE_VIDEO:
-                video_writer.write(resize_frame)
-        
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
     if video_writer:
         video_writer.release()
 
-    cv2.destroyAllWindows()
-    shutil.rmtree(temp_dir, ignore_errors=True)
+    if show_feedback:
+        cv2.destroyAllWindows()
+        shutil.rmtree(temp_dir, ignore_errors=True)
     
     # for evaluation purposes
-    
-    print(summary_feedback)
-    save_summary_for_video(ID,  evaluation_file, summary_feedback)
+    if run_args.FEEDBACK.SAVE_STATISTICS:
+        save_summary_for_video(ID,  evaluation_file, summary_feedback)
     
 
 if __name__ == '__main__':
