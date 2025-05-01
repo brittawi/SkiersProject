@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 from dtaidistance import dtw_visualisation
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from scipy.signal import find_peaks
+from utils.load_data import load_summary_json
+import json
+import os
+from collections import defaultdict
 
 def compute_angle_between_lines(p1, p2, p3, p4):
     """Computes the angle between two lines formed by points (p1, p2) and (p3, p4)."""
@@ -523,6 +527,13 @@ def feedback_stiff_ankle(joint_angles, user_angles, expert_angles, path):
     thr_exp_sim = 0.1
     thr_exp_rat = 0.9
     thr_stiff_ankle = 0.8
+    
+    # for evaluation
+    feedback_per_category = {
+        "positive": 0,
+        "no feedback": 0,
+        "negative": 0
+    }
     for j, angle in enumerate(joint_angles):
         if angle not in counter_angles:
             counter_angles[angle] = 0
@@ -541,19 +552,22 @@ def feedback_stiff_ankle(joint_angles, user_angles, expert_angles, path):
     knee_good_ratio = counter_exp_sim[joint_angles[0]] / len(path)
     if knee_good_ratio > thr_exp_rat:
         feedback = f"Knee angle is within {thr_exp_sim} of expert angle {thr_exp_rat} of the time!"
+        feedback_per_category["positive"] += 1
     elif knee_angle_ratio > thr_stiff_ankle:
         feedback = (
             f"The knee angle indicate you might not flex your ankles enough! Maybe review if your ankles are stiff, "
             f"and if they are you can try to push your knee forward to make them flex more!"
         )
+        feedback_per_category["negative"] += 1
     else:
         feedback = ""
+        feedback_per_category["no feedback"] += 1
 
     # Filling feedback dict
     for _, expert_frame in path:
         feedBack_per_frame[expert_frame] = feedback
 
-    return feedBack_per_frame
+    return feedBack_per_frame, feedback_per_category
 
 
 
@@ -566,6 +580,22 @@ def save_feedback(feedback_dict, frame, feedback, range_):
 def feedback_wide_legs(expert_distances, user_distances, diff_distances, path, feedback_range):
     
     feedback_per_frame = {}
+    # for evaluation
+    feedback_per_category = {
+        "push": {
+            "positive" : 0,
+            "no feedback" : 0,
+            "possibly negative" : 0,
+            "negative" : 0
+        },
+        "together": {
+            "positive" : 0,
+            "no feedback" : 0,
+            "possibly negative" : 0,
+            "negative" : 0
+        },
+        
+    }
 
     expert_distances_arr = np.concatenate(expert_distances)
     user_distances_arr = np.concatenate(user_distances)
@@ -590,16 +620,20 @@ def feedback_wide_legs(expert_distances, user_distances, diff_distances, path, f
             if abs(avg_dist_user-expert_distances_arr[peak_min_idx]) < 3: 
                 feedback =  "You are doing great and bringing the legs close together!"
                 print(feedback)
+                feedback_per_category["together"]["positive"] += 1
                 save_feedback(feedback_per_frame, peak_min_idx, feedback, feedback_range)
             elif abs(avg_dist_user-expert_distances_arr[peak_min_idx]) < 10: 
+                feedback_per_category["together"]["no feedback"] += 1
                 continue
             elif abs(avg_dist_user-expert_distances_arr[peak_min_idx]) < 15: 
                 feedback = "You might have to bring your legs closer together. You can do this by trying to move the arms faster and the legs will follow."
                 print(feedback)
+                feedback_per_category["together"]["possibly negative"] += 1
                 save_feedback(feedback_per_frame, peak_min_idx, feedback, feedback_range)
             else:
                 feedback = "You should bring your legs closer together. You can do this by trying to move the arms faster and the legs will follow."
                 print(feedback)
+                feedback_per_category["together"]["negative"] += 1
                 save_feedback(feedback_per_frame, peak_min_idx, feedback, feedback_range)
             #print(f"Difference at legs together = {abs(avg_dist_user-expert_distances_arr[peak_min_idx])}") 
             print("")       
@@ -619,24 +653,68 @@ def feedback_wide_legs(expert_distances, user_distances, diff_distances, path, f
             if abs(avg_dist_user-expert_distances_arr[peak_max_idx]) < 3:
                 feedback = "You are doing great and really using your legs to push yourself forward!"
                 print(feedback)
+                feedback_per_category["push"]["positive"] += 1
                 save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
             elif abs(avg_dist_user-expert_distances_arr[peak_max_idx]) < 10: 
+                feedback_per_category["push"]["no feedback"] += 1
                 continue
             elif abs(avg_dist_user-expert_distances_arr[peak_max_idx]) < 15:
                 if avg_dist_user-expert_distances_arr[peak_max_idx] > 0:
                     feedback = "You are pushing with your feet a lot more than the expert your data is compared to."
                     print(feedback)
+                    feedback_per_category["push"]["positive"] += 1
                     save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
                 else:
                     feedback = "It looks like you should try to use your legs more and try to push yourself more forward."
                     print(feedback)
+                    feedback_per_category["push"]["possibly negative"] += 1
                     save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
             else:
-                feedback = "You should use your legs more and try to push yourself more forward."
-                print(feedback)
-                save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
+                if avg_dist_user-expert_distances_arr[peak_max_idx] > 0:
+                    feedback = "You are pushing with your feet a lot more than the expert your data is compared to."
+                    print(feedback)
+                    feedback_per_category["push"]["positive"] += 1
+                    save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
+                else:
+                    feedback = "You should use your legs more and try to push yourself more forward."
+                    print(feedback)
+                    feedback_per_category["push"]["negative"] += 1
+                    save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
             #print(f"Difference at push = {abs(avg_dist_user-expert_distances_arr[peak_max_idx])}")
             print("")  
     
-    return feedback_per_frame
+    return feedback_per_frame, feedback_per_category
+
+
+
+# evaluation
+# convert defaultdict to normal dict to save as json
+def dictify(d):
+    if isinstance(d, defaultdict):
+        return {k: dictify(v) for k, v in d.items()}
+    return d
+
+def save_summary_for_video(video_id, file_name, summary_feedback):
+    # Load or create summary file
+    all_summaries = load_summary_json(file_name)
+    
+    # Convert defaultdicts to normal dicts before saving
+    summary_as_dict = dictify(summary_feedback)
+
+    # Overwrite or add this video’s summary
+    all_summaries[video_id] = summary_as_dict
+    os.makedirs(os.path.dirname(file_name), exist_ok=True)
+    
+    # Save back to file
+    with open(file_name, 'w') as f:
+        json.dump(all_summaries, f, indent=2)
+        
+        
+# TODO add versions for other mistakes
+def generate_evaluation_dict(mistake_type):
+    if mistake_type == "wide_legs":
+        return defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+    elif mistake_type ==  "stiff_ankle":
+        return defaultdict(lambda: defaultdict(int))
+
     
