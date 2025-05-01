@@ -713,8 +713,8 @@ def save_summary_for_video(video_id, file_name, summary_feedback):
 # TODO add versions for other mistakes
 def generate_evaluation_dict(mistake_type):
     if mistake_type == "wide_legs":
-        return defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+        return defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(int))))
     elif mistake_type ==  "stiff_ankle":
-        return defaultdict(lambda: defaultdict(int))
+        return defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
     

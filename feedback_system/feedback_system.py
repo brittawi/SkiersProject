@@ -31,7 +31,8 @@ import shutil
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "136"
+ID = "158"
+SKIER_ID = 5
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -229,7 +230,6 @@ def main():
                 joints_lines_horizontal = [("Hip", "Neck")]
                 joints_distance = []
                 joints_lines_relative = []
-                
             else:
                 print(f"We cannot give feedback for this mistake {mistake_type} from the front, please provide a video from the side.")
                 break
@@ -307,13 +307,22 @@ def main():
         if mistake_type == "wide_legs":
             feedback_per_frame, feedback_per_category = feedback_wide_legs(expert_distances, user_distances, diff_distances, path, feedback_range)
             for category, feedbacks in feedback_per_category.items():
-                for sentiment, count in feedbacks.items():
-                    summary_feedback[predicted_label][category][sentiment] += count
-                    summary_feedback[predicted_label]["all"][sentiment] += count
+                    for sentiment, count in feedbacks.items():
+                        summary_feedback["with_self_matches"][predicted_label][category][sentiment] += count
+                        summary_feedback["with_self_matches"][predicted_label]["all"][sentiment] += count
+            if SKIER_ID != expert_cycle.get("Skier_id"):
+                for category, feedbacks in feedback_per_category.items():
+                    for sentiment, count in feedbacks.items():
+                        summary_feedback["no_self_matches"][predicted_label][category][sentiment] += count
+                        summary_feedback["no_self_matches"][predicted_label]["all"][sentiment] += count
+                        
         elif mistake_type == "stiff_ankle":
             feedback_per_frame, feedback_per_category = feedback_stiff_ankle(joint_angles, user_angles, expert_angles, path)
             for category, count in feedback_per_category.items():
-                summary_feedback[predicted_label][category] += count
+                    summary_feedback["with_self_matches"][predicted_label][category] += count
+            if SKIER_ID != expert_cycle.get("Skier_id"):
+                for category, count in feedback_per_category.items():
+                    summary_feedback["no_self_matches"][predicted_label][category] += count
         
         # Plotting
         # TODO make parameter?
