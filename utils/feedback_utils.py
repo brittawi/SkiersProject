@@ -665,7 +665,7 @@ def feedback_wide_legs(expert_distances, user_distances, diff_distances, path, f
                     feedback_per_category["push"]["positive"] += 1
                     save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
                 else:
-                    feedback = "It looks like you should try to use your legs more and try to push yourself more forward."
+                    feedback = "It seems like you should try to use your legs more and try to push yourself more forward."
                     print(feedback)
                     feedback_per_category["push"]["possibly negative"] += 1
                     save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
@@ -694,12 +694,13 @@ def dictify(d):
         return {k: dictify(v) for k, v in d.items()}
     return d
 
-def save_summary_for_video(video_id, file_name, summary_feedback):
+def save_summary_for_video(video_id, skier_id, file_name, summary_feedback):
     # Load or create summary file
     all_summaries = load_summary_json(file_name)
     
     # Convert defaultdicts to normal dicts before saving
     summary_as_dict = dictify(summary_feedback)
+    summary_as_dict["Skier_ID"] = skier_id
 
     # Overwrite or add this video’s summary
     all_summaries[video_id] = summary_as_dict

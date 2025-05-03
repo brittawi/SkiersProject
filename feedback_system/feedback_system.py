@@ -31,15 +31,15 @@ import shutil
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "158"
-SKIER_ID = 5
+ID = "61"
+SKIER_ID = 10
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
 #INPUT_PATH = os.path.join("e:\SkiProject\Results_AlphaPose\Expert_mistake_iter_1\All",  f"{ID}.json")
-INPUT_PATH = os.path.join(r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\annotations_finetuned_v1\Expert_mistake",  f"{ID}.json")
+INPUT_PATH = os.path.join(r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\annotations_finetuned_v1\Mixed_level",  f"{ID}.json")
 #INPUT_VIDEO = r"e:\SkiProject\Expert_mistake_videos\DJI_" + f"DJI_{int(ID):04d}.mp4"
-INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Expert_mistakes_data\Film2025-03-07\DJI_0" + ID + ".mp4"
+INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\NewData\Film2025-02-22\DJI_00" + ID + ".mp4"
 # # path to where all videos are stored
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
@@ -462,7 +462,7 @@ def main():
     
     # for evaluation purposes
     if run_args.FEEDBACK.SAVE_STATISTICS:
-        save_summary_for_video(ID,  evaluation_file, summary_feedback)
+        save_summary_for_video(ID, SKIER_ID,  evaluation_file, summary_feedback)
     
 
 if __name__ == '__main__':
