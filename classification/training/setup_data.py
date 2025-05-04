@@ -7,11 +7,11 @@ import glob
 
 IN_PATH = "./data/labeled_data"
 OUT_PATH = "./data/split_data"
-TRAIN_FILE_NAME = "train_only_9.json"
-TEST_FILE_NAME = "test_only_9.json"
+TRAIN_FILE_NAME = "train_only_2_5_10.json"
+TEST_FILE_NAME = "test_only_2_5_10.json"
 
 # List with skier ids to not add to the dataset
-EXLUDED_SKIER_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13]
+EXLUDED_SKIER_IDS = [1,3,4,6,7,8,9,11,12,13]
 # List of videos to exclude
 EXLUDED_VIDEO_IDS = []
 

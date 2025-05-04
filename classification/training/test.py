@@ -23,8 +23,8 @@ from utils.CustomDataset import CustomDataset
 from utils.training_utils import validation, initialize_loss
 
 
-MODEL_PATH = "./pretrained_models/trained_model_2025_04_11_15_03_lr0.0001_mlp_no_hip.pth"
-TEST_DATA_PATH = "./data/split_data/test_full.json"
+MODEL_PATH = "./pretrained_models/trained_model_2025_05_03_10_56_lr0.0001_post_hoc_mlp_no_2_5_10_19_epoch.pth"
+TEST_DATA_PATH = "./data/split_data/test_only_2_5_10.json"
 TEST_OUTPUT = "./classification/training/runs/test"
 
 def main():
