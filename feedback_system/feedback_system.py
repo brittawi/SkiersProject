@@ -31,7 +31,7 @@ import shutil
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "61"
+ID = "92"
 SKIER_ID = 10
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
@@ -44,7 +44,7 @@ INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\NewData\Fi
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
 testing_with_inference = False
-show_feedback = False
+show_feedback = True
 
 
 
@@ -423,10 +423,11 @@ def main():
                 #feedback_image = np.zeros((height,width,channels), np.uint8)
                 if frame2 in list(feedback_per_frame.keys()):
                     font = cv2.FONT_HERSHEY_SIMPLEX
-                    font_scale = 0.8
+                    font_scale = 1.2
                     font_thickness = 2
                     text_color = (255, 255, 255)
-                    cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
+                    #cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
+                    draw_multiline_text(info_image, feedback_per_frame[frame2], (20, 250), font, font_scale, text_color, font_thickness)
 
 
                 side_image = cv2.vconcat([info_image, plot_image])
