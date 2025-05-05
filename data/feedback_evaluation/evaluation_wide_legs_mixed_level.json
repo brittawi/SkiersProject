@@ -1,0 +1,1528 @@
+{
+  "62": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 3,
+          "no feedback": 2,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 10,
+          "possibly negative": 3,
+          "negative": 0
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 8,
+          "possibly negative": 2,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 2,
+          "no feedback": 10,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 3,
+          "no feedback": 2,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 10,
+          "possibly negative": 3,
+          "negative": 0
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 8,
+          "possibly negative": 2,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 2,
+          "no feedback": 10,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "Skier_ID": 13
+  },
+  "63": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 3,
+          "possibly negative": 2,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 6,
+          "possibly negative": 5,
+          "negative": 1
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 3,
+          "possibly negative": 5,
+          "negative": 1
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 3,
+          "possibly negative": 2,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 6,
+          "possibly negative": 5,
+          "negative": 1
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 3,
+          "possibly negative": 5,
+          "negative": 1
+        }
+      }
+    },
+    "Skier_ID": 13
+  },
+  "82": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 6,
+          "possibly negative": 1,
+          "negative": 1
+        },
+        "together": {
+          "positive": 3,
+          "no feedback": 3,
+          "possibly negative": 1,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 6,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 6,
+          "possibly negative": 1,
+          "negative": 1
+        },
+        "together": {
+          "positive": 3,
+          "no feedback": 3,
+          "possibly negative": 1,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 6,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "Skier_ID": 13
+  },
+  "83": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 3,
+          "no feedback": 5,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 2,
+          "no feedback": 8,
+          "possibly negative": 1,
+          "negative": 1
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 6,
+          "possibly negative": 1,
+          "negative": 1
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 3,
+          "no feedback": 5,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 2,
+          "no feedback": 8,
+          "possibly negative": 1,
+          "negative": 1
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 6,
+          "possibly negative": 1,
+          "negative": 1
+        }
+      }
+    },
+    "Skier_ID": 13
+  },
+  "92": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 2,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 6,
+          "possibly negative": 6,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 4,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 1,
+          "negative": 2
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 6,
+          "negative": 7
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 2,
+          "possibly negative": 5,
+          "negative": 5
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 2,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 6,
+          "possibly negative": 6,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 4,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 1,
+          "negative": 2
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 6,
+          "negative": 7
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 2,
+          "possibly negative": 5,
+          "negative": 5
+        }
+      }
+    },
+    "Skier_ID": 11
+  },
+  "93": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 3,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 13,
+          "possibly negative": 7,
+          "negative": 1
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 9,
+          "possibly negative": 4,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 3,
+          "no feedback": 3,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 4,
+          "possibly negative": 8,
+          "negative": 7
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 1,
+          "possibly negative": 6,
+          "negative": 7
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 3,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 13,
+          "possibly negative": 7,
+          "negative": 1
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 9,
+          "possibly negative": 4,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 3,
+          "no feedback": 3,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 4,
+          "possibly negative": 8,
+          "negative": 7
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 1,
+          "possibly negative": 6,
+          "negative": 7
+        }
+      }
+    },
+    "Skier_ID": 11
+  },
+  "114": {
+    "with_self_matches": {
+      "gear3": {
+        "push": {
+          "positive": 3,
+          "no feedback": 3,
+          "possibly negative": 2,
+          "negative": 1
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 10,
+          "possibly negative": 8,
+          "negative": 6
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 7,
+          "possibly negative": 6,
+          "negative": 5
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear3": {
+        "push": {
+          "positive": 3,
+          "no feedback": 3,
+          "possibly negative": 2,
+          "negative": 1
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 10,
+          "possibly negative": 8,
+          "negative": 6
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 7,
+          "possibly negative": 6,
+          "negative": 5
+        }
+      }
+    },
+    "Skier_ID": 11
+  },
+  "115": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 7,
+          "no feedback": 8,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 5,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 4,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 0,
+          "possibly negative": 2,
+          "negative": 6
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 0,
+          "possibly negative": 2,
+          "negative": 6
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 7,
+          "no feedback": 8,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 5,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 4,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 0,
+          "possibly negative": 2,
+          "negative": 6
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 0,
+          "possibly negative": 2,
+          "negative": 6
+        }
+      }
+    },
+    "Skier_ID": 11
+  },
+  "55": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 1,
+          "negative": 1
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 7,
+          "possibly negative": 2,
+          "negative": 5
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 5,
+          "possibly negative": 1,
+          "negative": 4
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 1,
+          "negative": 1
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 7,
+          "possibly negative": 2,
+          "negative": 5
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 5,
+          "possibly negative": 1,
+          "negative": 4
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "Skier_ID": 9
+  },
+  "57": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 3,
+          "no feedback": 2,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 9,
+          "possibly negative": 2,
+          "negative": 4
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 7,
+          "possibly negative": 1,
+          "negative": 4
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 1
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 7,
+          "possibly negative": 1,
+          "negative": 1
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 5,
+          "possibly negative": 1,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 3,
+          "no feedback": 2,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 9,
+          "possibly negative": 2,
+          "negative": 4
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 7,
+          "possibly negative": 1,
+          "negative": 4
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 1
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 7,
+          "possibly negative": 1,
+          "negative": 1
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 5,
+          "possibly negative": 1,
+          "negative": 0
+        }
+      }
+    },
+    "Skier_ID": 9
+  },
+  "58": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 5,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 13,
+          "possibly negative": 1,
+          "negative": 1
+        },
+        "together": {
+          "positive": 5,
+          "no feedback": 8,
+          "possibly negative": 0,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 0,
+          "no feedback": 3,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 5,
+          "possibly negative": 3,
+          "negative": 3
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 2,
+          "negative": 3
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 5,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 13,
+          "possibly negative": 1,
+          "negative": 1
+        },
+        "together": {
+          "positive": 5,
+          "no feedback": 8,
+          "possibly negative": 0,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 0,
+          "no feedback": 3,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 5,
+          "possibly negative": 3,
+          "negative": 3
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 2,
+          "negative": 3
+        }
+      }
+    },
+    "Skier_ID": 9
+  },
+  "129": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 3,
+          "no feedback": 2,
+          "possibly negative": 3,
+          "negative": 0
+        },
+        "all": {
+          "positive": 6,
+          "no feedback": 9,
+          "possibly negative": 7,
+          "negative": 2
+        },
+        "together": {
+          "positive": 3,
+          "no feedback": 7,
+          "possibly negative": 4,
+          "negative": 2
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 2
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 9,
+          "possibly negative": 0,
+          "negative": 2
+        },
+        "together": {
+          "positive": 3,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 3,
+          "no feedback": 2,
+          "possibly negative": 3,
+          "negative": 0
+        },
+        "all": {
+          "positive": 6,
+          "no feedback": 9,
+          "possibly negative": 7,
+          "negative": 2
+        },
+        "together": {
+          "positive": 3,
+          "no feedback": 7,
+          "possibly negative": 4,
+          "negative": 2
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 2
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 9,
+          "possibly negative": 0,
+          "negative": 2
+        },
+        "together": {
+          "positive": 3,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "Skier_ID": 9
+  },
+  "130": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 6,
+          "possibly negative": 1,
+          "negative": 1
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 4,
+          "possibly negative": 1,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 4,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 1
+        },
+        "all": {
+          "positive": 8,
+          "no feedback": 12,
+          "possibly negative": 2,
+          "negative": 2
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 9,
+          "possibly negative": 2,
+          "negative": 1
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 6,
+          "possibly negative": 1,
+          "negative": 1
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 4,
+          "possibly negative": 1,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 4,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 1
+        },
+        "all": {
+          "positive": 8,
+          "no feedback": 12,
+          "possibly negative": 2,
+          "negative": 2
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 9,
+          "possibly negative": 2,
+          "negative": 1
+        }
+      }
+    },
+    "Skier_ID": 9
+  },
+  "80": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 1,
+          "possibly negative": 3,
+          "negative": 1
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 6,
+          "possibly negative": 5,
+          "negative": 5
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 5,
+          "possibly negative": 2,
+          "negative": 4
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 1
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 5,
+          "possibly negative": 0,
+          "negative": 1
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 1,
+          "possibly negative": 3,
+          "negative": 1
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 6,
+          "possibly negative": 5,
+          "negative": 5
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 5,
+          "possibly negative": 2,
+          "negative": 4
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 1
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 5,
+          "possibly negative": 0,
+          "negative": 1
+        }
+      }
+    },
+    "Skier_ID": 12
+  },
+  "84": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 2,
+          "no feedback": 5,
+          "possibly negative": 1,
+          "negative": 7
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 2,
+          "possibly negative": 1,
+          "negative": 7
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 6,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 2,
+          "no feedback": 5,
+          "possibly negative": 1,
+          "negative": 7
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 2,
+          "possibly negative": 1,
+          "negative": 7
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 6,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "Skier_ID": 12
+  },
+  "59": {
+    "with_self_matches": {
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "Skier_ID": 10
+  },
+  "60": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 0,
+          "no feedback": 4,
+          "possibly negative": 3,
+          "negative": 2
+        },
+        "all": {
+          "positive": 15,
+          "no feedback": 7,
+          "possibly negative": 3,
+          "negative": 2
+        },
+        "together": {
+          "positive": 15,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 0,
+          "no feedback": 4,
+          "possibly negative": 3,
+          "negative": 2
+        },
+        "all": {
+          "positive": 15,
+          "no feedback": 7,
+          "possibly negative": 3,
+          "negative": 2
+        },
+        "together": {
+          "positive": 15,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "Skier_ID": 10
+  },
+  "61": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 0,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 5,
+          "negative": 0
+        },
+        "all": {
+          "positive": 10,
+          "no feedback": 6,
+          "possibly negative": 5,
+          "negative": 0
+        },
+        "together": {
+          "positive": 9,
+          "no feedback": 5,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 0,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 5,
+          "negative": 0
+        },
+        "all": {
+          "positive": 10,
+          "no feedback": 6,
+          "possibly negative": 5,
+          "negative": 0
+        },
+        "together": {
+          "positive": 9,
+          "no feedback": 5,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "Skier_ID": 10
+  }
+}

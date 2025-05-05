@@ -31,19 +31,20 @@ import shutil
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "136"
+ID = "92"
+SKIER_ID = 10
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
 #INPUT_PATH = os.path.join("e:\SkiProject\Results_AlphaPose\Expert_mistake_iter_1\All",  f"{ID}.json")
-INPUT_PATH = os.path.join(r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\annotations_finetuned_v1\Expert_mistake",  f"{ID}.json")
+INPUT_PATH = os.path.join(r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\annotations_finetuned_v1\Mixed_level",  f"{ID}.json")
 #INPUT_VIDEO = r"e:\SkiProject\Expert_mistake_videos\DJI_" + f"DJI_{int(ID):04d}.mp4"
-INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Expert_mistakes_data\Film2025-03-07\DJI_0" + ID + ".mp4"
+INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\NewData\Film2025-02-22\DJI_00" + ID + ".mp4"
 # # path to where all videos are stored
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
 testing_with_inference = False
-show_feedback = False
+show_feedback = True
 
 
 
@@ -229,7 +230,6 @@ def main():
                 joints_lines_horizontal = [("Hip", "Neck")]
                 joints_distance = []
                 joints_lines_relative = []
-                
             else:
                 print(f"We cannot give feedback for this mistake {mistake_type} from the front, please provide a video from the side.")
                 break
@@ -307,13 +307,22 @@ def main():
         if mistake_type == "wide_legs":
             feedback_per_frame, feedback_per_category = feedback_wide_legs(expert_distances, user_distances, diff_distances, path, feedback_range)
             for category, feedbacks in feedback_per_category.items():
-                for sentiment, count in feedbacks.items():
-                    summary_feedback[predicted_label][category][sentiment] += count
-                    summary_feedback[predicted_label]["all"][sentiment] += count
+                    for sentiment, count in feedbacks.items():
+                        summary_feedback["with_self_matches"][predicted_label][category][sentiment] += count
+                        summary_feedback["with_self_matches"][predicted_label]["all"][sentiment] += count
+            if SKIER_ID != expert_cycle.get("Skier_id"):
+                for category, feedbacks in feedback_per_category.items():
+                    for sentiment, count in feedbacks.items():
+                        summary_feedback["no_self_matches"][predicted_label][category][sentiment] += count
+                        summary_feedback["no_self_matches"][predicted_label]["all"][sentiment] += count
+                        
         elif mistake_type == "stiff_ankle":
             feedback_per_frame, feedback_per_category = feedback_stiff_ankle(joint_angles, user_angles, expert_angles, path)
             for category, count in feedback_per_category.items():
-                summary_feedback[predicted_label][category] += count
+                    summary_feedback["with_self_matches"][predicted_label][category] += count
+            if SKIER_ID != expert_cycle.get("Skier_id"):
+                for category, count in feedback_per_category.items():
+                    summary_feedback["no_self_matches"][predicted_label][category] += count
         
         # Plotting
         # TODO make parameter?
@@ -414,10 +423,11 @@ def main():
                 #feedback_image = np.zeros((height,width,channels), np.uint8)
                 if frame2 in list(feedback_per_frame.keys()):
                     font = cv2.FONT_HERSHEY_SIMPLEX
-                    font_scale = 0.8
+                    font_scale = 1.2
                     font_thickness = 2
                     text_color = (255, 255, 255)
-                    cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
+                    #cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
+                    draw_multiline_text(info_image, feedback_per_frame[frame2], (20, 250), font, font_scale, text_color, font_thickness)
 
 
                 side_image = cv2.vconcat([info_image, plot_image])
@@ -453,7 +463,7 @@ def main():
     
     # for evaluation purposes
     if run_args.FEEDBACK.SAVE_STATISTICS:
-        save_summary_for_video(ID,  evaluation_file, summary_feedback)
+        save_summary_for_video(ID, SKIER_ID,  evaluation_file, summary_feedback)
     
 
 if __name__ == '__main__':

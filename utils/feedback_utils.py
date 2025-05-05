@@ -626,12 +626,12 @@ def feedback_wide_legs(expert_distances, user_distances, diff_distances, path, f
                 feedback_per_category["together"]["no feedback"] += 1
                 continue
             elif abs(avg_dist_user-expert_distances_arr[peak_min_idx]) < 15: 
-                feedback = "You might have to bring your legs closer together. You can do this by trying to move the arms faster and the legs will follow."
+                feedback = "You might have to bring your legs closer together. \nYou can do this by trying to return the arms for the next push faster and the legs will follow."
                 print(feedback)
                 feedback_per_category["together"]["possibly negative"] += 1
                 save_feedback(feedback_per_frame, peak_min_idx, feedback, feedback_range)
             else:
-                feedback = "You should bring your legs closer together. You can do this by trying to move the arms faster and the legs will follow."
+                feedback = "You should bring your legs closer together. \nYou can do this by trying to return the arms for the next push faster and the legs will follow."
                 print(feedback)
                 feedback_per_category["together"]["negative"] += 1
                 save_feedback(feedback_per_frame, peak_min_idx, feedback, feedback_range)
@@ -660,23 +660,23 @@ def feedback_wide_legs(expert_distances, user_distances, diff_distances, path, f
                 continue
             elif abs(avg_dist_user-expert_distances_arr[peak_max_idx]) < 15:
                 if avg_dist_user-expert_distances_arr[peak_max_idx] > 0:
-                    feedback = "You are pushing with your feet a lot more than the expert your data is compared to."
+                    feedback = "You are pushing with your feet a lot more than the expert your data is compared to, which should be good."
                     print(feedback)
                     feedback_per_category["push"]["positive"] += 1
                     save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
                 else:
-                    feedback = "It looks like you should try to use your legs more and try to push yourself more forward."
+                    feedback = "It seems like you should try to use your legs more and try to push yourself more forward. \nFor the leg push try to push outwards to the side until the leg is fully extended."
                     print(feedback)
                     feedback_per_category["push"]["possibly negative"] += 1
                     save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
             else:
                 if avg_dist_user-expert_distances_arr[peak_max_idx] > 0:
-                    feedback = "You are pushing with your feet a lot more than the expert your data is compared to."
+                    feedback = "You are pushing with your feet a lot more than the expert your data is compared to, which should be good.."
                     print(feedback)
                     feedback_per_category["push"]["positive"] += 1
                     save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
                 else:
-                    feedback = "You should use your legs more and try to push yourself more forward."
+                    feedback = "You should use your legs more and try to push yourself more forward. \nFor the leg push try to push outwards to the side until the leg is fully extended."
                     print(feedback)
                     feedback_per_category["push"]["negative"] += 1
                     save_feedback(feedback_per_frame, peak_max_idx, feedback, feedback_range)
@@ -694,12 +694,13 @@ def dictify(d):
         return {k: dictify(v) for k, v in d.items()}
     return d
 
-def save_summary_for_video(video_id, file_name, summary_feedback):
+def save_summary_for_video(video_id, skier_id, file_name, summary_feedback):
     # Load or create summary file
     all_summaries = load_summary_json(file_name)
     
     # Convert defaultdicts to normal dicts before saving
     summary_as_dict = dictify(summary_feedback)
+    summary_as_dict["Skier_ID"] = skier_id
 
     # Overwrite or add this video’s summary
     all_summaries[video_id] = summary_as_dict
@@ -713,8 +714,16 @@ def save_summary_for_video(video_id, file_name, summary_feedback):
 # TODO add versions for other mistakes
 def generate_evaluation_dict(mistake_type):
     if mistake_type == "wide_legs":
-        return defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+        return defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(int))))
     elif mistake_type ==  "stiff_ankle":
-        return defaultdict(lambda: defaultdict(int))
+        return defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
-    
+
+def draw_multiline_text(img, text, org, font, font_scale, color, thickness, line_spacing=1.2):
+    """
+    Draw multiline text on an image, wrapping manually by newline or width.
+    """
+    x, y = org
+    for i, line in enumerate(text.split('\n')):
+        y_offset = int(i * font_scale * 30 * line_spacing)
+        cv2.putText(img, line, (x, y + y_offset), font, font_scale, color, thickness, lineType=cv2.LINE_AA)
