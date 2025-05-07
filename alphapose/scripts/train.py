@@ -2,6 +2,8 @@
 import json
 import os
 import sys
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, project_root)
 
 import numpy as np
 import torch
@@ -374,6 +376,7 @@ def validate_gt(m, opt, cfg, heatmap_to_coord, criterion, writer, batch_size=20)
 
 
 def main():
+    print("in main!")
     logger.info('******************************')
     logger.info(opt)
     logger.info('******************************')
