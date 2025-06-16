@@ -9,7 +9,6 @@
 - [Contribution](#contribution)
 
 ## Project Description (Britta)
-**TODO**
 
 Our goal is to provide **technique feedback for cross-country skiers** using machine learning. While previous research has primarily focused on **classifying sub-techniques**, little work has been done on **providing (real-time) feedback** based on movement patterns. Most studies have relied on **sensor-based classification** ([[1]](#1), [[3]](#3), [[4]](#4)), while video-based classification has been limited to **controlled treadmill environments**—where sensors have shown better performance ([[2]](#2)).
 
@@ -31,18 +30,19 @@ As part of the project we want to:
 
 By leveraging machine learning and pose estimation, this project aims to enhance technique analysis in cross-country skiing, providing athletes with meaningful, data-driven feedback.
 
-TODO put Halpe dataset here as well?!
-
 ## Dataset
-**TODO** need to modify this text when we get the new data => add number of videos etc
-currently: 26 videos (8 front, 16 side)
+The dataset used in this project contains 149 drone-recorded videos of 12 cross-country skiers, captured using a DJI Mini 2 drone from front and side perspectives. The recordings were taken at Ormberget in Luleå, Sweden, under diverse natural conditions including sunshine, fog, and wind. Skiers of varying skill levels—from beginners to national-level athletes—performed skiing techniques in gears G2, G3, and G4, as well as sprints and transitions. Expert skiers also simulated five common technique mistakes to support automated feedback development. Manual drone tracking ensured dynamic yet informative footage suitable for pose estimation and motion analysis.
+From these videos we have created a dataset both for fine-tuning the pose estimation model and for training a classifier to detect different gears.
 
-The dataset that will be used for this project is drone captured videos of an expert skier skating on flat ground. The skating techniques used in the videos consist mainly of gear two and three. The skier is captured from several different viewpoints but the two we will use are from the front and from the sides based on an interview with a ski coach. Videos in different conditions (e.g. snow, darkness, etc.) and with various levels of skiers might be added later in the project.  
+### Dataset for fine-tuning the pose estimation model
+A subset of the data (18 full videos and 10 short clips) was manually annotated using CVAT, yielding 13,977 annotated frames across 10 different skiers. Further information can be found under: (include link to dataset).
+
+The folder create_annotations includes a file (split_annotated_videos) to split annotated videos into a train, validation and test folder so that they can be used for fine-tuning a pose estimation model. For this the annotated data needs to be in COCO format. The second file(getAnnotationsFromAlphaPose) can be used to convert annotations from the halpe to the coco format. When running AlphaPose on a video the output will be in the halpe format.
+
+### Dataset for training a classifier
+To train a classifier we have used the fine-tuned AlphaPose model to estimate the keypoints on all the recorded videos. This can be done by using the file test_pipe.py under the folder feedback_system. Using this file will output annotations per video. Next we have labeled the cycles accordingly. This can be done with the script lable_cycles.ipynb under the folder classification/classify_splits. Again the annotated data has to be in COCO format. This process is further explained under [this section](#label-cycles-britta). Our labeled data can be found under data/labeled_data.
 
 ## Keypoint annotations
-**TODO**
-Talk about annotated data?!
-Talk about Halpe dataset?!
 We have chosen AlphaPose as the pose estimation model. This is using the [Halpe](https://github.com/Fang-Haoshu/Halpe-FullBody) 26 keypoints: 
 ```
     //26 body keypoints
@@ -73,8 +73,6 @@ We have chosen AlphaPose as the pose estimation model. This is using the [Halpe]
     {24, "LHeel"},
     {25, "RHeel"}
 ```
-We have 
-
 
 ## Installation (Emil)
 TODO how to install AlphaPose and how to use it
@@ -230,7 +228,7 @@ We are using the following keypoints: `["Nose","LEye","REye","LEar","REar","LSho
 Under Config you can modify the following parameters:
 |Param  | Description   |
 |------ |---------------|
-|CHOOSEN_JOINT | With this parameter we can set a single joint that we want to use for detecting a cycle. It is only possible to set one joint for this. |
+|CHOOSEN_JOINT | With this parameter we can set a single joint that we want to use for detecting a cycle. It is only possible to set one joint for this. At the moment this parameter is not used. The chosen joint is instead selected based on the view angle.|
 |CHOOSEN_REF| Sets a reference joint to compute relative movements of other joints. By doing so we can better compare the cycles. We have used the Hip as a reference joint. |
 |CHOOSEN_DIM| Determines the dimension (x or y) to be used for cycle detection. |
 |sigma_value| Defines the smoothing factor for the signals. We are using Gaussian smoothing. |
@@ -340,9 +338,7 @@ The file ```tune_hyperparameters.py``` load a search space parameters from ```se
 #### Create Annotations (Emil)
 
 #### Other models (Britta)
-(write about Installation of MMPose?)
-
-We have tested the following pose estimation models for this projects (TODO):
+We have tested the following pose estimation models for this projects:
 
 ||**MediaPipe**|**YoloNas**|**MMPose**|**OpenPose**|**AlphaPose (chosen)**|
 |-|------------|-----------|----------|------------|-------------|
