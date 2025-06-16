@@ -24,6 +24,7 @@ import torch
 import numpy as np
 import cv2
 import shutil
+import time
 
 # # TODO put in different config??
 # # Type of network that we want to use for the classification
@@ -31,8 +32,8 @@ import shutil
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "54"
-SKIER_ID = 8
+ID = "92"
+SKIER_ID = 12
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
 # INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
@@ -43,8 +44,8 @@ INPUT_VIDEO = r"e:\SkiProject\Expert_mistake_videos\DJI_" + f"DJI_{int(ID):04d}.
 # # path to where all videos are stored
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
-testing_with_inference = False
-show_feedback = False
+testing_with_inference = True
+show_feedback = True
 
 
 
@@ -61,10 +62,14 @@ def main():
     # for evaluation purposes
     evaluation_file = f'{run_args.FEEDBACK.OUTPUT_STATS}/evaluation_{run_args.FEEDBACK.MISTAKE_TYPE}.json'
     if testing_with_inference:
+        start = time.time()
         output_path, results_list = run_inference(run_args)
+        end = time.time()
+        length = end - start
+        print(f"Inference took {length} sec")
         
         # Convert keypoint data to coco format
-        coco_data = halpe26_to_coco(results_list)
+        coco_data, _, _ = halpe26_to_coco(results_list)
         
     else:
         coco_data = load_json(INPUT_PATH)
