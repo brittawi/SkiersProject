@@ -26,6 +26,7 @@ import cv2
 import shutil
 import time
 
+
 # Video ID
 ID = "92"
 # needed for evaluation of mistake
@@ -224,8 +225,10 @@ def main():
                 joints_lines_horizontal = [("Hip", "Neck")]
                 joints_distance = []
                 joints_lines_relative = []
+            elif mistake_type == "general":
+                joint_angles, joints_distance, joints_lines_relative, joints_lines_horizontal = load_general_mode_feedback_config(run_args)
             else:
-                print(f"We cannot give feedback for this mistake {mistake_type} from the front, please provide a video from the side.")
+                print(f"We cannot give feedback for this mistake {mistake_type} from the front, please provide a video from the side or check the mistake type is supported.")
                 break
             
         elif video_angle == "Left":
@@ -236,8 +239,10 @@ def main():
                             ]
                 joints_lines_horizontal = []
                 joints_distance = []
+            elif mistake_type == "general":
+                joint_angles, joints_distance, joints_lines_relative, joints_lines_horizontal = load_general_mode_feedback_config(run_args)
             else:
-                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front.")
+                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front or check the mistake type is supported..")
                 break
 
         elif video_angle == "Right":
@@ -246,8 +251,10 @@ def main():
                 joints_lines_relative = []
                 joints_lines_horizontal = []
                 joints_distance = []
+            elif mistake_type == "general":
+                joint_angles, joints_distance, joints_lines_relative, joints_lines_horizontal = load_general_mode_feedback_config(run_args)
             else:
-                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front.")
+                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front or check the mistake type is supported..")
                 break
         
         user_lines = []
@@ -415,7 +422,7 @@ def main():
                 
                 # print feedback
                 #feedback_image = np.zeros((height,width,channels), np.uint8)
-                if frame2 in list(feedback_per_frame.keys()):
+                if mistake_type != "general" and frame2 in list(feedback_per_frame.keys()):
                     font = cv2.FONT_HERSHEY_SIMPLEX
                     font_scale = 1.2
                     font_thickness = 2
