@@ -1,0 +1,108 @@
+Test Loss: 0.9181
+Test Accuracy: 71.33%
+Test Precision: 0.6897
+Test Recall: 0.7133
+Test F1 Score: 0.6865
+Skier 5 Accuracy: 86.67%
+Skier 1 Accuracy: 77.78%
+Skier 7 Accuracy: 52.00%
+Skier 12 Accuracy: 66.67%
+Skier 8 Accuracy: 69.70%
+Skier 13 Accuracy: 75.00%
+Skier 3 Accuracy: 83.33%
+Skier 4 Accuracy: 75.00%
+Skier 2 Accuracy: 75.00%
+train_mean [[  7.4582076]
+ [-58.23995  ]
+ [ -9.269876 ]
+ [-57.776337 ]
+ [ 14.910592 ]
+ [-34.439976 ]
+ [-16.59493  ]
+ [-33.708534 ]
+ [ 14.193573 ]
+ [-23.451101 ]
+ [-16.240923 ]
+ [-22.997057 ]
+ [  5.224447 ]
+ [  2.1113667]
+ [ -5.2084684]
+ [  2.198026 ]
+ [  7.8001113]
+ [ 47.25958  ]
+ [ -7.3666024]
+ [ 47.462822 ]
+ [ 10.829744 ]
+ [ 90.51575  ]
+ [ -9.690665 ]
+ [ 90.302315 ]
+ [ -1.6103351]
+ [-84.54901  ]
+ [ -1.1138108]
+ [-61.905838 ]
+ [ 12.714777 ]
+ [102.62097  ]
+ [-12.085901 ]
+ [102.5684   ]
+ [ 14.208442 ]
+ [101.37248  ]
+ [-13.594996 ]
+ [101.29039  ]
+ [ 10.1530695]
+ [ 99.26551  ]
+ [ -8.767814 ]
+ [ 99.05654  ]]
+train_std [[26.535694 ]
+ [18.879057 ]
+ [26.276459 ]
+ [19.043514 ]
+ [28.02582  ]
+ [15.199991 ]
+ [26.385326 ]
+ [15.684641 ]
+ [44.21093  ]
+ [25.068514 ]
+ [40.987843 ]
+ [27.568716 ]
+ [ 4.732615 ]
+ [ 1.066106 ]
+ [ 4.7691894]
+ [ 1.120573 ]
+ [20.927172 ]
+ [14.54529  ]
+ [20.941086 ]
+ [14.709455 ]
+ [21.66162  ]
+ [28.001102 ]
+ [22.48035  ]
+ [28.659426 ]
+ [43.082714 ]
+ [25.740566 ]
+ [31.895304 ]
+ [19.988949 ]
+ [30.770315 ]
+ [30.341925 ]
+ [31.166475 ]
+ [31.189846 ]
+ [30.62274  ]
+ [31.343624 ]
+ [30.840425 ]
+ [32.32432  ]
+ [24.220003 ]
+ [32.048584 ]
+ [25.364126 ]
+ [32.748608 ]]
+train_max_length 213
+normalization True
+norm_type full_signal
+smoothing 2
+choosen_joints ['LShoulder_x', 'LShoulder_y', 'RShoulder_x', 'RShoulder_y', 'LElbow_x', 'LElbow_y', 'RElbow_x', 'RElbow_y', 'LWrist_x', 'LWrist_y', 'RWrist_x', 'RWrist_y', 'LHip_x', 'LHip_y', 'RHip_x', 'RHip_y', 'LKnee_x', 'LKnee_y', 'RKnee_x', 'RKnee_y', 'LAnkle_x', 'LAnkle_y', 'RAnkle_x', 'RAnkle_y', 'Head_x', 'Head_y', 'Neck_x', 'Neck_y', 'LBigToe_x', 'LBigToe_y', 'RBigToe_x', 'RBigToe_y', 'LSmallToe_x', 'LSmallToe_y', 'RSmallToe_x', 'RSmallToe_y', 'LHeel_x', 'LHeel_y', 'RHeel_x', 'RHeel_y']
+labels {'unknown': 0, 'gear2': 1, 'gear3': 2, 'gear4': 3}
+network_type lstm
+batch_size 16
+loss_type cross_entropy
+hidden_size 256
+num_layers 3
+dropout 0.2
+input_channels 40
+output_channels 4

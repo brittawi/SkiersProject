@@ -117,7 +117,10 @@ def split_into_cycles(data, run_args, video_angle, visualize=False):
         for joint, values in keypoint_values.items():
             cycle_vals = values[extrema_indices[current_min_index] : extrema_indices[current_min_index + 1] + 1]
             cycle_values_for_joints[joint] = cycle_vals
-            
+        
+        # save Image ids for each value for mapping later
+        # this is needed so that we can still find the correct image id in case we have frames missing in the middle
+        cycle_values_for_joints["Image_ids"] = frames[extrema_indices[current_min_index] : extrema_indices[current_min_index + 1] + 1]
         cycle_values_for_joints["Start_frame"] = start_frame    
         data_split_by_cycles[f"Cycle {cycle}"] = cycle_values_for_joints
         cycle += 1
@@ -137,6 +140,9 @@ def process_data(data, keypoint_dict, chosen_ref):
         
         for annotation in data.get("annotations", []):
             keypoints = annotation["keypoints"]
+            if len(keypoints)<= 0:
+                print(keypoints)
+                print(annotation["image_id"])
             
             # TODO
             # for the choosen reference joint we save the absolute values, but only if it is in choosen joints

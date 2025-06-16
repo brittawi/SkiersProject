@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import Dataset
-import numpy as np
+
 class CustomDataset(Dataset):
     def __init__(self, 
                  data,
@@ -9,12 +9,14 @@ class CustomDataset(Dataset):
                     "unknown": 0,
                     "gear2" : 1,
                     "gear3" : 2,
-                    "gear4" : 3,}
+                    "gear4" : 3,},
+                 skier_id=None
                  ):
         
         self.data = data
         self.labels = labels
         self.label_dict = label_dict
+        self.skier_id = skier_id  # Optional, can be None
 
     def __len__(self):
         return len(self.labels)
@@ -27,5 +29,8 @@ class CustomDataset(Dataset):
         else:
             item = torch.tensor(self.data[idx], dtype=torch.float32)
         item = self.data[idx].T
-        
-        return item, label
+
+        if self.skier_id is not None:
+            return item, label, self.skier_id[idx]
+        else:
+            return item, label

@@ -10,11 +10,10 @@ from utils.config import update_config
 from alphapose.scripts.demo_inference import run_inference
 from utils.annotation_format import halpe26_to_coco
 from utils.feedback_utils import choose_id
+from utils.frame_extraction import get_image_by_id
 import re
 import cv2
 
-def get_image_by_id(images, target_id):
-    return next((image for image in images if image['id'] == target_id), None)
 
 def visualize_tracking(input_video_path, output_video_path, coco_annotations):
     # Define keypoint colors

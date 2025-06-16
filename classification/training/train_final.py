@@ -25,6 +25,7 @@ METRICS_NAMES = ["train_losses",
         "train_precisions",
         "train_recalls",
         "train_f1s",
+        "train_skier_accs"
     ]
     
 
@@ -43,6 +44,7 @@ def main():
     print("Loading Train data...")
     train_data = []
     labels = []
+    skier_ids = []
     file = os.path.join(cfg.DATASET.ROOT_PATH, cfg.DATASET.TRAIN_FILE_NAME)
     with open(file, 'r') as f:
         data_json = json.load(f)
@@ -57,6 +59,7 @@ def main():
 
         train_data.append(cycle_tensor)
         labels.append(cycle["Label"])
+        skier_ids.append(cycle["Skier_id"])
     
 
     # Preprocess data based on train data
@@ -90,7 +93,7 @@ def main():
     print("Creating Dataset...")
     train_data = torch.tensor(train_data, dtype=torch.float32)
 
-    train_dataset = CustomDataset(train_data, labels, cfg.DATA_PRESET.LABELS)
+    train_dataset = CustomDataset(train_data, labels, cfg.DATA_PRESET.LABELS, skier_id=skier_ids)
 
     train_loader = DataLoader(train_dataset, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=True)
     
@@ -152,12 +155,14 @@ def main():
 
     for epoch in range(cfg.TRAIN.EPOCHS):
         print("Training")
-        epoch_train_loss, epoch_train_acc, train_precision, train_recall, train_f1, train_conf_matrix = training(train_loader, net, criterion, optimizer, device, cfg.TRAIN.NETWORK.NETWORKTYPE)
+        epoch_train_loss, epoch_train_acc, train_precision, train_recall, train_f1, train_conf_matrix, skier_accs = training(train_loader, net, criterion, optimizer, device, cfg.TRAIN.NETWORK.NETWORKTYPE)
         results["train_losses"].append(epoch_train_loss)
         results["train_accs"].append(epoch_train_acc)
         results["train_precisions"].append(train_precision)
         results["train_recalls"].append(train_recall)
         results["train_f1s"].append(train_f1)
+        results["train_skier_accs"].append(skier_accs)
+
 
         # Log to TensorBoard
         writer.add_scalar("Loss/Train", epoch_train_loss, epoch)
