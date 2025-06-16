@@ -67,11 +67,11 @@ def extract_multivariate_series_for_single_lines(cycle_data, line_joint_pairs, r
     all_angles = []
     frames = []
 
-    try:
-        if cycle_data[line_joint_pairs[0][0]] == run_args.DTW.CHOOSEN_REF:
-            check_term = "_x"
-    except KeyError:
+    # This is just to check if first time if reference for looping through the joints
+    if line_joint_pairs[0][0] == run_args.DTW.CHOOSEN_REF:
         check_term = "_x_ref"
+    else:
+        check_term = "_x"
 
     # TODO Make option?
     joints_list = [joint for tuple_joints in line_joint_pairs for joint in tuple_joints]
@@ -250,6 +250,7 @@ def draw_table(frame, angles_tuple, lines_rel_tuple, lines_hor_tuple, distances_
     text_color = (255, 255, 255)
     border_colour = (255, 255, 255)
 
+    # Example of draw table format
     # table_data = [
     #     ['Angle', 'User', 'Expert', 'Difference', 'Header5'],
     #     ['Row1Col1', 'Row1Col2', 'Row1Col3', 'Row1Col4', 'Row1Col5'],
@@ -685,6 +686,16 @@ def feedback_wide_legs(expert_distances, user_distances, diff_distances, path, f
     
     return feedback_per_frame, feedback_per_category
 
+# Function for getting the feature lists in general feedback mode
+def load_general_mode_feedback_config(run_args):
+    general_mode = run_args.FEEDBACK.GENERAL_MODE
+
+    joint_angles = [tuple(triplet) for triplet in general_mode.JOINT_ANGLES or []]
+    joints_distance = [tuple(pair) for pair in general_mode.JOINTS_DISTANCES or []]
+    joints_lines_relative = [tuple(quadruplet) for quadruplet in general_mode.JOINTS_LINES_RELATIVE or []]
+    joints_lines_horizontal = [tuple(quadruplet) for quadruplet in general_mode.JOINTS_LINES_HORIZONTAL or []]
+
+    return joint_angles, joints_distance, joints_lines_relative, joints_lines_horizontal
 
 
 # evaluation

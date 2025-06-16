@@ -32,7 +32,7 @@ import time
 # # Model path where we want to load the model from
 # MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
 # # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
-ID = "92"
+ID = "62"
 SKIER_ID = 12
 # # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
 # # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
@@ -44,7 +44,7 @@ INPUT_VIDEO = r"e:\SkiProject\Expert_mistake_videos\DJI_" + f"DJI_{int(ID):04d}.
 # # path to where all videos are stored
 # # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
 # video_path = r"E:\SkiProject\Cut_videos"
-testing_with_inference = True
+testing_with_inference = False
 show_feedback = True
 
 
@@ -235,8 +235,10 @@ def main():
                 joints_lines_horizontal = [("Hip", "Neck")]
                 joints_distance = []
                 joints_lines_relative = []
+            elif mistake_type == "general":
+                joint_angles, joints_distance, joints_lines_relative, joints_lines_horizontal = load_general_mode_feedback_config(run_args)
             else:
-                print(f"We cannot give feedback for this mistake {mistake_type} from the front, please provide a video from the side.")
+                print(f"We cannot give feedback for this mistake {mistake_type} from the front, please provide a video from the side or check the mistake type is supported.")
                 break
             
         elif video_angle == "Left":
@@ -247,8 +249,10 @@ def main():
                             ]
                 joints_lines_horizontal = []
                 joints_distance = []
+            elif mistake_type == "general":
+                joint_angles, joints_distance, joints_lines_relative, joints_lines_horizontal = load_general_mode_feedback_config(run_args)
             else:
-                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front.")
+                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front or check the mistake type is supported..")
                 break
 
         elif video_angle == "Right":
@@ -257,8 +261,10 @@ def main():
                 joints_lines_relative = []
                 joints_lines_horizontal = []
                 joints_distance = []
+            elif mistake_type == "general":
+                joint_angles, joints_distance, joints_lines_relative, joints_lines_horizontal = load_general_mode_feedback_config(run_args)
             else:
-                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front.")
+                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front or check the mistake type is supported..")
                 break
         
         user_lines = []
@@ -426,7 +432,7 @@ def main():
                 
                 # print feedback
                 #feedback_image = np.zeros((height,width,channels), np.uint8)
-                if frame2 in list(feedback_per_frame.keys()):
+                if mistake_type != "general" and frame2 in list(feedback_per_frame.keys()):
                     font = cv2.FONT_HERSHEY_SIMPLEX
                     font_scale = 1.2
                     font_thickness = 2
@@ -464,7 +470,7 @@ def main():
 
     if show_feedback:
         cv2.destroyAllWindows()
-        #shutil.rmtree(temp_dir, ignore_errors=True)
+        shutil.rmtree(temp_dir, ignore_errors=True)
     
     # for evaluation purposes
     if run_args.FEEDBACK.SAVE_STATISTICS:

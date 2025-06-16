@@ -1,5 +1,5 @@
   
-VIDEO_PATH: e:\SkiProject\Expert_mistake_videos\DJI_0141.MP4
+VIDEO_PATH: e:\SkiProject\Expert_mistake_videos\DJI_0062.MP4
 ALPHA_ARGS:
   SAVE_VIDEO: false
   VIS_FAST: true
@@ -36,6 +36,21 @@ DTW:
 FEEDBACK:
   SAVE_VIDEO: False
   OUTPUT_PATH: ./data/feedback_videos
-  MISTAKE_TYPE: stiff_ankle
-  SAVE_STATISTICS: True
+  MISTAKE_TYPE: general
+  GENERAL_MODE:
+    JOINT_ANGLES: 
+      - ["RElbow", "RShoulder", "RHip"]
+      - ["RHip", "Neck", "LHeel"]
+      - ["LElbow", "LShoulder", "LHip"]
+      - ["RAnkle", "RKnee", "RHip"]
+    JOINTS_DISTANCES:
+      - ["RKnee", "LKnee"]
+      - ["RWrist", "LWrist"]
+      - ["RWrist", "LWrist"]
+    JOINTS_LINES_RELATIVE:
+      - ["LHeel", "RElbow", "Neck", "LBigToe"]
+    JOINTS_LINES_HORIZONTAL: 
+      - ["LHeel", "RElbow"]
+      - ["Neck", "LBigToe"]
+  SAVE_STATISTICS: False
   OUTPUT_STATS: ./data/feedback_evaluation
