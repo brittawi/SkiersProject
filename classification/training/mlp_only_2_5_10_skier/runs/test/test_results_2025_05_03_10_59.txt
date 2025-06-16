@@ -1,0 +1,101 @@
+Test Loss: 0.0527
+Test Accuracy: 78.40%
+Test Precision: 0.8016
+Test Recall: 0.7840
+Test F1 Score: 0.7849
+Skier 2 Accuracy: 90.36%
+Skier 10 Accuracy: 59.42%
+Skier 5 Accuracy: 80.11%
+train_mean [[  7.096165 ]
+ [-58.031944 ]
+ [ -9.284237 ]
+ [-57.77109  ]
+ [ 14.147944 ]
+ [-32.87917  ]
+ [-16.629316 ]
+ [-32.57063  ]
+ [ 13.35298  ]
+ [-21.874    ]
+ [-16.418346 ]
+ [-22.230532 ]
+ [  5.39894  ]
+ [  2.16334  ]
+ [ -5.3769865]
+ [  2.2076888]
+ [  7.5079246]
+ [ 48.023037 ]
+ [ -7.7694354]
+ [ 48.084114 ]
+ [ 10.378311 ]
+ [ 91.77719  ]
+ [-10.515799 ]
+ [ 91.417984 ]
+ [ -1.6295742]
+ [-84.32957  ]
+ [ -1.1856194]
+ [-62.055344 ]
+ [ 12.500168 ]
+ [103.96675  ]
+ [-12.880315 ]
+ [103.63139  ]
+ [ 13.902188 ]
+ [102.715256 ]
+ [-14.339634 ]
+ [102.378006 ]
+ [  9.617076 ]
+ [100.51461  ]
+ [ -9.701903 ]
+ [100.12172  ]]
+train_std [[24.892675 ]
+ [18.848251 ]
+ [23.80749  ]
+ [18.413054 ]
+ [27.89114  ]
+ [14.919143 ]
+ [25.535282 ]
+ [15.102492 ]
+ [44.469997 ]
+ [24.71266  ]
+ [40.686787 ]
+ [27.314575 ]
+ [ 4.7054415]
+ [ 1.1019199]
+ [ 4.7252564]
+ [ 1.1386782]
+ [20.181019 ]
+ [14.397241 ]
+ [19.961266 ]
+ [15.080878 ]
+ [19.912004 ]
+ [27.784435 ]
+ [21.301666 ]
+ [29.150085 ]
+ [39.875046 ]
+ [25.291952 ]
+ [29.253483 ]
+ [19.80295  ]
+ [30.031101 ]
+ [29.866383 ]
+ [30.910393 ]
+ [31.666618 ]
+ [29.784956 ]
+ [30.607458 ]
+ [30.551105 ]
+ [32.980362 ]
+ [22.126253 ]
+ [31.66672  ]
+ [23.877003 ]
+ [33.16843  ]]
+train_max_length 118
+normalization True
+norm_type full_signal
+smoothing 2
+choosen_joints ['LShoulder_x', 'LShoulder_y', 'RShoulder_x', 'RShoulder_y', 'LElbow_x', 'LElbow_y', 'RElbow_x', 'RElbow_y', 'LWrist_x', 'LWrist_y', 'RWrist_x', 'RWrist_y', 'LHip_x', 'LHip_y', 'RHip_x', 'RHip_y', 'LKnee_x', 'LKnee_y', 'RKnee_x', 'RKnee_y', 'LAnkle_x', 'LAnkle_y', 'RAnkle_x', 'RAnkle_y', 'Head_x', 'Head_y', 'Neck_x', 'Neck_y', 'LBigToe_x', 'LBigToe_y', 'RBigToe_x', 'RBigToe_y', 'LSmallToe_x', 'LSmallToe_y', 'RSmallToe_x', 'RSmallToe_y', 'LHeel_x', 'LHeel_y', 'RHeel_x', 'RHeel_y']
+labels {'unknown': 0, 'gear2': 1, 'gear3': 2, 'gear4': 3}
+network_type mlp
+batch_size 16
+loss_type focal_loss
+hidden1 64
+hidden2 64
+input_channels 4720
+output_channels 4

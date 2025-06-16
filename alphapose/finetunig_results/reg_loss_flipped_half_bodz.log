@@ -1,0 +1,256 @@
+******************************
+Namespace(board=True, cfg='configs/256x192_res50_lr1e-3_1x.yaml', debug=False, detector='yolo', device=device(type='cuda', index=0), dist_backend='nccl', dist_url='tcp://192.168.1.214:23345', exp_id='reg_loss_flipped_half_body', gpus=[0], launcher='none', map=True, nThreads=60, rank=-1, snapshot=2, sync=False, work_dir='./exp/reg_loss_flipped_half_body-256x192_res50_lr1e-3_1x.yaml/', world_size=4)
+******************************
+{'DATASET': {'TRAIN': {'TYPE': 'Halpe_26', 'ROOT': './data/halpe/', 'IMG_PREFIX': 'images/train2015', 'ANN': 'annotations/combined_train_annotations.json', 'AUG': {'FLIP': True, 'ROT_FACTOR': 40, 'SCALE_FACTOR': 0.3, 'NUM_JOINTS_HALF_BODY': 8, 'PROB_HALF_BODY': 0.3}}, 'VAL': {'TYPE': 'Halpe_26', 'ROOT': './data/halpe/', 'IMG_PREFIX': 'images/val2017', 'ANN': 'annotations/combined_val_annotations.json'}, 'TEST': {'TYPE': 'Halpe_26', 'ROOT': './data/halpe/', 'IMG_PREFIX': 'images/test', 'ANN': 'annotations/combined_test_annotations.json'}}, 'DATA_PRESET': {'TYPE': 'simple', 'LOSS_TYPE': 'L1JointRegression', 'SIGMA': 2, 'NUM_JOINTS': 26, 'IMAGE_SIZE': [256, 192], 'HEATMAP_SIZE': [64, 48]}, 'MODEL': {'TYPE': 'FastPose', 'PRETRAINED': 'pretrained_models/halpe26_fast_res50_256x192.pth', 'TRY_LOAD': '', 'NUM_DECONV_FILTERS': [256, 256, 256], 'NUM_LAYERS': 50}, 'LOSS': {'TYPE': 'L1JointRegression', 'NORM_TYPE': 'sigmoid', 'OUTPUT_3D': False}, 'DETECTOR': {'NAME': 'yolo', 'CONFIG': 'alphapose/detector/yolo/cfg/yolov3-spp.cfg', 'WEIGHTS': 'alphapose/detector/yolo/data/yolov3-spp.weights', 'NMS_THRES': 0.6, 'CONFIDENCE': 0.05}, 'TRAIN': {'WORLD_SIZE': 4, 'BATCH_SIZE': 32, 'BEGIN_EPOCH': 0, 'END_EPOCH': 100, 'OPTIMIZER': 'adam', 'LR': 0.001, 'LR_FACTOR': 0.1, 'LR_STEP': [15, 30], 'DPG_MILESTONE': 50, 'DPG_STEP': [15, 30]}, 'FILE_NAME': '256x192_res50_lr1e-3_1x.yaml'}
+******************************
+Loading model from pretrained_models/halpe26_fast_res50_256x192.pth...
+############# Starting Epoch 0 | LR: 0.001 #############
+Train-0 epoch | loss:4.08064197 | acc:0.4694
+############# Starting Epoch 1 | LR: 0.001 #############
+Train-1 epoch | loss:2.54381600 | acc:0.7706
+GT Validation Loss: 0.28385555121361383, Accuracy: 0.9455103226609726
+############# Starting Epoch 2 | LR: 0.001 #############
+Train-2 epoch | loss:2.47631665 | acc:0.7913
+############# Starting Epoch 3 | LR: 0.001 #############
+Train-3 epoch | loss:2.43480433 | acc:0.8034
+GT Validation Loss: 0.2597463247133712, Accuracy: 0.9606688248106627
+############# Starting Epoch 4 | LR: 0.001 #############
+Train-4 epoch | loss:2.42855006 | acc:0.8055
+############# Starting Epoch 5 | LR: 0.001 #############
+Train-5 epoch | loss:2.32470317 | acc:0.8159
+GT Validation Loss: 0.2492235070872197, Accuracy: 0.9644267468438686
+############# Starting Epoch 6 | LR: 0.001 #############
+Train-6 epoch | loss:2.39432571 | acc:0.8165
+############# Starting Epoch 7 | LR: 0.001 #############
+Train-7 epoch | loss:2.35394255 | acc:0.8220
+GT Validation Loss: 0.2396537783112888, Accuracy: 0.9683239081056959
+############# Starting Epoch 8 | LR: 0.001 #############
+Train-8 epoch | loss:2.32557216 | acc:0.8245
+############# Starting Epoch 9 | LR: 0.001 #############
+Train-9 epoch | loss:2.27788360 | acc:0.8246
+GT Validation Loss: 0.2330794390314425, Accuracy: 0.9716446420181208
+############# Starting Epoch 10 | LR: 0.001 #############
+Train-10 epoch | loss:2.28929342 | acc:0.8302
+############# Starting Epoch 11 | LR: 0.001 #############
+Train-11 epoch | loss:2.32134221 | acc:0.8268
+GT Validation Loss: 0.2313984811143419, Accuracy: 0.9725541162805116
+############# Starting Epoch 12 | LR: 0.001 #############
+Train-12 epoch | loss:2.33208368 | acc:0.8299
+############# Starting Epoch 13 | LR: 0.001 #############
+Train-13 epoch | loss:2.29919904 | acc:0.8332
+GT Validation Loss: 0.22596570092792326, Accuracy: 0.9741824594950904
+############# Starting Epoch 14 | LR: 0.001 #############
+Train-14 epoch | loss:2.37202649 | acc:0.8287
+############# Starting Epoch 15 | LR: 0.0001 #############
+Train-15 epoch | loss:2.31618521 | acc:0.8371
+GT Validation Loss: 0.21305273415734174, Accuracy: 0.9782105338127158
+############# Starting Epoch 16 | LR: 0.0001 #############
+Train-16 epoch | loss:2.24533643 | acc:0.8410
+############# Starting Epoch 17 | LR: 0.0001 #############
+Train-17 epoch | loss:2.32737255 | acc:0.8404
+GT Validation Loss: 0.2094936115472596, Accuracy: 0.9795944718311483
+############# Starting Epoch 18 | LR: 0.0001 #############
+Train-18 epoch | loss:2.22533215 | acc:0.8466
+############# Starting Epoch 19 | LR: 0.0001 #############
+Train-19 epoch | loss:2.32788477 | acc:0.8415
+GT Validation Loss: 0.2073982675511748, Accuracy: 0.9802008734027198
+############# Starting Epoch 20 | LR: 0.0001 #############
+Train-20 epoch | loss:2.31380169 | acc:0.8452
+############# Starting Epoch 21 | LR: 0.0001 #############
+Train-21 epoch | loss:2.16501480 | acc:0.8485
+GT Validation Loss: 0.20557264135106992, Accuracy: 0.9812712349430768
+############# Starting Epoch 22 | LR: 0.0001 #############
+Train-22 epoch | loss:2.21103274 | acc:0.8475
+############# Starting Epoch 23 | LR: 0.0001 #############
+Train-23 epoch | loss:2.28362736 | acc:0.8454
+GT Validation Loss: 0.20490056967290068, Accuracy: 0.9815007811231057
+############# Starting Epoch 24 | LR: 0.0001 #############
+Train-24 epoch | loss:2.23541858 | acc:0.8475
+############# Starting Epoch 25 | LR: 0.0001 #############
+Train-25 epoch | loss:2.24091724 | acc:0.8476
+GT Validation Loss: 0.20361724629704311, Accuracy: 0.9820228962066977
+############# Starting Epoch 26 | LR: 0.0001 #############
+Train-26 epoch | loss:2.21756847 | acc:0.8472
+############# Starting Epoch 27 | LR: 0.0001 #############
+Train-27 epoch | loss:2.19678198 | acc:0.8522
+GT Validation Loss: 0.20352485092482644, Accuracy: 0.9818310099468303
+############# Starting Epoch 28 | LR: 0.0001 #############
+Train-28 epoch | loss:2.16284728 | acc:0.8518
+############# Starting Epoch 29 | LR: 0.0001 #############
+Train-29 epoch | loss:2.23267803 | acc:0.8473
+GT Validation Loss: 0.20242689406726724, Accuracy: 0.9819491135059744
+############# Starting Epoch 30 | LR: 1e-05 #############
+Train-30 epoch | loss:2.19780429 | acc:0.8486
+############# Starting Epoch 31 | LR: 1e-05 #############
+Train-31 epoch | loss:2.18306737 | acc:0.8501
+GT Validation Loss: 0.2016928248229369, Accuracy: 0.982322126048521
+############# Starting Epoch 32 | LR: 1e-05 #############
+Train-32 epoch | loss:2.25137548 | acc:0.8511
+############# Starting Epoch 33 | LR: 1e-05 #############
+Train-33 epoch | loss:2.16678379 | acc:0.8495
+GT Validation Loss: 0.2015269420575155, Accuracy: 0.9825642255352701
+############# Starting Epoch 34 | LR: 1e-05 #############
+Train-34 epoch | loss:2.25794722 | acc:0.8505
+############# Starting Epoch 35 | LR: 1e-05 #############
+Train-35 epoch | loss:2.30368296 | acc:0.8488
+GT Validation Loss: 0.20135995553063085, Accuracy: 0.9824189658432211
+############# Starting Epoch 36 | LR: 1e-05 #############
+Train-36 epoch | loss:2.27652235 | acc:0.8489
+############# Starting Epoch 37 | LR: 1e-05 #############
+Train-37 epoch | loss:2.26459737 | acc:0.8456
+GT Validation Loss: 0.2012425518266003, Accuracy: 0.9825480855694875
+############# Starting Epoch 38 | LR: 1e-05 #############
+Train-38 epoch | loss:2.28480018 | acc:0.8481
+############# Starting Epoch 39 | LR: 1e-05 #############
+Train-39 epoch | loss:2.30852451 | acc:0.8465
+GT Validation Loss: 0.20106449700732518, Accuracy: 0.982619562560813
+############# Starting Epoch 40 | LR: 1e-05 #############
+Train-40 epoch | loss:2.26591800 | acc:0.8502
+############# Starting Epoch 41 | LR: 1e-05 #############
+Train-41 epoch | loss:2.32083463 | acc:0.8490
+GT Validation Loss: 0.20085393522048867, Accuracy: 0.982725625193103
+############# Starting Epoch 42 | LR: 1e-05 #############
+Train-42 epoch | loss:2.21608227 | acc:0.8500
+############# Starting Epoch 43 | LR: 1e-05 #############
+Train-43 epoch | loss:2.29652995 | acc:0.8484
+GT Validation Loss: 0.2009250531539765, Accuracy: 0.9825480855694869
+############# Starting Epoch 44 | LR: 1e-05 #############
+Train-44 epoch | loss:2.14655187 | acc:0.8521
+############# Starting Epoch 45 | LR: 1e-05 #############
+Train-45 epoch | loss:2.20591173 | acc:0.8511
+GT Validation Loss: 0.20097352092225063, Accuracy: 0.9824673857405706
+############# Starting Epoch 46 | LR: 1e-05 #############
+Train-46 epoch | loss:2.20726524 | acc:0.8491
+############# Starting Epoch 47 | LR: 1e-05 #############
+Train-47 epoch | loss:2.26278586 | acc:0.8466
+GT Validation Loss: 0.2006839857011896, Accuracy: 0.9826449253641865
+############# Starting Epoch 48 | LR: 1e-05 #############
+Train-48 epoch | loss:2.22583393 | acc:0.8508
+############# Starting Epoch 49 | LR: 1e-05 #############
+Train-49 epoch | loss:2.20819573 | acc:0.8485
+GT Validation Loss: 0.2007689716382733, Accuracy: 0.982497872342606
+############# Starting Epoch 50 | LR: 1e-05 #############
+Train-50 epoch | loss:2.26412339 | acc:0.8485
+############# Starting Epoch 51 | LR: 0.001 #############
+Train-51 epoch | loss:2.37162985 | acc:0.8259
+GT Validation Loss: 0.2228014773172938, Accuracy: 0.9766698075552462
+############# Starting Epoch 52 | LR: 0.001 #############
+Train-52 epoch | loss:2.42605084 | acc:0.8238
+############# Starting Epoch 53 | LR: 0.001 #############
+Train-53 epoch | loss:2.35876775 | acc:0.8270
+GT Validation Loss: 0.22020481373650458, Accuracy: 0.9765135316960747
+############# Starting Epoch 54 | LR: 0.001 #############
+Train-54 epoch | loss:2.39385848 | acc:0.8192
+############# Starting Epoch 55 | LR: 0.001 #############
+Train-55 epoch | loss:2.25508895 | acc:0.8300
+GT Validation Loss: 0.2207421433622978, Accuracy: 0.9769459803030938
+############# Starting Epoch 56 | LR: 0.001 #############
+Train-56 epoch | loss:2.35250463 | acc:0.8279
+############# Starting Epoch 57 | LR: 0.001 #############
+Train-57 epoch | loss:2.27086731 | acc:0.8303
+GT Validation Loss: 0.21790814578558185, Accuracy: 0.9777534909721228
+############# Starting Epoch 58 | LR: 0.001 #############
+Train-58 epoch | loss:2.33292413 | acc:0.8329
+############# Starting Epoch 59 | LR: 0.001 #############
+Train-59 epoch | loss:2.34090446 | acc:0.8297
+GT Validation Loss: 0.21702027295849377, Accuracy: 0.9774322287960561
+############# Starting Epoch 60 | LR: 0.001 #############
+Train-60 epoch | loss:2.35647805 | acc:0.8282
+############# Starting Epoch 61 | LR: 0.001 #############
+Train-61 epoch | loss:2.37726919 | acc:0.8306
+GT Validation Loss: 0.21499874372468292, Accuracy: 0.9787124098915957
+############# Starting Epoch 62 | LR: 0.001 #############
+Train-62 epoch | loss:2.36962774 | acc:0.8313
+############# Starting Epoch 63 | LR: 0.001 #############
+Train-63 epoch | loss:2.37212525 | acc:0.8302
+GT Validation Loss: 0.21763684190074986, Accuracy: 0.977953831499782
+############# Starting Epoch 64 | LR: 0.001 #############
+Train-64 epoch | loss:2.39373203 | acc:0.8307
+############# Starting Epoch 65 | LR: 0.001 #############
+Train-65 epoch | loss:2.34313584 | acc:0.8325
+GT Validation Loss: 0.21450242507097553, Accuracy: 0.9782948203006955
+############# Starting Epoch 66 | LR: 0.0001 #############
+Train-66 epoch | loss:2.31359900 | acc:0.8383
+############# Starting Epoch 67 | LR: 0.0001 #############
+Train-67 epoch | loss:2.19005715 | acc:0.8461
+GT Validation Loss: 0.20134902964656812, Accuracy: 0.9827117909367172
+############# Starting Epoch 68 | LR: 0.0001 #############
+Train-68 epoch | loss:2.36792354 | acc:0.8378
+############# Starting Epoch 69 | LR: 0.0001 #############
+Train-69 epoch | loss:2.36485482 | acc:0.8420
+GT Validation Loss: 0.19989219750619666, Accuracy: 0.9831475700128655
+############# Starting Epoch 70 | LR: 0.0001 #############
+Train-70 epoch | loss:2.29448505 | acc:0.8428
+############# Starting Epoch 71 | LR: 0.0001 #############
+Train-71 epoch | loss:2.31877689 | acc:0.8422
+GT Validation Loss: 0.19782578835730485, Accuracy: 0.98385772850733
+############# Starting Epoch 72 | LR: 0.0001 #############
+Train-72 epoch | loss:2.29147761 | acc:0.8417
+############# Starting Epoch 73 | LR: 0.0001 #############
+Train-73 epoch | loss:2.25893737 | acc:0.8435
+GT Validation Loss: 0.19731635546864354, Accuracy: 0.9838577285073294
+############# Starting Epoch 74 | LR: 0.0001 #############
+Train-74 epoch | loss:2.29018468 | acc:0.8440
+############# Starting Epoch 75 | LR: 0.0001 #############
+Train-75 epoch | loss:2.31376929 | acc:0.8440
+GT Validation Loss: 0.19617742828421367, Accuracy: 0.9845158804453812
+############# Starting Epoch 76 | LR: 0.0001 #############
+Train-76 epoch | loss:2.27171129 | acc:0.8450
+############# Starting Epoch 77 | LR: 0.0001 #############
+Train-77 epoch | loss:2.32869815 | acc:0.8417
+GT Validation Loss: 0.19572779327393378, Accuracy: 0.984471047207094
+############# Starting Epoch 78 | LR: 0.0001 #############
+Train-78 epoch | loss:2.28709350 | acc:0.8446
+############# Starting Epoch 79 | LR: 0.0001 #############
+Train-79 epoch | loss:2.36383643 | acc:0.8439
+GT Validation Loss: 0.19584508892422306, Accuracy: 0.9847541370831349
+############# Starting Epoch 80 | LR: 0.0001 #############
+Train-80 epoch | loss:2.31655594 | acc:0.8449
+############# Starting Epoch 81 | LR: 1e-05 #############
+Train-81 epoch | loss:2.21944479 | acc:0.8509
+GT Validation Loss: 0.19484430159458932, Accuracy: 0.9846665201260246
+############# Starting Epoch 82 | LR: 1e-05 #############
+Train-82 epoch | loss:2.27459215 | acc:0.8475
+############# Starting Epoch 83 | LR: 1e-05 #############
+Train-83 epoch | loss:2.27947380 | acc:0.8493
+GT Validation Loss: 0.19450436799505205, Accuracy: 0.9849621633087854
+############# Starting Epoch 84 | LR: 1e-05 #############
+Train-84 epoch | loss:2.33284641 | acc:0.8457
+############# Starting Epoch 85 | LR: 1e-05 #############
+Train-85 epoch | loss:2.28714753 | acc:0.8458
+GT Validation Loss: 0.19449663127214029, Accuracy: 0.9848279197838579
+############# Starting Epoch 86 | LR: 1e-05 #############
+Train-86 epoch | loss:2.30418362 | acc:0.8459
+############# Starting Epoch 87 | LR: 1e-05 #############
+Train-87 epoch | loss:2.26485145 | acc:0.8475
+GT Validation Loss: 0.19415379947491468, Accuracy: 0.9850682259410755
+############# Starting Epoch 88 | LR: 1e-05 #############
+Train-88 epoch | loss:2.24452122 | acc:0.8501
+############# Starting Epoch 89 | LR: 1e-05 #############
+Train-89 epoch | loss:2.22507541 | acc:0.8469
+GT Validation Loss: 0.19419445959125003, Accuracy: 0.9849570395101243
+############# Starting Epoch 90 | LR: 1e-05 #############
+Train-90 epoch | loss:2.35897016 | acc:0.8443
+############# Starting Epoch 91 | LR: 1e-05 #############
+Train-91 epoch | loss:2.27095602 | acc:0.8496
+GT Validation Loss: 0.19409885799939824, Accuracy: 0.9849857327826282
+############# Starting Epoch 92 | LR: 1e-05 #############
+Train-92 epoch | loss:2.29543765 | acc:0.8493
+############# Starting Epoch 93 | LR: 1e-05 #############
+Train-93 epoch | loss:2.31548442 | acc:0.8441
+GT Validation Loss: 0.1939363369309397, Accuracy: 0.9851540495686533
+############# Starting Epoch 94 | LR: 1e-05 #############
+Train-94 epoch | loss:2.32335705 | acc:0.8439
+############# Starting Epoch 95 | LR: 1e-05 #############
+Train-95 epoch | loss:2.32694869 | acc:0.8448
+GT Validation Loss: 0.19399077334275927, Accuracy: 0.9849534528510612
+############# Starting Epoch 96 | LR: 1e-05 #############
+Train-96 epoch | loss:2.23197810 | acc:0.8483
+############# Starting Epoch 97 | LR: 1e-05 #############
+Train-97 epoch | loss:2.30136984 | acc:0.8458
+GT Validation Loss: 0.19392007141617532, Accuracy: 0.9851148525088936
+############# Starting Epoch 98 | LR: 1e-05 #############
+Train-98 epoch | loss:2.25334192 | acc:0.8486
+############# Starting Epoch 99 | LR: 1e-05 #############
+Train-99 epoch | loss:2.27766289 | acc:0.8450
+GT Validation Loss: 0.19376162446775808, Accuracy: 0.9851632724062437

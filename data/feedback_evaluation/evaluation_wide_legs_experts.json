@@ -1,0 +1,1284 @@
+{
+  "9": {
+    "with_self_matches": {
+      "gear3": {
+        "push": {
+          "positive": 4,
+          "no feedback": 6,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "all": {
+          "positive": 15,
+          "no feedback": 18,
+          "possibly negative": 3,
+          "negative": 0
+        },
+        "together": {
+          "positive": 11,
+          "no feedback": 12,
+          "possibly negative": 1,
+          "negative": 0
+        }
+      }
+    }
+  },
+  "11": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 1
+        },
+        "all": {
+          "positive": 0,
+          "no feedback": 0,
+          "possibly negative": 1,
+          "negative": 2
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 0,
+          "possibly negative": 1,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 7,
+          "negative": 1
+        },
+        "all": {
+          "positive": 7,
+          "no feedback": 17,
+          "possibly negative": 7,
+          "negative": 2
+        },
+        "together": {
+          "positive": 6,
+          "no feedback": 15,
+          "possibly negative": 0,
+          "negative": 1
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 4,
+          "negative": 0
+        },
+        "all": {
+          "positive": 6,
+          "no feedback": 7,
+          "possibly negative": 4,
+          "negative": 1
+        },
+        "together": {
+          "positive": 5,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 1
+        }
+      }
+    }
+  },
+  "13": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 1,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 1,
+          "possibly negative": 1,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 5,
+          "no feedback": 5,
+          "possibly negative": 0,
+          "negative": 1
+        },
+        "all": {
+          "positive": 13,
+          "no feedback": 19,
+          "possibly negative": 0,
+          "negative": 1
+        },
+        "together": {
+          "positive": 8,
+          "no feedback": 14,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    }
+  },
+  "25": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 5,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 8,
+          "no feedback": 15,
+          "possibly negative": 0,
+          "negative": 1
+        },
+        "together": {
+          "positive": 6,
+          "no feedback": 9,
+          "possibly negative": 0,
+          "negative": 1
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear3": {
+        "push": {
+          "positive": 0,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 2,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    }
+  },
+  "27": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 4,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 7,
+          "no feedback": 2,
+          "possibly negative": 2,
+          "negative": 1
+        },
+        "together": {
+          "positive": 3,
+          "no feedback": 2,
+          "possibly negative": 2,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 6,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 1
+        },
+        "all": {
+          "positive": 10,
+          "no feedback": 14,
+          "possibly negative": 1,
+          "negative": 2
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 12,
+          "possibly negative": 1,
+          "negative": 1
+        }
+      }
+    }
+  },
+  "32": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 7,
+          "possibly negative": 1,
+          "negative": 1
+        },
+        "all": {
+          "positive": 7,
+          "no feedback": 23,
+          "possibly negative": 1,
+          "negative": 2
+        },
+        "together": {
+          "positive": 5,
+          "no feedback": 16,
+          "possibly negative": 0,
+          "negative": 1
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 1
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 1
+        }
+      }
+    }
+  },
+  "36": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 5,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 1,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 3,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 13,
+          "no feedback": 16,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "together": {
+          "positive": 10,
+          "no feedback": 9,
+          "possibly negative": 1,
+          "negative": 0
+        }
+      }
+    }
+  },
+  "38": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 3,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 4,
+          "possibly negative": 1,
+          "negative": 3
+        },
+        "all": {
+          "positive": 13,
+          "no feedback": 11,
+          "possibly negative": 3,
+          "negative": 3
+        },
+        "together": {
+          "positive": 11,
+          "no feedback": 7,
+          "possibly negative": 2,
+          "negative": 0
+        }
+      }
+    }
+  },
+  "40": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 5,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 13,
+          "no feedback": 10,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "together": {
+          "positive": 11,
+          "no feedback": 5,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    }
+  },
+  "42": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 3,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 3,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 6,
+          "no feedback": 15,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 3,
+          "no feedback": 11,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    }
+  },
+  "136": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 3,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 3,
+          "possibly negative": 3,
+          "negative": 3
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 3,
+          "negative": 3
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 3,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 7,
+          "no feedback": 8,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 3,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 3,
+          "possibly negative": 3,
+          "negative": 3
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 2,
+          "possibly negative": 3,
+          "negative": 3
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 3,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 7,
+          "no feedback": 8,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    }
+  },
+  "137": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 4,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 6,
+          "no feedback": 5,
+          "possibly negative": 4,
+          "negative": 0
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 4,
+          "possibly negative": 4,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 3,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 7,
+          "no feedback": 9,
+          "possibly negative": 0,
+          "negative": 2
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 2
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 4,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 6,
+          "no feedback": 5,
+          "possibly negative": 4,
+          "negative": 0
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 4,
+          "possibly negative": 4,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 3,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 7,
+          "no feedback": 9,
+          "possibly negative": 0,
+          "negative": 2
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 2
+        }
+      }
+    }
+  },
+  "138": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 8,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 5,
+          "possibly negative": 2,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 5,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 13,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 8,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 8,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 5,
+          "possibly negative": 2,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 5,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 13,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 8,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    }
+  },
+  "144": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 2,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 5,
+          "possibly negative": 5,
+          "negative": 1
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 3,
+          "possibly negative": 4,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 2,
+          "no feedback": 14,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 10,
+          "possibly negative": 1,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 2,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 1,
+          "no feedback": 5,
+          "possibly negative": 5,
+          "negative": 1
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 3,
+          "possibly negative": 4,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 2,
+          "no feedback": 14,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 10,
+          "possibly negative": 1,
+          "negative": 0
+        }
+      }
+    }
+  },
+  "145": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 4,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 12,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "together": {
+          "positive": 5,
+          "no feedback": 8,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 13,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 9,
+          "possibly negative": 1,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 0,
+          "no feedback": 4,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "all": {
+          "positive": 5,
+          "no feedback": 12,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "together": {
+          "positive": 5,
+          "no feedback": 8,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 4,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 13,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 9,
+          "possibly negative": 1,
+          "negative": 0
+        }
+      }
+    }
+  },
+  "150": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 4,
+          "possibly negative": 2,
+          "negative": 1
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 3,
+          "possibly negative": 2,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 2
+        },
+        "all": {
+          "positive": 6,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 3
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 5,
+          "possibly negative": 0,
+          "negative": 1
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 4,
+          "possibly negative": 2,
+          "negative": 1
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 3,
+          "possibly negative": 2,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 2
+        },
+        "all": {
+          "positive": 6,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 3
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 5,
+          "possibly negative": 0,
+          "negative": 1
+        }
+      }
+    }
+  },
+  "151": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 5,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 10,
+          "no feedback": 2,
+          "possibly negative": 2,
+          "negative": 1
+        },
+        "together": {
+          "positive": 5,
+          "no feedback": 2,
+          "possibly negative": 2,
+          "negative": 1
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 2,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 8,
+          "no feedback": 7,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 6,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear3": {
+        "push": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 2,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      },
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 2,
+          "no feedback": 1,
+          "possibly negative": 2,
+          "negative": 1
+        },
+        "together": {
+          "positive": 0,
+          "no feedback": 1,
+          "possibly negative": 2,
+          "negative": 1
+        }
+      }
+    }
+  },
+  "157": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 5,
+          "possibly negative": 1,
+          "negative": 2
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 3,
+          "possibly negative": 1,
+          "negative": 2
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 0,
+          "no feedback": 4,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 10,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 2,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 5,
+          "possibly negative": 1,
+          "negative": 2
+        },
+        "together": {
+          "positive": 2,
+          "no feedback": 3,
+          "possibly negative": 1,
+          "negative": 2
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 0,
+          "no feedback": 4,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "all": {
+          "positive": 4,
+          "no feedback": 10,
+          "possibly negative": 1,
+          "negative": 0
+        },
+        "together": {
+          "positive": 4,
+          "no feedback": 6,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    }
+  },
+  "158": {
+    "with_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 1,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 2,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 4,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 11,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 7,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    },
+    "no_self_matches": {
+      "gear2": {
+        "push": {
+          "positive": 2,
+          "no feedback": 0,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 3,
+          "no feedback": 1,
+          "possibly negative": 2,
+          "negative": 0
+        },
+        "together": {
+          "positive": 1,
+          "no feedback": 1,
+          "possibly negative": 2,
+          "negative": 0
+        }
+      },
+      "gear3": {
+        "push": {
+          "positive": 4,
+          "no feedback": 1,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "all": {
+          "positive": 11,
+          "no feedback": 4,
+          "possibly negative": 0,
+          "negative": 0
+        },
+        "together": {
+          "positive": 7,
+          "no feedback": 3,
+          "possibly negative": 0,
+          "negative": 0
+        }
+      }
+    }
+  }
+}
