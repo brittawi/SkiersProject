@@ -2,7 +2,7 @@ DATASET:
   TRAIN_SIZE : 0.8
   VAL_SIZE : 0.2
   ROOT_PATH: "./data/split_data"
-  FILE_PREFIX: "labeled_cycles_"
+  #FILE_PREFIX: "labeled_cycles_" # Should be able to delete not use anymore
   TRAIN_FILE_NAME: "train_full.json"
   AUG:
     SMOOTHING: 2

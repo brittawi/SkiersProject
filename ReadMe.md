@@ -5,7 +5,7 @@
 - [Dataset](#dataset)
 - [Keypoint annotations](#keypoint-annotations)
 - [Installation](#installation)
-- [Usage](#usage)
+- [Gear Classification](#gear-classification)
 - [Contribution](#contribution)
 
 ## Project Description (Britta)
@@ -74,7 +74,7 @@ We have chosen AlphaPose as the pose estimation model. This is using the [Halpe]
     {25, "RHeel"}
 ```
 
-## Installation (Emil)
+## Installation
 TODO how to install AlphaPose and how to use it
 ### AlphaPose Installation
 Follow installation from:
@@ -198,21 +198,12 @@ Here you set the train image load folder, annotation file, and set which pretrai
 
 ```python scripts/test.py --cfg configs/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/RegLoss100EpochNoFlipDPG.pth --num_workers 4```
 
-## Usage
-TODO folder structure, where to find what and how to use it
+## Gear Classification
 
-### Classification
-    .
-    ├── cycle_splits                # Files to split video into cycles and plot these
-    │   ├── labeled data            # Cycles labeled with corresponding gear
-    │   ├── lable_cycles.ipynb      # Script to split video into cycles and label these
-    ├── training                    # Scripts for Training a classification model (MLP, LSTM)
+Under ```/classification``` are most files related to gear classification and related material. In ```/cycle_splits``` are notebooks related to investigating the joint singals (`cycle_plots_2D.ipynb`, `cycle_plots_front.ipynb`, and `front_test.ipynb`), and the notebook used for labeling cycles `label_cycles.ipynb`.  The ```/training``` folder contains most files for setting up the data, optimizing hyperparameters, and trainng and testing the models for gear classification. Finally in `/classify_angle` is just a single test file for testing the viewangle classification method and in `/cycles_stats` a single notebook for creating plots about the dataset.
 
-This folder contains files that can be used to split a video of a crosscountry skier into cycles. 
-
-#### Label Cycles (Britta)
-
-With the file `lable_cycles.ipynb` a video of a crosscountry skier can be split into cycles and the cycles can be labeled with the corresponding gear. To do so the video and the keypoint annotations are needed. The keypoint annotations need to follow the COCO format and therefore contain the following section:
+### Label Cycles
+With the file `label_cycles.ipynb` a video of a crosscountry skier can be split into cycles and the cycles can be labeled with the corresponding gear. To do so the video and the keypoint annotations are needed. The keypoint annotations need to follow the COCO format and therefore contain the following section:
 
 ```
 {
@@ -225,7 +216,7 @@ With the file `lable_cycles.ipynb` a video of a crosscountry skier can be split 
 ```
 We are using the following keypoints: `["Nose","LEye","REye","LEar","REar","LShoulder","RShoulder","LElbow","RElbow","LWrist","RWrist","LHip","RHip","LKnee","RKnee","LAnkle","RAnkle","Head","Neck","Hip","LBigToe","RBigToe","LSmallToe","RSmallToe","LHeel","RHeel"]`
 
-Under Config you can modify the following parameters:
+Under Config in the notebook you can modify the following parameters:
 |Param  | Description   |
 |------ |---------------|
 |CHOOSEN_JOINT | With this parameter we can set a single joint that we want to use for detecting a cycle. It is only possible to set one joint for this. At the moment this parameter is not used. The chosen joint is instead selected based on the view angle.|
@@ -269,9 +260,28 @@ As **output** a json file will be saved in your working directory. The json file
 ```
 Each Cycle contains the keypoints for the choosen joints in that time period, a label and the start and end frame. 
 
-#### Training (Emil)
+### Training
 
-The ```/training``` folder contains two main runnable files for optimizing and training MLP or LSTM models for gear classification of the cycles. The file ```train.py``` loads parameters from ```config.yaml``` and does cross validation with each fold getting the average from the seeds listed in config, on the ```train.json``` dataset. In ```/run``` it outputs plots of the averaged metrics in ```/plots```, each model from each seed in each fold in ```/saved_models```, and the tensorboard logs in ```/tensorboard_runs```. 
+The ```/training``` folder contains five main runnable files for setting up the data, conducting hyperparameter optimization, cross-validation, training final models, and testing models for gear classification of the cycles. It also contains train and test results of various runs and controlling yaml files. 
+
+First, the file ```setup_data.py``` is used for combining the label cycle json files and splitting into train and test sets (in here the config is not used so change values in the file if desired). The parameters in ```setup_data.py``` are:
+
+| Param             | Description                                                                            |
+| ----------------- | -------------------------------------------------------------------------------------- |
+| IN_PATH         | Relative path to the directory containing the original labeled `.json` data files from the `label_cycles.ipynb` output.     |
+| OUT_PATH       | Relative path to the directory where the split train/test `.json` files will be saved. |
+| TRAIN_FILE_NAME | Name of the output file that will store the training dataset after splitting.          |
+| TEST_FILE_NAME  | Name of the output file that will store the test dataset after splitting.              |
+| test_size         | Proportion of the dataset to be used as the test set during the train-test split.                                                         |
+| seed             | Random seed value used to ensure reproducibility of the train-test split.                                                                 |
+| EXLUDED_SKIER_IDS | List of skier IDs that should be excluded from the dataset before splitting. Used to filter out specific individuals to create alternate dataset. |
+
+
+
+The file ```tune_hyperparameters.py``` load a search space parameters from ```search_space.yaml``` and other run parameters from ```config.yaml``` and use raytune to optimize models and output the best found paramateres in ```/ray_tune```. However, make sure it is the same network type and number of epochs and max epochs in ```config.yaml``` and ```search_space.yaml```. The file ```train_cv.py``` does cross validation with each fold getting the average from the seeds listed in the config. In ```/run``` it outputs plots of the averaged metrics in ```/plots```, each model from each seed in each fold in ```/saved_models```, and the tensorboard logs in ```/tensorboard_runs```. Run ```train_final.py``` to train a final classification model by manually inserting the best found hyperparameters from hyperparameter optimization and train for the number of epochs with lowest average validation loss from cross-validation. It will train for the numbers of epochs given in the config TRAIN.EPOCHS. Finally, ```test.py``` will run the final test on the hold-out test set created from ```setup_data.py```. This file does not load from the config file but the parameters are saved together with the model weights during training and loads from there, so to set the path to the model weight and test data you have to change `MODEL_PATH` and `TEST_DATA_PATH` in the file. All the LSTM and mlp folders are renamed runs folders contining the specified results.
+
+To train and use your own models for the feedback system take any of the resulting `.pth` model weights and put into `/pretrained_models` and then change the `CLS_GEAR.MODEL_PATH` parameter in `pipe_test.yaml` under `/feedback_system` to the weight name.  
+
 
 Parameters in ```config.yaml```:
 
@@ -282,7 +292,6 @@ Parameters in ```config.yaml```:
 | VAL_SIZE | Proportion of the dataset used for validation in hyperparameter optimization. |
 | ROOT_PATH | Relative path to the dataset. |
 | ROOT_ABSOLUTE_PATH | Absolute path to the dataset for reference. Used in hyperparameter optimization because raytune have different root.  |
-| FILE_PREFIX | Prefix for labeled cycle files in the dataset. |
 | AUG: SMOOTHING | Smoothing factor applied to the dataset. |
 | AUG: NORMALIZATION | Determines if dataset normalization should be applied. |
 | AUG: NORM_TYPE | Type of normalization applied to the dataset `full_signal` or `per_timestamp`. |
@@ -290,7 +299,7 @@ Parameters in ```config.yaml```:
 **DATA_PRESET**
 | Param            | Description |
 |-----------------|-------------|
-| CHOOSEN_JOINTS | List of selected joints used for classification. |
+| CHOOSEN_JOINTS | List of selected joints used for classification, use both x and y value e.g. `LShoulder_x` and `LShoulder_y`. |
 | LABELS | Dictionary mapping cycle labels to numeric values. |
 
 **TRAIN**
@@ -301,11 +310,11 @@ Parameters in ```config.yaml```:
 | OPTIMIZER | Optimization algorithm used. |
 | LOSS | Loss function used `cross_entropy` or `focal_loss`. |
 | LR | Learning rate for the optimizer. |
-| PATIENCE | Number of epochs with no improvement before early stopping. |
+| PATIENCE | Number of epochs with no improvement before early stopping (implemented but not currently used). |
 | K_FOLDS | Number of folds used for k-fold cross-validation. |
 | SEEDS | List of random seeds for reproducibility. The first seed in this list is used for the cross validation split and seed in train/val split for hyperparemeter optimization.  |
 
-**NETWORK**
+**TRAIN.NETWORK**
 | Param            | Description |
 |-----------------|-------------|
 | NETWORKTYPE | Specifies the neural network architecture `lstm` or `mlp`. |
@@ -322,6 +331,7 @@ Parameters in ```config.yaml```:
 | TENSORBOARD_PATH | Path for TensorBoard logs within `ROOT_PATH`. |
 | MODEL_DIR | Path for saved models within `ROOT_PATH`. |
 | PLOT_PATH | Path for plots within `ROOT_PATH`. |
+| BEST_EPOCH_PATH | Path for txt file with stats about lowest loss epoch in corss-validation within `ROOT_PATH`. |
 
 ### OPTIMIZATION
 | Param            | Description |
@@ -329,13 +339,6 @@ Parameters in ```config.yaml```:
 | SEARCH_CONFIG | .yaml file defining the hyperparameter search space. |
 | OUTPUT_ROOT | Root directory for saving training outputs and checkpoints. |
 | CHECKPOINTS: ENABLE | Enables checkpointing during training `true` or `false`. |
-
-
-
-
-The file ```tune_hyperparameters.py``` load a search space parameters from ```search_space.yaml``` and other run parameters from ```config.yaml``` and use raytune to optimize models and output the best found paramateres in ```/ray_tune```. 
-
-#### Create Annotations (Emil)
 
 #### Other models (Britta)
 We have tested the following pose estimation models for this projects:
