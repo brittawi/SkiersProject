@@ -18,7 +18,7 @@ In this project, we aim to **classify cross-country skiing sub-techniques using 
 *Project overview*
 
 **Scope of the Project**</br>
-Cross-country skiing consists of two main styles: **classic** and **skating**. This project focuses on the **skating style**, specifically providing feedback for **gear two and gear three**, as these sub-techniques are available in our dataset. Additionally, **gear four** will be included in gear classification.
+Cross-country skiing consists of two main styles: **classic** and **skating**. This project focuses on the **skating style**, specifically providing feedback for **gear two and gear three**, as these sub-techniques are available in our dataset. Additionally, **gear four** will be included in gear classification. A more detailed description is provided in our [thesis](https://www.diva-portal.org/smash/record.jsf?dswid=-5670&pid=diva2%3A1966192&c=1&searchType=SIMPLE&language=en&query=Improving+Cross-Country+Skating+Technique+with+AI-Based+Feedback&af=%5B%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all).
 
 As part of the project we want to:
 
@@ -33,6 +33,22 @@ As part of the project we want to:
 
 By leveraging machine learning and pose estimation, this project aims to enhance technique analysis in cross-country skiing, providing athletes with meaningful, data-driven feedback.
 
+### GitHub Oragnization Overview
+For a quick overview of what files to expect to be found where:
+```
+.
+├── alphapose                      # Adapted code from the AlphaPose GitHub (https://github.com/MVIG-SJTU/AlphaPose/tree/master)
+├── classification                 # Gear classification and cycle splitting related files.
+├── create_annotations             # Notebooks for creating annotations for fine-tuning AlphaPose.
+├── data                           # Contains most data files (input and output json files, output videos, and output from alphapose).
+├── feedback_system                # The main folder with the feedback pipeline from providing video as input to creating the feedback.
+├── other_models                   # Other tested pose estimation models.
+├── presentation_other_utility     # Assortment of notebooks and files we have used to create visualizations and other statistics.
+├── pretrained_models              # Neural network weights used for gear classification.
+├── utils                          # Utilitiy and supporting scripts.
+└── README.md
+```
+
 ## Dataset
 The dataset used in this project contains 149 drone-recorded videos of 12 cross-country skiers, captured using a DJI Mini 2 drone from front and side perspectives. The recordings were taken at Ormberget in Luleå, Sweden, under diverse natural conditions including sunshine, fog, and wind. Skiers of varying skill levels—from beginners to national-level athletes—performed skiing techniques in gears G2, G3, and G4, as well as sprints and transitions. Expert skiers also simulated five common technique mistakes to support automated feedback development. Manual drone tracking ensured dynamic yet informative footage suitable for pose estimation and motion analysis.
 From these videos we have created a dataset both for fine-tuning the pose estimation model and for training a classifier to detect different gears.
@@ -43,7 +59,7 @@ A subset of the data (18 full videos and 10 short clips) was manually annotated 
 The folder create_annotations includes a file (split_annotated_videos) to split annotated videos into a train, validation and test folder so that they can be used for fine-tuning a pose estimation model. For this the annotated data needs to be in COCO format. The second file(getAnnotationsFromAlphaPose) can be used to convert annotations from the halpe to the coco format. When running AlphaPose on a video the output will be in the halpe format.
 
 ### Dataset for training a classifier
-To train a classifier we have used the fine-tuned AlphaPose model to estimate the keypoints on all the recorded videos. This can be done by using the file test_pipe.py under the folder feedback_system. Using this file will output annotations per video. Next we have labeled the cycles accordingly. This can be done with the script lable_cycles.ipynb under the folder classification/classify_splits. Again the annotated data has to be in COCO format. This process is further explained under [this section](#label-cycles-britta). Our labeled data can be found under data/labeled_data.
+To train a classifier we have used the fine-tuned AlphaPose model to estimate the keypoints on all the recorded videos. This can be done by using the file test_pipe.py under the folder feedback_system. Using this file will output annotations per video. Next we have labeled the cycles accordingly. This can be done with the script lable_cycles.ipynb under the folder classification/classify_splits. Again the annotated data has to be in COCO format. This process is further explained under [this section](#label-cycles). Our labeled data can be found under data/labeled_data.
 
 ## Keypoint annotations
 We have chosen AlphaPose as the pose estimation model. This is using the [Halpe](https://github.com/Fang-Haoshu/Halpe-FullBody) 26 keypoints: 
