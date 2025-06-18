@@ -10,7 +10,7 @@
 
 ## Project Description
 
-Our goal is to provide **technique feedback for cross-country skiers** using machine learning. While previous research has primarily focused on **classifying sub-techniques**, little work has been done on **providing feedback** based on movement patterns. Most studies have relied on **sensor-based classification** ([[1]](#1), [[3]](#3), [[4]](#4)), while video-based classification has been limited to **controlled treadmill environments**, where sensors have shown better performance ([[2]](#2)), and classic subtechniques([[7]](#7)).
+Our goal is to provide **technique feedback for cross-country skiers** using machine learning. While previous research has primarily focused on **classifying sub-techniques**, little work has been done on **providing feedback** based on movement patterns. Most studies have relied on **sensor-based classification** ([[1]](#1), [[3]](#3), [[4]](#4)), while video-based classification has been limited to **controlled treadmill environments**, where sensors have shown better performance ([[2]](#2)), and classic subtechniques([[5]](#5)).
 
 In this project, we aim to **classify cross-country skiing sub-techniques using non-static drone video data** and **provide feedback to skiers** based on their movement.
 
@@ -391,10 +391,4 @@ Pousibet-Garrido, A., Polo-Rodríguez, A., Moreno-Pérez, J. A., Ruiz-García, I
 Rassem, A., El-Beltagy, M., & Saleh, M. (2017). Cross-Country Skiing Gears Classification using Deep Learning. arXiv:1706.08924. https://doi.org/10.48550/arXiv.1706.08924 
 
 <a id="5">[5]</a> 
-Wang, J., Qiu, K., Peng, H., Fu, J., & Zhu, J. (2019). AI Coach: Deep human pose estimation and analysis for personalized athletic training assistance. Proceedings of the 30th ACM International Conference on Multimedia. https://doi.org/10.1145/3343031.3350910 
-
-<a id="6">[6]</a> 
-Yue, C. Z., Yong, L. C., & Shyan, L. N. (2022). Exercise quality analysis using AI model and computer vision. Journal of Engineering Science and Technology Special Issue (pp. 157 - 171). https://jestec.taylors.edu.my/Special%20Issue%20SIET2022/SIET2022_10.pdf 
-
-<a id="7">[7]</a> 
 Qi, J., Li, D., He, J., & Wang, Y. (2023). Optically Non-Contact Cross-Country Skiing Action Recognition Based on Key-Point Collaborative Estimation and Motion Feature Extraction. Sensors, 23(7), 3639. https://doi.org/10.3390/s23073639
