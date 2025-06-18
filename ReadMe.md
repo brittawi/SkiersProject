@@ -4,7 +4,7 @@
 - [Project Description](#project-description)
 - [Dataset](#dataset)
 - [Keypoint annotations](#keypoint-annotations)
-- [Installation](#installation)
+- [AlphaPose installation and usage](#installation)
 - [Gear Classification](#gear-classification)
 - [Contribution](#contribution)
 
@@ -74,8 +74,10 @@ We have chosen AlphaPose as the pose estimation model. This is using the [Halpe]
     {25, "RHeel"}
 ```
 
-## Installation
-TODO how to install AlphaPose and how to use it
+## AlphaPose installation and usage
+
+This section explains the installation process and a breif usage guide for finetuning AlphaPose. In the feedback_system AlphaPose is implemneted and used automatically.  
+
 ### AlphaPose Installation
 Follow installation from:
 https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/INSTALL.md
@@ -95,20 +97,16 @@ Start with conda commands but switch to pip.
 5. Run the setup python file
 <br>```python setup.py build develop --user ```
 
-To use pretrained Halpe26 model download from the [Model Zoo](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/MODEL_ZOO.md) and put the halpe26_fat_res50_256x192.pth file into the pretrained_models folder:
+To use pretrained Halpe26 model download from the [Model Zoo](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/MODEL_ZOO.md) and put the halpe26_fat_res50_256x192.pth file into the pretrained_models folder. Also our pretrained models from the OneDrive should be put here. Note put it in the `/pretrained_models` folder under `/alphapose` and not the `/pretrained_models` higher as that is for gear classification:
 
     .
-    ├── ...
-    ├── pretrained_models
-    │   └── halpe26_fat_res50_256x192.pth
+    ├── alphapose
+    │   ├── ...
+    │   ├── pretrained_models
+    │   │   └── halpe26_fat_res50_256x192.pth
+    │   └── ...
     └── ...
 
-#### TODO
-#### AlphaPose Finetuning setup
-
-The train.py file did not run for us without fixing some errors first, to make it run we had to:
-1. Change the number of workers, we manually edited the DataLoaders in train.py to ``num_workers = 0```
-2. Disable the validation set, # TODO
 ### AlphaPose Usage 
 
 #### Inference
@@ -133,48 +131,45 @@ Then just convert the output format to coco using getAnnotationsFromAlphaPose.ip
 
 2. Put json from cvat into a folder to load from and the same as the video id for example "02.json". Set annotation_folder to the path to this folder in split_video_to_jpg.ipynb and optionally change combined_json_path for output file. 
 
-3. Put split images and annotation file into a training folder to load from. From the [AlphaPose install.md](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/INSTALL.md) the file structure is:
+3. Put split images and annotation file into a training folder to load from. Adopted the [AlphaPose install.md](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/INSTALL.md) our file structure is:
 ```
     .
-    ├── json
-    ├── exp
     ├── alphapose
-    ├── configs
-    ├── test
-    ├── data
-    └── ├── halpe
-        └── ├── annotations
-            │   ├── halpe_train_v1.json
-            │   └── halpe_val_v1.json
-            ├── images
-            └── ├── train2015
-                │   ├── HICO_train2015_00000001.jpg
-                │   ├── HICO_train2015_00000002.jpg
-                │   ├── HICO_train2015_00000003.jpg
-                │   ├── ... 
-                └── val2017
-                    ├── 000000000139.jpg
-                    ├── 000000000285.jpg
-                    ├── 000000000632.jpg
-                    ├── ...
+    │    ├── alphapose
+    │    ├── .tensorboard
+    │    ├── configs
+    │    ├── data
+    │    │   └── halpe 
+    │    │       ├── annotations
+    │    │       │   ├── halpe_train_v1.json
+    │    │       │   └── halpe_val_v1.json
+    │    │       ├── images
+    │    │       └── ├── train2015
+    │    │           │   ├── HICO_train2015_00000001.jpg
+    │    │           │   ├── HICO_train2015_00000002.jpg
+    │    │           │   ├── HICO_train2015_00000003.jpg
+    │    │           │   ├── ... 
+    │    │           └── val2017
+    │    │               ├── 000000000139.jpg
+    │    │               ├── 000000000285.jpg
+    │    │               ├── 000000000632.jpg
+    │    │               ├── ...
+    │    ├── ...
+    ├── classification
+    ├──...
 ```
-So now put the images and json into this structure or change it in the .yaml in upcomming steps. We do not use the validation set so that folder and json is not needed.
+So now put the images and json into this structure or change it in the .yaml in upcomming steps.
 
 5. Open and edit config in:
 ```
     .
-    ├── json
     ├── exp
     ├── alphapose
     ├── configs
-    │   ├── ...
-    │   └── halpe_26
-    │       └── resnet
-    │           ├── 256x192_res50_lr1e-3_1x.yaml # This one 
-    │           └── ...
+    │   └── 256x192_res50_lr1e-3_1x.yaml
     ├── ...
 ```
-Here you set the train image load folder, annotation file, and set which pretrained weights to use. To use pretrained weights set:
+Here you set the train and validation image load folder, annotation files, and set which pretrained weights to use. To use pretrained weights set:
 ```PRETRAINED: 'pretrained_models/halpe_26_fast_res50_256x192.pth'``` Also change other configs here such as learning rate, epochs, etc. 
 
 6. Run training command:
@@ -190,7 +185,7 @@ Here you set the train image load folder, annotation file, and set which pretrai
     ├── ...
 ```
 
-7. Run inference with new trained weights, put the trained weights into /pretrained_models folder and in the inference command change ```--checkpoint``` to the weight file name, for example
+7. Run inference with new trained weights, put the trained weights into `/pretrained_models` folder (under alphapose and not in main) and in the inference command change ```--checkpoint``` to the weight file name, for example
 
 ```python scripts/demo_inference.py --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/final_DPG_iter_2.pth --video E:\alphapose\AlphaPose\examples\demo\DJI_0015.MP4 --save_video --vis_fast```
 
