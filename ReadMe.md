@@ -8,9 +8,9 @@
 - [Gear Classification](#gear-classification)
 - [Contribution](#contribution)
 
-## Project Description (Britta)
+## Project Description
 
-Our goal is to provide **technique feedback for cross-country skiers** using machine learning. While previous research has primarily focused on **classifying sub-techniques**, little work has been done on **providing (real-time) feedback** based on movement patterns. Most studies have relied on **sensor-based classification** ([[1]](#1), [[3]](#3), [[4]](#4)), while video-based classification has been limited to **controlled treadmill environments**—where sensors have shown better performance ([[2]](#2)).
+Our goal is to provide **technique feedback for cross-country skiers** using machine learning. While previous research has primarily focused on **classifying sub-techniques**, little work has been done on **providing feedback** based on movement patterns. Most studies have relied on **sensor-based classification** ([[1]](#1), [[3]](#3), [[4]](#4)), while video-based classification has been limited to **controlled treadmill environments**, where sensors have shown better performance ([[2]](#2)), and classic subtechniques([[7]](#7)).
 
 In this project, we aim to **classify cross-country skiing sub-techniques using non-static drone video data** and **provide feedback to skiers** based on their movement.
 
@@ -18,15 +18,18 @@ In this project, we aim to **classify cross-country skiing sub-techniques using 
 *Project overview*
 
 **Scope of the Project**</br>
-Cross-country skiing consists of two main styles: **classic** and **skating**. This project focuses on the **skating style**, specifically **gear two and gear three**, as these sub-techniques are available in our dataset.
+Cross-country skiing consists of two main styles: **classic** and **skating**. This project focuses on the **skating style**, specifically providing feedback for **gear two and gear three**, as these sub-techniques are available in our dataset. Additionally, **gear four** will be included in gear classification.
 
 As part of the project we want to:
 
 1. **Annotate** selected videos.
 2. **Finetune a pose estimation model** to detect joint key points automatically.
-3. **Use these key points to classify** skating sub-techniques (gear two & three) and their cycle phases.
-4. **Apply Long Short-Term Memory (LSTM) networks** for classification, as they have been effective in previous studies ([[1]](#1), [[2]](#2), [[4]](#4)). We also want to test a simple **MLP network**. 
-5. **Use Dynamic Time Warping (DTW)** to compare user movement against expert data, generating technique feedback.
+3. **Use these key points to classify** skating sub-techniques (gear two, three, and four) and an additional *unknown* class for other outliers and movements.
+4. **Apply Long Short-Term Memory (LSTM) networks** for classification, as they have been effective in previous studies ([[1]](#1), [[2]](#2), [[4]](#4)), and compared to a baseline **MLP network**. 
+5. **Use Dynamic Time Warping (DTW)** to compare user movement against expert data.
+6. **Generate feedback and identify mistakes** based on the DTW comparison.
+    * General feedback mode where the user selectes features for comparison.
+    * Mistake-identification and targeted feedback mode for specific mistake correction. 
 
 By leveraging machine learning and pose estimation, this project aims to enhance technique analysis in cross-country skiing, providing athletes with meaningful, data-driven feedback.
 
@@ -377,3 +380,5 @@ Wang, J., Qiu, K., Peng, H., Fu, J., & Zhu, J. (2019). AI Coach: Deep human pose
 <a id="6">[6]</a> 
 Yue, C. Z., Yong, L. C., & Shyan, L. N. (2022). Exercise quality analysis using AI model and computer vision. Journal of Engineering Science and Technology Special Issue (pp. 157 - 171). https://jestec.taylors.edu.my/Special%20Issue%20SIET2022/SIET2022_10.pdf 
 
+<a id="7">[7]</a> 
+Qi, J., Li, D., He, J., & Wang, Y. (2023). Optically Non-Contact Cross-Country Skiing Action Recognition Based on Key-Point Collaborative Estimation and Motion Feature Extraction. Sensors, 23(7), 3639. https://doi.org/10.3390/s23073639
