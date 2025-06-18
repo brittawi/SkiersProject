@@ -6,6 +6,8 @@
 - [Keypoint annotations](#keypoint-annotations)
 - [AlphaPose installation and usage](#installation)
 - [Gear Classification](#gear-classification)
+- [Feedback system](#feedback-system)
+- [Other pose estimation models](#other-pose-estimation-models)
 - [Contribution](#contribution)
 
 ## Project Description
@@ -354,7 +356,118 @@ Parameters in ```config.yaml```:
 | OUTPUT_ROOT | Root directory for saving training outputs and checkpoints. |
 | CHECKPOINTS: ENABLE | Enables checkpointing during training `true` or `false`. |
 
-#### Other models (Britta)
+## Feedback system
+Most files related to our implemented feedback system are located under ```/feedback_system```. The image below shows the feedback pipeline that we have implemented. It consists of the following steps:
+
+1) **Keypoint estimation**: The fine-tuned AlphaPose model is used to estimate the keypoints for a given user video.
+
+2) **Viewpoint determination**: The viewpoint of the video is determined, meaning if it is filmed from the front or from right or left side. This will be used later in the process.
+
+3) **Cycle splitting**: Based on the keypoints the video is split into cycles. A cycle is a repeatable movement pattern. To split the video into cycles we use the x-coordinate of the right ankle for front and right side videos and the x-coordinate of the left ankle for left side videos. Based on this local extremas are calculated and are used to segment the signal into cycles. This is futher explained in our [thesis](https://www.diva-portal.org/smash/record.jsf?dswid=-5670&pid=diva2%3A1966192&c=1&searchType=SIMPLE&language=en&query=Improving+Cross-Country+Skating+Technique+with+AI-Based+Feedback&af=%5B%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all).
+
+4) **Gear classification**: Using our trained MLP network the gear is classified per cycle. All pretrained classifiers are saved under ```/pretrained_models```. 
+
+5) **Dynamic Time Warping**: The cycle is then matched to an expert cycle by using dynamic time warping. Our chosen expert cycles can be found under ```/data/expert_data```.
+
+6) **Feedback output**: We have implemented two types of feedback generation. Either the user can select predetermined mistakes that he wants to look for. We have only implemented two of these so far and they are further described in our [thesis](https://www.diva-portal.org/smash/record.jsf?dswid=-5670&pid=diva2%3A1966192&c=1&searchType=SIMPLE&language=en&query=Improving+Cross-Country+Skating+Technique+with+AI-Based+Feedback&af=%5B%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all). Furthermore, there is a general feedback option, where the user can select certain features he wishes to observe. In this mode no specific feedback is given. Instead the user sees where there are high differences to the expert. 
+
+For further information check out our [thesis](https://www.diva-portal.org/smash/record.jsf?dswid=-5670&pid=diva2%3A1966192&c=1&searchType=SIMPLE&language=en&query=Improving+Cross-Country+Skating+Technique+with+AI-Based+Feedback&af=%5B%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all).
+
+![feedback_pipeline](Feedback_pipeline.png)
+
+*Feedback system pipeline overview. In the first pose estimation and
+preprocessing stage, the input video is processed by AlphaPose to produce keypoint
+outputs, which are used for view-point identification and segmenting the keypoint data
+into sub-technique cycles. In the second classification and DTW stage, each cycle is
+classified and matched to an expert reference cycle. In the third feedback output stage,
+either user-defined features are compared or specific mistakes are identified, and targeted
+feedback is provided.*
+
+To run the feedback system open the file ```feedback_system.py```. In the file ```config_feedback_pipe.yaml``` you can define the following options:
+
+| Param            | Description |
+|-----------------|-------------|
+|VIDEO_PATH|Define the path of the video that you want to get feedback for.|
+
+**ALPHA_ARGS**
+Parameters for AlphaPose model.
+| Param            | Description |
+|-----------------|-------------|
+|SAVE_VIDEO|Determines if a video with estimated keypoints should be saved|
+|VIS_FAST|If turned on, it will use faster rendering method.|
+|POSE_TRACK|Enables tracking of the person.|
+|CFG_PATH|Path for the alphapose config file.|
+|WEIGHTS_PATH|Path to the fine-tuned model weights.|
+|YOLO_WEIGHT_PATH|Path to the object detector model weights.|
+|GPUS|Choose which cuda device to use by index and input comma to use multi gpus, e.g. 0,1,2,3. (input -1 for cpu only)|
+|OutPUT_PATH|Sets the path where the video with estimated keypoints will be saved if SAVE_VIDEO is set to True. The default path is: data/alphapose_output.|
+|SHOWBOX|Determines if the box from the object detection should be shown.|
+|FORMAT|Determines the keypoint forma.|
+|SAVE_JSON|Determines whether a json with the estimated keypoints should be saved. This is currently not implemented. Currently the keypoints are directly used without saving them.|
+
+**CLS_GEAR**
+Parameters for gear classification.
+| Param            | Description |
+|-----------------|-------------|
+|NETTYPE|Determines the type of net that should be used for classification. Possible options at the moment are: mlp and lstm.|
+|MODEL_PATH|Path to the pretrained classifier.|
+
+**DTW**
+Parameters for dynamic time warping.
+| Param            | Description |
+|-----------------|-------------|
+|VIS_VID_PATH|Path to the expert videos the reference cycles are chosen from. This is needed to show the feedback.|
+|SPLIT|Here you can define for each viewangle which joint you would like to use for splitting a signal into cycles and if the split should be done based on a minimum or maximum.|
+|CHOOSEN_REF|Determines the joint that should be used as a reference value.|
+|CHOOSEN_DIM|Determines if x or y coordinate should be used for the split.|
+|GAUS_FILTER|Determines whether a gaussian filter should be applied.|
+|SIGMA_VALUE|Sigma value for gaussian filter.|
+|ORDER|Determines the order which is used to find local extrema. If a sprint is performed this might have to be set down to 15. Our default value is 22.|
+
+**Feedback**
+Parameters for feedback generation.
+| Param            | Description |
+|-----------------|-------------|
+|SAVE_VIDEO|Determines if the feedback video should be saved.|
+|OUTPUT_PATH|Determines where the feedback video should be saved.|
+|MISTAKE_TYPE|Determines the type of mistake that should be given feedback on. Current options are: general, wide_legs and stiff_ankle.|
+|GENERAL_MODE|In case general is chosen you have the option to select different features to compare. More info will be given [here](#general-feedback-mode).|
+|SAVE_STATISTICS|Determines whether certain statistics for feedback evaluation should be saved.|
+|OUTPUT_STATS|Path where feedback statistics should be saved.|
+
+### General feedback mode
+If the general feedback mode is selected you have the option to select the following features:
+
+1) **Joint angles**: You can compare different joint angles. For this you have to list three joints that should be used to calculate the angle. 
+Example: 
+```
+JOINT_ANGLES: 
+      - ["RElbow", "RShoulder", "RHip"]`
+```
+
+2) **Distances between joints**: You can simply compare the distance between a pair of joints. Example:
+```
+JOINTS_DISTANCES:
+      - ["RKnee", "LKnee"]
+```
+
+3) **Joint line relatives**: This compares the angle between two lines. For this four joints need to be specified. The first two joints will be used for the first line and the last two joints for the secoond line. 
+Example:
+```
+JOINTS_LINES_RELATIVE:
+      - ["LShoulder", "RShoulder", "LHip", "RHip"]
+```
+So in this case the angle between shoulder and hip line will be computed and compared to the expert. 
+
+4) **Joint line horizontals**: This can be used to compare a line to a horizontal line. Again the angle will be used for comparison with the expert. Example: 
+```
+JOINTS_LINES_HORIZONTAL: 
+      - ["LShoulder", "RShoulder"]
+```
+
+For each of these four options, multiple lists of joints can be given. 
+
+## Other pose estimation models
 We have tested the following pose estimation models for this projects:
 
 ||**MediaPipe**|**YoloNas**|**MMPose**|**OpenPose**|**AlphaPose (chosen)**|
@@ -373,8 +486,7 @@ We have tested the following pose estimation models for this projects:
 TODO not sure if we even need this  
 
 ## TODO
-- [ ] Feedback system
-
+[] add more mistakes 
 
 
 ## References
