@@ -380,16 +380,16 @@ Parameters for AlphaPose model.
 | Param            | Description |
 |-----------------|-------------|
 |SAVE_VIDEO|Determines if a video with estimated keypoints should be saved|
-|VIS_FAST| |
+|VIS_FAST|If turned on, it will use faster rendering method.|
 |POSE_TRACK|Enables tracking of the person.|
 |CFG_PATH|Path for the alphapose config file.|
 |WEIGHTS_PATH|Path to the fine-tuned model weights.|
 |YOLO_WEIGHT_PATH|Path to the object detector model weights.|
-|GPUS||
-|OutPUT_PATH||
+|GPUS|Choose which cuda device to use by index and input comma to use multi gpus, e.g. 0,1,2,3. (input -1 for cpu only)|
+|OutPUT_PATH|Sets the path where the video with estimated keypoints will be saved if SAVE_VIDEO is set to True. The default path is: data/alphapose_output.|
 |SHOWBOX|Determines if the box from the object detection should be shown.|
-|FORMAT|Determines the keypoint format|
-|SAVE_JSON|Determines whether a json with the estimated keypoints should be saved.|
+|FORMAT|Determines the keypoint forma.|
+|SAVE_JSON|Determines whether a json with the estimated keypoints should be saved. This is currently not implemented. Currently the keypoints are directly used without saving them.|
 
 **CLS_GEAR**
 Parameters for gear classification.
@@ -402,22 +402,56 @@ Parameters for gear classification.
 Parameters for dynamic time warping.
 | Param            | Description |
 |-----------------|-------------|
-|VIS_VID_PATH||
-|VIS_VIDEO||
-|SPLIT||
-|CHOOSEN_REF||
-|CHOOSEN_DIM||
-|GAUS_FILTER||
-|SIGMA_VALUE||
-|ORDER||
+|VIS_VID_PATH|Path to the expert videos the reference cycles are chosen from. This is needed to show the feedback.|
+|SPLIT|Here you can define for each viewangle which joint you would like to use for splitting a signal into cycles and if the split should be done based on a minimum or maximum.|
+|CHOOSEN_REF|Determines the joint that should be used as a reference value.|
+|CHOOSEN_DIM|Determines if x or y coordinate should be used for the split.|
+|GAUS_FILTER|Determines whether a gaussian filter should be applied.|
+|SIGMA_VALUE|Sigma value for gaussian filter.|
+|ORDER|Determines the order which is used to find local extrema. If a sprint is performed this might have to be set down to 15. Our default value is 22.|
 
 **Feedback**
 Parameters for feedback generation.
 | Param            | Description |
 |-----------------|-------------|
+|SAVE_VIDEO|Determines if the feedback video should be saved.|
+|OUTPUT_PATH|Determines where the feedback video should be saved.|
+|MISTAKE_TYPE|Determines the type of mistake that should be given feedback on. Current options are: general, wide_legs and stiff_ankle.|
+|GENERAL_MODE|In case general is chosen you have the option to select different features to compare. More info will be given [here](#general-feedback-mode).|
+|SAVE_STATISTICS|Determines whether certain statistics for feedback evaluation should be saved.|
+|OUTPUT_STATS|Path where feedback statistics should be saved.|
 
+### General feedback mode
+If the general feedback mode is selected you have the option to select the following features:
 
+1) **Joint angles**: You can compare different joint angles. For this you have to list three joints that should be used to calculate the angle. 
+Example: 
+```
+JOINT_ANGLES: 
+      - ["RElbow", "RShoulder", "RHip"]`
+```
 
+2) **Distances between joints**: You can simply compare the distance between a pair of joints. Example:
+```
+JOINTS_DISTANCES:
+      - ["RKnee", "LKnee"]
+```
+
+3) **Joint line relatives**: This compares the angle between two lines. For this four joints need to be specified. The first two joints will be used for the first line and the last two joints for the secoond line. 
+Example:
+```
+JOINTS_LINES_RELATIVE:
+      - ["LShoulder", "RShoulder", "LHip", "RHip"]
+```
+So in this case the angle between shoulder and hip line will be computed and compared to the expert. 
+
+4) **Joint line horizontals**: This can be used to compare a line to a horizontal line. Again the angle will be used for comparison with the expert. Example: 
+```
+JOINTS_LINES_HORIZONTAL: 
+      - ["LShoulder", "RShoulder"]
+```
+
+For each of these four options, multiple lists of joints can be given. 
 
 ## Other pose estimation models
 We have tested the following pose estimation models for this projects:
