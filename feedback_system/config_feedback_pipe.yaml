@@ -38,18 +38,16 @@ FEEDBACK:
   MISTAKE_TYPE: general
   GENERAL_MODE:
     JOINT_ANGLES: 
-      - ["RElbow", "RShoulder", "RHip"]
-      - ["RHip", "Neck", "LHeel"]
-      - ["LElbow", "LShoulder", "LHip"]
-      - ["RAnkle", "RKnee", "RHip"]
+      - ["RWrist", "RElbow", "RShoulder"]
+      - ["RHip", "RKnee", "RAnkle"]
+      - ["LAnkle", "LKnee", "LHip"]
     JOINTS_DISTANCES:
       - ["RKnee", "LKnee"]
       - ["RWrist", "LWrist"]
-      - ["RWrist", "LWrist"]
     JOINTS_LINES_RELATIVE:
-      - ["LHeel", "RElbow", "Neck", "LBigToe"]
+      - ["LHeel", "LKnee", "Neck", "Hip"]
     JOINTS_LINES_HORIZONTAL: 
-      - ["LHeel", "RElbow"]
-      - ["Neck", "LBigToe"]
+      - ["LHip", "RHip"]
+      - ["RShoulder", "LShoulder"]
   SAVE_STATISTICS: False
   OUTPUT_STATS: ./data/feedback_evaluation
