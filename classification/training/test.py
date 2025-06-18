@@ -132,8 +132,6 @@ def main():
     # Print results
     print(test_results_text)
 
-    # disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=[*custom_params["labels"]])
-    # disp.plot()
     fig, ax = plt.subplots(figsize=(8, 6))
     # Annotate with both values: count and percentage
     annot = np.empty_like(conf_matrix).astype(str)
