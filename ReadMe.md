@@ -4,15 +4,15 @@
 - [Project Description](#project-description)
 - [Dataset](#dataset)
 - [Keypoint annotations](#keypoint-annotations)
-- [Installation](#installation)
+- [AlphaPose installation and usage](#installation)
 - [Gear Classification](#gear-classification)
 - [Feedback system](#feedback-system)
 - [Other pose estimation models](#other-pose-estimation-models)
 - [Contribution](#contribution)
 
-## Project Description (Britta)
+## Project Description
 
-Our goal is to provide **technique feedback for cross-country skiers** using machine learning. While previous research has primarily focused on **classifying sub-techniques**, little work has been done on **providing (real-time) feedback** based on movement patterns. Most studies have relied on **sensor-based classification** ([[1]](#1), [[3]](#3), [[4]](#4)), while video-based classification has been limited to **controlled treadmill environments**—where sensors have shown better performance ([[2]](#2)).
+Our goal is to provide **technique feedback for cross-country skiers** using machine learning. While previous research has primarily focused on **classifying sub-techniques**, little work has been done on **providing feedback** based on movement patterns. Most studies have relied on **sensor-based classification** ([[1]](#1), [[3]](#3), [[4]](#4)), while video-based classification has been limited to **controlled treadmill environments**, where sensors have shown better performance ([[2]](#2)), and classic subtechniques([[5]](#5)).
 
 In this project, we aim to **classify cross-country skiing sub-techniques using non-static drone video data** and **provide feedback to skiers** based on their movement.
 
@@ -20,17 +20,36 @@ In this project, we aim to **classify cross-country skiing sub-techniques using 
 *Project overview*
 
 **Scope of the Project**</br>
-Cross-country skiing consists of two main styles: **classic** and **skating**. This project focuses on the **skating style**, specifically **gear two and gear three**, as these sub-techniques are available in our dataset.
+Cross-country skiing consists of two main styles: **classic** and **skating**. This project focuses on the **skating style**, specifically providing feedback for **gear two and gear three**, as these sub-techniques are available in our dataset. Additionally, **gear four** will be included in gear classification. A more detailed description is provided in our [thesis](https://www.diva-portal.org/smash/record.jsf?dswid=-5670&pid=diva2%3A1966192&c=1&searchType=SIMPLE&language=en&query=Improving+Cross-Country+Skating+Technique+with+AI-Based+Feedback&af=%5B%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all).
 
 As part of the project we want to:
 
 1. **Annotate** selected videos.
 2. **Finetune a pose estimation model** to detect joint key points automatically.
-3. **Use these key points to classify** skating sub-techniques (gear two & three) and their cycle phases.
-4. **Apply Long Short-Term Memory (LSTM) networks** for classification, as they have been effective in previous studies ([[1]](#1), [[2]](#2), [[4]](#4)). We also want to test a simple **MLP network**. 
-5. **Use Dynamic Time Warping (DTW)** to compare user movement against expert data, generating technique feedback.
+3. **Use these key points to classify** skating sub-techniques (gear two, three, and four) and an additional *unknown* class for other outliers and movements.
+4. **Apply Long Short-Term Memory (LSTM) networks** for classification, as they have been effective in previous studies ([[1]](#1), [[2]](#2), [[4]](#4)), and compared to a baseline **MLP network**. 
+5. **Use Dynamic Time Warping (DTW)** to compare user movement against expert data.
+6. **Generate feedback and identify mistakes** based on the DTW comparison.
+    * General feedback mode where the user selectes features for comparison.
+    * Mistake-identification and targeted feedback mode for specific mistake correction. 
 
 By leveraging machine learning and pose estimation, this project aims to enhance technique analysis in cross-country skiing, providing athletes with meaningful, data-driven feedback.
+
+### GitHub Oragnization Overview
+For a quick overview of what files to expect to be found where:
+```
+.
+├── alphapose                      # Adapted code from the AlphaPose GitHub (https://github.com/MVIG-SJTU/AlphaPose/tree/master)
+├── classification                 # Gear classification and cycle splitting related files.
+├── create_annotations             # Notebooks for creating annotations for fine-tuning AlphaPose.
+├── data                           # Contains most data files (input and output json files, output videos, and output from alphapose).
+├── feedback_system                # The main folder with the feedback pipeline from providing video as input to creating the feedback.
+├── other_models                   # Other tested pose estimation models.
+├── presentation_other_utility     # Assortment of notebooks and files we have used to create visualizations and other statistics.
+├── pretrained_models              # Neural network weights used for gear classification.
+├── utils                          # Utilitiy and supporting scripts.
+└── README.md
+```
 
 ## Dataset
 The dataset used in this project contains 149 drone-recorded videos of 12 cross-country skiers, captured using a DJI Mini 2 drone from front and side perspectives. The recordings were taken at Ormberget in Luleå, Sweden, under diverse natural conditions including sunshine, fog, and wind. Skiers of varying skill levels—from beginners to national-level athletes—performed skiing techniques in gears G2, G3, and G4, as well as sprints and transitions. Expert skiers also simulated five common technique mistakes to support automated feedback development. Manual drone tracking ensured dynamic yet informative footage suitable for pose estimation and motion analysis.
@@ -42,7 +61,7 @@ A subset of the data (18 full videos and 10 short clips) was manually annotated 
 The folder create_annotations includes a file (split_annotated_videos) to split annotated videos into a train, validation and test folder so that they can be used for fine-tuning a pose estimation model. For this the annotated data needs to be in COCO format. The second file(getAnnotationsFromAlphaPose) can be used to convert annotations from the halpe to the coco format. When running AlphaPose on a video the output will be in the halpe format.
 
 ### Dataset for training a classifier
-To train a classifier we have used the fine-tuned AlphaPose model to estimate the keypoints on all the recorded videos. This can be done by using the file test_pipe.py under the folder feedback_system. Using this file will output annotations per video. Next we have labeled the cycles accordingly. This can be done with the script lable_cycles.ipynb under the folder classification/classify_splits. Again the annotated data has to be in COCO format. This process is further explained under [this section](#label-cycles-britta). Our labeled data can be found under data/labeled_data.
+To train a classifier we have used the fine-tuned AlphaPose model to estimate the keypoints on all the recorded videos. This can be done by using the file test_pipe.py under the folder feedback_system. Using this file will output annotations per video. Next we have labeled the cycles accordingly. This can be done with the script lable_cycles.ipynb under the folder classification/classify_splits. Again the annotated data has to be in COCO format. This process is further explained under [this section](#label-cycles). Our labeled data can be found under data/labeled_data.
 
 ## Keypoint annotations
 We have chosen AlphaPose as the pose estimation model. This is using the [Halpe](https://github.com/Fang-Haoshu/Halpe-FullBody) 26 keypoints: 
@@ -76,8 +95,10 @@ We have chosen AlphaPose as the pose estimation model. This is using the [Halpe]
     {25, "RHeel"}
 ```
 
-## Installation
-TODO how to install AlphaPose and how to use it
+## AlphaPose installation and usage
+
+This section explains the installation process and a breif usage guide for finetuning AlphaPose. In the feedback_system AlphaPose is implemneted and used automatically.  
+
 ### AlphaPose Installation
 Follow installation from:
 https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/INSTALL.md
@@ -97,20 +118,16 @@ Start with conda commands but switch to pip.
 5. Run the setup python file
 <br>```python setup.py build develop --user ```
 
-To use pretrained Halpe26 model download from the [Model Zoo](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/MODEL_ZOO.md) and put the halpe26_fat_res50_256x192.pth file into the pretrained_models folder:
+To use pretrained Halpe26 model download from the [Model Zoo](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/MODEL_ZOO.md) and put the halpe26_fat_res50_256x192.pth file into the pretrained_models folder. Also our pretrained models from the OneDrive should be put here. Note put it in the `/pretrained_models` folder under `/alphapose` and not the `/pretrained_models` higher as that is for gear classification:
 
     .
-    ├── ...
-    ├── pretrained_models
-    │   └── halpe26_fat_res50_256x192.pth
+    ├── alphapose
+    │   ├── ...
+    │   ├── pretrained_models
+    │   │   └── halpe26_fat_res50_256x192.pth
+    │   └── ...
     └── ...
 
-#### TODO
-#### AlphaPose Finetuning setup
-
-The train.py file did not run for us without fixing some errors first, to make it run we had to:
-1. Change the number of workers, we manually edited the DataLoaders in train.py to ``num_workers = 0```
-2. Disable the validation set, # TODO
 ### AlphaPose Usage 
 
 #### Inference
@@ -135,48 +152,45 @@ Then just convert the output format to coco using getAnnotationsFromAlphaPose.ip
 
 2. Put json from cvat into a folder to load from and the same as the video id for example "02.json". Set annotation_folder to the path to this folder in split_video_to_jpg.ipynb and optionally change combined_json_path for output file. 
 
-3. Put split images and annotation file into a training folder to load from. From the [AlphaPose install.md](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/INSTALL.md) the file structure is:
+3. Put split images and annotation file into a training folder to load from. Adopted the [AlphaPose install.md](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/INSTALL.md) our file structure is:
 ```
     .
-    ├── json
-    ├── exp
     ├── alphapose
-    ├── configs
-    ├── test
-    ├── data
-    └── ├── halpe
-        └── ├── annotations
-            │   ├── halpe_train_v1.json
-            │   └── halpe_val_v1.json
-            ├── images
-            └── ├── train2015
-                │   ├── HICO_train2015_00000001.jpg
-                │   ├── HICO_train2015_00000002.jpg
-                │   ├── HICO_train2015_00000003.jpg
-                │   ├── ... 
-                └── val2017
-                    ├── 000000000139.jpg
-                    ├── 000000000285.jpg
-                    ├── 000000000632.jpg
-                    ├── ...
+    │    ├── alphapose
+    │    ├── .tensorboard
+    │    ├── configs
+    │    ├── data
+    │    │   └── halpe 
+    │    │       ├── annotations
+    │    │       │   ├── halpe_train_v1.json
+    │    │       │   └── halpe_val_v1.json
+    │    │       ├── images
+    │    │       └── ├── train2015
+    │    │           │   ├── HICO_train2015_00000001.jpg
+    │    │           │   ├── HICO_train2015_00000002.jpg
+    │    │           │   ├── HICO_train2015_00000003.jpg
+    │    │           │   ├── ... 
+    │    │           └── val2017
+    │    │               ├── 000000000139.jpg
+    │    │               ├── 000000000285.jpg
+    │    │               ├── 000000000632.jpg
+    │    │               ├── ...
+    │    ├── ...
+    ├── classification
+    ├──...
 ```
-So now put the images and json into this structure or change it in the .yaml in upcomming steps. We do not use the validation set so that folder and json is not needed.
+So now put the images and json into this structure or change it in the .yaml in upcomming steps.
 
 5. Open and edit config in:
 ```
     .
-    ├── json
     ├── exp
     ├── alphapose
     ├── configs
-    │   ├── ...
-    │   └── halpe_26
-    │       └── resnet
-    │           ├── 256x192_res50_lr1e-3_1x.yaml # This one 
-    │           └── ...
+    │   └── 256x192_res50_lr1e-3_1x.yaml
     ├── ...
 ```
-Here you set the train image load folder, annotation file, and set which pretrained weights to use. To use pretrained weights set:
+Here you set the train and validation image load folder, annotation files, and set which pretrained weights to use. To use pretrained weights set:
 ```PRETRAINED: 'pretrained_models/halpe_26_fast_res50_256x192.pth'``` Also change other configs here such as learning rate, epochs, etc. 
 
 6. Run training command:
@@ -192,7 +206,7 @@ Here you set the train image load folder, annotation file, and set which pretrai
     ├── ...
 ```
 
-7. Run inference with new trained weights, put the trained weights into /pretrained_models folder and in the inference command change ```--checkpoint``` to the weight file name, for example
+7. Run inference with new trained weights, put the trained weights into `/pretrained_models` folder (under alphapose and not in main) and in the inference command change ```--checkpoint``` to the weight file name, for example
 
 ```python scripts/demo_inference.py --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/final_DPG_iter_2.pth --video E:\alphapose\AlphaPose\examples\demo\DJI_0015.MP4 --save_video --vis_fast```
 
@@ -489,8 +503,4 @@ Pousibet-Garrido, A., Polo-Rodríguez, A., Moreno-Pérez, J. A., Ruiz-García, I
 Rassem, A., El-Beltagy, M., & Saleh, M. (2017). Cross-Country Skiing Gears Classification using Deep Learning. arXiv:1706.08924. https://doi.org/10.48550/arXiv.1706.08924 
 
 <a id="5">[5]</a> 
-Wang, J., Qiu, K., Peng, H., Fu, J., & Zhu, J. (2019). AI Coach: Deep human pose estimation and analysis for personalized athletic training assistance. Proceedings of the 30th ACM International Conference on Multimedia. https://doi.org/10.1145/3343031.3350910 
-
-<a id="6">[6]</a> 
-Yue, C. Z., Yong, L. C., & Shyan, L. N. (2022). Exercise quality analysis using AI model and computer vision. Journal of Engineering Science and Technology Special Issue (pp. 157 - 171). https://jestec.taylors.edu.my/Special%20Issue%20SIET2022/SIET2022_10.pdf 
-
+Qi, J., Li, D., He, J., & Wang, Y. (2023). Optically Non-Contact Cross-Country Skiing Action Recognition Based on Key-Point Collaborative Estimation and Motion Feature Extraction. Sensors, 23(7), 3639. https://doi.org/10.3390/s23073639
