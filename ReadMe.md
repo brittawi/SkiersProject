@@ -6,6 +6,8 @@
 - [Keypoint annotations](#keypoint-annotations)
 - [Installation](#installation)
 - [Gear Classification](#gear-classification)
+- [Feedback system](#feedback-system)
+- [Other pose estimation models](#other-pose-estimation-models)
 - [Contribution](#contribution)
 
 ## Project Description (Britta)
@@ -340,7 +342,84 @@ Parameters in ```config.yaml```:
 | OUTPUT_ROOT | Root directory for saving training outputs and checkpoints. |
 | CHECKPOINTS: ENABLE | Enables checkpointing during training `true` or `false`. |
 
-#### Other models (Britta)
+## Feedback system
+Most files related to our implemented feedback system are located under ```/feedback_system```. The image below shows the feedback pipeline that we have implemented. It consists of the following steps:
+
+1) **Keypoint estimation**: The fine-tuned AlphaPose model is used to estimate the keypoints for a given user video.
+
+2) **Viewpoint determination**: The viewpoint of the video is determined, meaning if it is filmed from the front or from right or left side. This will be used later in the process.
+
+3) **Cycle splitting**: Based on the keypoints the video is split into cycles. A cycle is a repeatable movement pattern. To split the video into cycles we use the x-coordinate of the right ankle for front and right side videos and the x-coordinate of the left ankle for left side videos. Based on this local extremas are calculated and are used to segment the signal into cycles. This is futher explained in our [thesis](https://www.diva-portal.org/smash/record.jsf?dswid=-5670&pid=diva2%3A1966192&c=1&searchType=SIMPLE&language=en&query=Improving+Cross-Country+Skating+Technique+with+AI-Based+Feedback&af=%5B%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all).
+
+4) **Gear classification**: Using our trained MLP network the gear is classified per cycle. All pretrained classifiers are saved under ```/pretrained_models```. 
+
+5) **Dynamic Time Warping**: The cycle is then matched to an expert cycle by using dynamic time warping. Our chosen expert cycles can be found under ```/data/expert_data```.
+
+6) **Feedback output**: We have implemented two types of feedback generation. Either the user can select predetermined mistakes that he wants to look for. We have only implemented two of these so far and they are further described in our [thesis](https://www.diva-portal.org/smash/record.jsf?dswid=-5670&pid=diva2%3A1966192&c=1&searchType=SIMPLE&language=en&query=Improving+Cross-Country+Skating+Technique+with+AI-Based+Feedback&af=%5B%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all). Furthermore, there is a general feedback option, where the user can select certain features he wishes to observe. In this mode no specific feedback is given. Instead the user sees where there are high differences to the expert. 
+
+For further information check out our [thesis](https://www.diva-portal.org/smash/record.jsf?dswid=-5670&pid=diva2%3A1966192&c=1&searchType=SIMPLE&language=en&query=Improving+Cross-Country+Skating+Technique+with+AI-Based+Feedback&af=%5B%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all).
+
+![feedback_pipeline](Feedback_pipeline.png)
+
+*Feedback system pipeline overview. In the first pose estimation and
+preprocessing stage, the input video is processed by AlphaPose to produce keypoint
+outputs, which are used for view-point identification and segmenting the keypoint data
+into sub-technique cycles. In the second classification and DTW stage, each cycle is
+classified and matched to an expert reference cycle. In the third feedback output stage,
+either user-defined features are compared or specific mistakes are identified, and targeted
+feedback is provided.*
+
+To run the feedback system open the file ```feedback_system.py```. In the file ```config_feedback_pipe.yaml``` you can define the following options:
+
+| Param            | Description |
+|-----------------|-------------|
+|VIDEO_PATH|Define the path of the video that you want to get feedback for.|
+
+**ALPHA_ARGS**
+Parameters for AlphaPose model.
+| Param            | Description |
+|-----------------|-------------|
+|SAVE_VIDEO|Determines if a video with estimated keypoints should be saved|
+|VIS_FAST| |
+|POSE_TRACK|Enables tracking of the person.|
+|CFG_PATH|Path for the alphapose config file.|
+|WEIGHTS_PATH|Path to the fine-tuned model weights.|
+|YOLO_WEIGHT_PATH|Path to the object detector model weights.|
+|GPUS||
+|OutPUT_PATH||
+|SHOWBOX|Determines if the box from the object detection should be shown.|
+|FORMAT|Determines the keypoint format|
+|SAVE_JSON|Determines whether a json with the estimated keypoints should be saved.|
+
+**CLS_GEAR**
+Parameters for gear classification.
+| Param            | Description |
+|-----------------|-------------|
+|NETTYPE|Determines the type of net that should be used for classification. Possible options at the moment are: mlp and lstm.|
+|MODEL_PATH|Path to the pretrained classifier.|
+
+**DTW**
+Parameters for dynamic time warping.
+| Param            | Description |
+|-----------------|-------------|
+|VIS_VID_PATH||
+|VIS_VIDEO||
+|SPLIT||
+|CHOOSEN_REF||
+|CHOOSEN_DIM||
+|GAUS_FILTER||
+|SIGMA_VALUE||
+|ORDER||
+
+**Feedback**
+Parameters for feedback generation.
+| Param            | Description |
+|-----------------|-------------|
+
+
+
+
+## Other pose estimation models
 We have tested the following pose estimation models for this projects:
 
 ||**MediaPipe**|**YoloNas**|**MMPose**|**OpenPose**|**AlphaPose (chosen)**|
@@ -359,8 +438,7 @@ We have tested the following pose estimation models for this projects:
 TODO not sure if we even need this  
 
 ## TODO
-- [ ] Feedback system
-
+[] add more mistakes 
 
 
 ## References
