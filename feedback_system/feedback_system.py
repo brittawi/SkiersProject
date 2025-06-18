@@ -5,7 +5,7 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 
-from utils.load_data import load_json, load_summary_json
+from utils.load_data import load_json
 from utils.dtw import compare_selected_cycles, extract_multivariate_series
 from utils.feedback_utils import *
 from utils.nets import LSTMNet, SimpleMLP
@@ -13,7 +13,6 @@ from utils.config import update_config
 from utils.split_cycles import split_into_cycles
 from utils.preprocess_signals import *
 from utils.annotation_format import halpe26_to_coco
-from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
 from utils.feedback_utils import get_line_points, feedback_wide_legs, feedback_stiff_ankle
 from utils.classify_angle import classify_angle
@@ -48,7 +47,7 @@ def main():
     # Step 1: Get Keypoints from AlphaPose 
     
     print("Loading config...")
-    run_args = update_config("./feedback_system/pipe_test.yaml") # TODO Testing set up fix for full pipeline
+    run_args = update_config("./feedback_system/config_feedback_pipe.yaml") # TODO Testing set up fix for full pipeline
     # for evaluation purposes
     evaluation_file = f'{run_args.FEEDBACK.OUTPUT_STATS}/evaluation_{run_args.FEEDBACK.MISTAKE_TYPE}.json'
     if testing_with_inference:
@@ -213,7 +212,6 @@ def main():
         # Step 5: Give feedback
         
         direction = expert_cycle.get("Direction")
-        # TODO make it work for empty lists!
         if video_angle == "Front":
             if mistake_type == "wide_legs":
                 joint_angles = []
@@ -324,36 +322,6 @@ def main():
             if SKIER_ID != expert_cycle.get("Skier_id"):
                 for category, count in feedback_per_category.items():
                     summary_feedback["no_self_matches"][predicted_label][category] += count
-        
-        # Plotting
-        # TODO make parameter?
-        if False:
-            plot_lines(
-                f'output/diff_shoulder_hips_{i}.png', 
-                'Difference between user and expert with DTW', 
-                'Time step', 
-                'Angle (Degrees)', 
-                diff_angles,  # Positional argument for *line_data
-                labels=['Difference between user and expert'], 
-                colors=['b'])
-            plot_lines(
-                f'output/user_shoulder_hips_{i}.png',
-                'Plot of Array Data', 
-                'Time step', 
-                'Angle (Degrees)',  
-                user_lines,  # Positional argument for *line_data
-                expert_lines,  # Additional positional argument for *line_data
-                labels=['User', 'Expert'])
-            
-            plot_lines(
-                f'output/user_ankle_knee__hip_{i}.png',
-                'Plot of Array Data', 
-                'Time step', 
-                'Angle (Degrees)',  
-                user_angles,  # Positional argument for *line_data
-                expert_angles,  # Additional positional argument for *line_data
-                labels=['User', 'Expert']
-            )
 
         if show_feedback:
             # Create temp quick frame lookup video for expert frames
@@ -421,13 +389,11 @@ def main():
                                                 frame2)
                 
                 # print feedback
-                #feedback_image = np.zeros((height,width,channels), np.uint8)
                 if mistake_type != "general" and frame2 in list(feedback_per_frame.keys()):
                     font = cv2.FONT_HERSHEY_SIMPLEX
                     font_scale = 1.2
                     font_thickness = 2
                     text_color = (255, 255, 255)
-                    #cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
                     draw_multiline_text(info_image, feedback_per_frame[frame2], (20, 250), font, font_scale, text_color, font_thickness)
 
 
