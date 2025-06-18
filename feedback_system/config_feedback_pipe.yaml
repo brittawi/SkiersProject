@@ -17,7 +17,6 @@ CLS_GEAR:
   MODEL_PATH: ./pretrained_models/trained_model_2025_04_11_15_03_lr0.0001_mlp_no_hip.pth
 DTW:
   VIS_VID_PATH: e:\SkiProject\Expert_reference_videos
-  VIS_VIDEO: False
   SPLIT:
     LEFT: 
       CHOOSEN_JOINT: RAnkle
