@@ -2,24 +2,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def create_pie_chart(labels, sizes, axs, title):
+    # def absolute_value(val):
+    #     total = sum(sizes)
+    #     count = int(np.round(val/100 * total))
+    #     return f"{count}"
     def absolute_value(val):
         total = sum(sizes)
-        count = int(np.round(val/100 * total))
-        return f"{count}"
+        count = int(np.round(val / 100 * total))
+        return f"{count}\n({val:.1f}%)"  # Show count and percentage
     
     #axs[0,0].bar(stats["Cycle Label Distribution"].keys(), stats["Cycle Label Distribution"].values())
     wedges, texts, autotexts = axs.pie(sizes,
         labels=labels,
         autopct=absolute_value,
         startangle=140,
-        textprops={'fontsize': 10},
+        textprops={'fontsize': 14, 'fontfamily': 'DejaVu Sans'},
         labeldistance=1.05, 
-        wedgeprops=dict(edgecolor='white'))
+        #wedgeprops=dict(edgecolor='white'))
+        wedgeprops=dict(edgecolor='white', linewidth=1))
     
     # Set the autotext (value) color to white
     for autotext in autotexts:
         autotext.set_color("white")
-    axs.set_title(title)
+        autotext.set_fontsize(12)
+        autotext.set_fontweight("bold")
+    axs.set_title(title, fontsize=16, fontweight='bold', pad=15)
     axs.axis("equal")
     plt.tight_layout()
     
