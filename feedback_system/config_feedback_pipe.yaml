@@ -1,5 +1,5 @@
   
-VIDEO_PATH: C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Expert_mistakes_data\Film2025-03-07\DJI_0136.MP4
+VIDEO_PATH: e:\SkiProject\Expert_mistake_videos\DJI_0062.MP4
 ALPHA_ARGS:
   SAVE_VIDEO: false
   VIS_FAST: true
@@ -16,8 +16,7 @@ CLS_GEAR:
   NETTYPE: mlp
   MODEL_PATH: ./pretrained_models/trained_model_2025_04_11_15_03_lr0.0001_mlp_no_hip.pth
 DTW:
-  VIS_VID_PATH: C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\expert_videos
-  VIS_VIDEO: False
+  VIS_VID_PATH: e:\SkiProject\Expert_reference_videos
   SPLIT:
     LEFT: 
       CHOOSEN_JOINT: RAnkle
@@ -36,6 +35,19 @@ DTW:
 FEEDBACK:
   SAVE_VIDEO: False
   OUTPUT_PATH: ./data/feedback_videos
-  MISTAKE_TYPE: wide_legs
-  SAVE_STATISTICS: True
+  MISTAKE_TYPE: general
+  GENERAL_MODE:
+    JOINT_ANGLES: 
+      - ["RWrist", "RElbow", "RShoulder"]
+      - ["RHip", "RKnee", "RAnkle"]
+      - ["LAnkle", "LKnee", "LHip"]
+    JOINTS_DISTANCES:
+      - ["RKnee", "LKnee"]
+      - ["RWrist", "LWrist"]
+    JOINTS_LINES_RELATIVE:
+      - ["LHeel", "LKnee", "Neck", "Hip"]
+    JOINTS_LINES_HORIZONTAL: 
+      - ["LHip", "RHip"]
+      - ["RShoulder", "LShoulder"]
+  SAVE_STATISTICS: False
   OUTPUT_STATS: ./data/feedback_evaluation

@@ -5,7 +5,7 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)  # Use insert(0, ...) to prioritize it
 
-from utils.load_data import load_json, load_summary_json
+from utils.load_data import load_json
 from utils.dtw import compare_selected_cycles, extract_multivariate_series
 from utils.feedback_utils import *
 from utils.nets import LSTMNet, SimpleMLP
@@ -13,7 +13,6 @@ from utils.config import update_config
 from utils.split_cycles import split_into_cycles
 from utils.preprocess_signals import *
 from utils.annotation_format import halpe26_to_coco
-from utils.plotting import plot_lines
 from alphapose.scripts.demo_inference import run_inference
 from utils.feedback_utils import get_line_points, feedback_wide_legs, feedback_stiff_ankle
 from utils.classify_angle import classify_angle
@@ -24,26 +23,17 @@ import torch
 import numpy as np
 import cv2
 import shutil
+import time
 
-# # TODO put in different config??
-# # Type of network that we want to use for the classification
-# NETWORK_TYPE = "MLP"
-# # Model path where we want to load the model from
-# MODEL_PATH = "./pretrained_models/best_model_2025_02_25_15_55_lr0.0001_seed42.pth"
-# # TODO this is just for test purposes. It is not needed anymore once we get AlphaPose to work, as we do not need to read in the annotated data then
+
+# Video ID
 ID = "92"
-SKIER_ID = 10
-# # INPUT_PATH = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\\" + ID + ".json"
-# # INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData\DJI_00" + ID + ".mp4"
-# INPUT_PATH = os.path.join("C:/awilde/britta/LTU/SkiingProject/SkiersProject/Data\Annotations", ID[:2] + ".json")
-#INPUT_PATH = os.path.join("e:\SkiProject\Results_AlphaPose\Expert_mistake_iter_1\All",  f"{ID}.json")
+# needed for evaluation of mistake
+SKIER_ID = 12
+# This is only needed when inference should not be run
 INPUT_PATH = os.path.join(r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\Annotations\annotations_finetuned_v1\Mixed_level",  f"{ID}.json")
-#INPUT_VIDEO = r"e:\SkiProject\Expert_mistake_videos\DJI_" + f"DJI_{int(ID):04d}.mp4"
-INPUT_VIDEO = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\NewData\Film2025-02-22\DJI_00" + ID + ".mp4"
-# # path to where all videos are stored
-# # video_path = r"C:\awilde\britta\LTU\SkiingProject\SkiersProject\Data\selectedData"
-# video_path = r"E:\SkiProject\Cut_videos"
-testing_with_inference = False
+testing_with_inference = True
+# if only the results should be evaluated this can be set to false
 show_feedback = True
 
 
@@ -57,14 +47,18 @@ def main():
     # Step 1: Get Keypoints from AlphaPose 
     
     print("Loading config...")
-    run_args = update_config("./feedback_system/pipe_test.yaml") # TODO Testing set up fix for full pipeline
+    run_args = update_config("./feedback_system/config_feedback_pipe.yaml") # TODO Testing set up fix for full pipeline
     # for evaluation purposes
     evaluation_file = f'{run_args.FEEDBACK.OUTPUT_STATS}/evaluation_{run_args.FEEDBACK.MISTAKE_TYPE}.json'
     if testing_with_inference:
+        start = time.time()
         output_path, results_list = run_inference(run_args)
+        end = time.time()
+        length = end - start
+        print(f"Inference took {length} sec")
         
         # Convert keypoint data to coco format
-        coco_data = halpe26_to_coco(results_list)
+        coco_data, _, _ = halpe26_to_coco(results_list)
         
     else:
         coco_data = load_json(INPUT_PATH)
@@ -218,7 +212,6 @@ def main():
         # Step 5: Give feedback
         
         direction = expert_cycle.get("Direction")
-        # TODO make it work for empty lists!
         if video_angle == "Front":
             if mistake_type == "wide_legs":
                 joint_angles = []
@@ -230,8 +223,10 @@ def main():
                 joints_lines_horizontal = [("Hip", "Neck")]
                 joints_distance = []
                 joints_lines_relative = []
+            elif mistake_type == "general":
+                joint_angles, joints_distance, joints_lines_relative, joints_lines_horizontal = load_general_mode_feedback_config(run_args)
             else:
-                print(f"We cannot give feedback for this mistake {mistake_type} from the front, please provide a video from the side.")
+                print(f"We cannot give feedback for this mistake {mistake_type} from the front, please provide a video from the side or check the mistake type is supported.")
                 break
             
         elif video_angle == "Left":
@@ -242,8 +237,10 @@ def main():
                             ]
                 joints_lines_horizontal = []
                 joints_distance = []
+            elif mistake_type == "general":
+                joint_angles, joints_distance, joints_lines_relative, joints_lines_horizontal = load_general_mode_feedback_config(run_args)
             else:
-                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front.")
+                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front or check the mistake type is supported..")
                 break
 
         elif video_angle == "Right":
@@ -252,8 +249,10 @@ def main():
                 joints_lines_relative = []
                 joints_lines_horizontal = []
                 joints_distance = []
+            elif mistake_type == "general":
+                joint_angles, joints_distance, joints_lines_relative, joints_lines_horizontal = load_general_mode_feedback_config(run_args)
             else:
-                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front.")
+                print(f"We cannot give feedback for this mistake {mistake_type} from the side, please provide a video from the front or check the mistake type is supported..")
                 break
         
         user_lines = []
@@ -323,36 +322,6 @@ def main():
             if SKIER_ID != expert_cycle.get("Skier_id"):
                 for category, count in feedback_per_category.items():
                     summary_feedback["no_self_matches"][predicted_label][category] += count
-        
-        # Plotting
-        # TODO make parameter?
-        if False:
-            plot_lines(
-                f'output/diff_shoulder_hips_{i}.png', 
-                'Difference between user and expert with DTW', 
-                'Time step', 
-                'Angle (Degrees)', 
-                diff_angles,  # Positional argument for *line_data
-                labels=['Difference between user and expert'], 
-                colors=['b'])
-            plot_lines(
-                f'output/user_shoulder_hips_{i}.png',
-                'Plot of Array Data', 
-                'Time step', 
-                'Angle (Degrees)',  
-                user_lines,  # Positional argument for *line_data
-                expert_lines,  # Additional positional argument for *line_data
-                labels=['User', 'Expert'])
-            
-            plot_lines(
-                f'output/user_ankle_knee__hip_{i}.png',
-                'Plot of Array Data', 
-                'Time step', 
-                'Angle (Degrees)',  
-                user_angles,  # Positional argument for *line_data
-                expert_angles,  # Additional positional argument for *line_data
-                labels=['User', 'Expert']
-            )
 
         if show_feedback:
             # Create temp quick frame lookup video for expert frames
@@ -420,13 +389,11 @@ def main():
                                                 frame2)
                 
                 # print feedback
-                #feedback_image = np.zeros((height,width,channels), np.uint8)
-                if frame2 in list(feedback_per_frame.keys()):
+                if mistake_type != "general" and frame2 in list(feedback_per_frame.keys()):
                     font = cv2.FONT_HERSHEY_SIMPLEX
                     font_scale = 1.2
                     font_thickness = 2
                     text_color = (255, 255, 255)
-                    #cv2.putText(info_image, feedback_per_frame[frame2], (0, 250), font, font_scale, text_color, font_thickness)
                     draw_multiline_text(info_image, feedback_per_frame[frame2], (20, 250), font, font_scale, text_color, font_thickness)
 
 

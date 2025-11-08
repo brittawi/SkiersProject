@@ -4,14 +4,15 @@
 - [Project Description](#project-description)
 - [Dataset](#dataset)
 - [Keypoint annotations](#keypoint-annotations)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contribution](#contribution)
+- [AlphaPose installation and usage](#installation)
+- [Gear Classification](#gear-classification)
+- [Feedback system](#feedback-system)
+- [Other pose estimation models](#other-pose-estimation-models)
+- [References](#references)
 
-## Project Description (Britta)
-**TODO**
+## Project Description
 
-Our goal is to provide **technique feedback for cross-country skiers** using machine learning. While previous research has primarily focused on **classifying sub-techniques**, little work has been done on **providing (real-time) feedback** based on movement patterns. Most studies have relied on **sensor-based classification** ([[1]](#1), [[3]](#3), [[4]](#4)), while video-based classification has been limited to **controlled treadmill environments**—where sensors have shown better performance ([[2]](#2)).
+Our goal is to provide **technique feedback for cross-country skiers** using machine learning. While previous research has primarily focused on **classifying sub-techniques**, little work has been done on **providing feedback** based on movement patterns. Most studies have relied on **sensor-based classification** ([[1]](#1), [[3]](#3), [[4]](#4)), while video-based classification has been limited to **controlled treadmill environments**, where sensors have shown better performance ([[2]](#2)), and classic subtechniques([[5]](#5)).
 
 In this project, we aim to **classify cross-country skiing sub-techniques using non-static drone video data** and **provide feedback to skiers** based on their movement.
 
@@ -19,30 +20,50 @@ In this project, we aim to **classify cross-country skiing sub-techniques using 
 *Project overview*
 
 **Scope of the Project**</br>
-Cross-country skiing consists of two main styles: **classic** and **skating**. This project focuses on the **skating style**, specifically **gear two and gear three**, as these sub-techniques are available in our dataset.
+Cross-country skiing consists of two main styles: **classic** and **skating**. This project focuses on the **skating style**, specifically providing feedback for **gear two and gear three**, as these sub-techniques are available in our dataset. Additionally, **gear four** will be included in gear classification. A more detailed description is provided in our [thesis](https://www.diva-portal.org/smash/record.jsf?dswid=-5670&pid=diva2%3A1966192&c=1&searchType=SIMPLE&language=en&query=Improving+Cross-Country+Skating+Technique+with+AI-Based+Feedback&af=%5B%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all).
 
 As part of the project we want to:
 
 1. **Annotate** selected videos.
 2. **Finetune a pose estimation model** to detect joint key points automatically.
-3. **Use these key points to classify** skating sub-techniques (gear two & three) and their cycle phases.
-4. **Apply Long Short-Term Memory (LSTM) networks** for classification, as they have been effective in previous studies ([[1]](#1), [[2]](#2), [[4]](#4)). We also want to test a simple **MLP network**. 
-5. **Use Dynamic Time Warping (DTW)** to compare user movement against expert data, generating technique feedback.
+3. **Use these key points to classify** skating sub-techniques (gear two, three, and four) and an additional *unknown* class for other outliers and movements.
+4. **Apply Long Short-Term Memory (LSTM) networks** for classification, as they have been effective in previous studies ([[1]](#1), [[2]](#2), [[4]](#4)), and compared to a baseline **MLP network**. 
+5. **Use Dynamic Time Warping (DTW)** to compare user movement against expert data.
+6. **Generate feedback and identify mistakes** based on the DTW comparison.
+    * General feedback mode where the user selectes features for comparison.
+    * Mistake-identification and targeted feedback mode for specific mistake correction. 
 
 By leveraging machine learning and pose estimation, this project aims to enhance technique analysis in cross-country skiing, providing athletes with meaningful, data-driven feedback.
 
-TODO put Halpe dataset here as well?!
+### GitHub Oragnization Overview
+For a quick overview of what files to expect to be found where:
+```
+.
+├── alphapose                      # Adapted code from the AlphaPose GitHub (https://github.com/MVIG-SJTU/AlphaPose/tree/master)
+├── classification                 # Gear classification and cycle splitting related files.
+├── create_annotations             # Notebooks for creating annotations for fine-tuning AlphaPose.
+├── data                           # Contains most data files (input and output json files, output videos, and output from alphapose).
+├── feedback_system                # The main folder with the feedback pipeline from providing video as input to creating the feedback.
+├── other_models                   # Other tested pose estimation models.
+├── presentation_other_utility     # Assortment of notebooks and files we have used to create visualizations and other statistics.
+├── pretrained_models              # Neural network weights used for gear classification.
+├── utils                          # Utilitiy and supporting scripts.
+└── README.md
+```
 
 ## Dataset
-**TODO** need to modify this text when we get the new data => add number of videos etc
-currently: 26 videos (8 front, 16 side)
+The dataset used in this project contains 149 drone-recorded videos of 12 cross-country skiers, captured using a DJI Mini 2 drone from front and side perspectives. The recordings were taken at Ormberget in Luleå, Sweden, under diverse natural conditions including sunshine, fog, and wind. Skiers of varying skill levels—from beginners to national-level athletes—performed skiing techniques in gears G2, G3, and G4, as well as sprints and transitions. Expert skiers also simulated five common technique mistakes to support automated feedback development. Manual drone tracking ensured dynamic yet informative footage suitable for pose estimation and motion analysis.
+From these videos we have created a dataset both for fine-tuning the pose estimation model and for training a classifier to detect different gears.
 
-The dataset that will be used for this project is drone captured videos of an expert skier skating on flat ground. The skating techniques used in the videos consist mainly of gear two and three. The skier is captured from several different viewpoints but the two we will use are from the front and from the sides based on an interview with a ski coach. Videos in different conditions (e.g. snow, darkness, etc.) and with various levels of skiers might be added later in the project.  
+### Dataset for fine-tuning the pose estimation model
+A subset of the data (18 full videos and 10 short clips) was manually annotated using CVAT, yielding 13,977 annotated frames across 10 different skiers. Further information can be found under: (include link to dataset).
+
+The folder create_annotations includes a file (split_annotated_videos) to split annotated videos into a train, validation and test folder so that they can be used for fine-tuning a pose estimation model. For this the annotated data needs to be in COCO format. The second file(getAnnotationsFromAlphaPose) can be used to convert annotations from the halpe to the coco format. When running AlphaPose on a video the output will be in the halpe format.
+
+### Dataset for training a classifier
+To train a classifier we have used the fine-tuned AlphaPose model to estimate the keypoints on all the recorded videos. This can be done by using the file test_pipe.py under the folder feedback_system. Using this file will output annotations per video. Next we have labeled the cycles accordingly. This can be done with the script lable_cycles.ipynb under the folder classification/classify_splits. Again the annotated data has to be in COCO format. This process is further explained under [this section](#label-cycles). Our labeled data can be found under data/labeled_data.
 
 ## Keypoint annotations
-**TODO**
-Talk about annotated data?!
-Talk about Halpe dataset?!
 We have chosen AlphaPose as the pose estimation model. This is using the [Halpe](https://github.com/Fang-Haoshu/Halpe-FullBody) 26 keypoints: 
 ```
     //26 body keypoints
@@ -73,11 +94,11 @@ We have chosen AlphaPose as the pose estimation model. This is using the [Halpe]
     {24, "LHeel"},
     {25, "RHeel"}
 ```
-We have 
 
+## AlphaPose installation and usage
 
-## Installation (Emil)
-TODO how to install AlphaPose and how to use it
+This section explains the installation process and a breif usage guide for finetuning AlphaPose. In the feedback_system AlphaPose is implemneted and used automatically.  
+
 ### AlphaPose Installation
 Follow installation from:
 https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/INSTALL.md
@@ -97,20 +118,16 @@ Start with conda commands but switch to pip.
 5. Run the setup python file
 <br>```python setup.py build develop --user ```
 
-To use pretrained Halpe26 model download from the [Model Zoo](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/MODEL_ZOO.md) and put the halpe26_fat_res50_256x192.pth file into the pretrained_models folder:
+To use pretrained Halpe26 model download from the [Model Zoo](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/MODEL_ZOO.md) and put the halpe26_fat_res50_256x192.pth file into the pretrained_models folder. Also our pretrained models from the OneDrive should be put here. Note put it in the `/pretrained_models` folder under `/alphapose` and not the `/pretrained_models` higher as that is for gear classification:
 
     .
-    ├── ...
-    ├── pretrained_models
-    │   └── halpe26_fat_res50_256x192.pth
+    ├── alphapose
+    │   ├── ...
+    │   ├── pretrained_models
+    │   │   └── halpe26_fat_res50_256x192.pth
+    │   └── ...
     └── ...
 
-#### TODO
-#### AlphaPose Finetuning setup
-
-The train.py file did not run for us without fixing some errors first, to make it run we had to:
-1. Change the number of workers, we manually edited the DataLoaders in train.py to ``num_workers = 0```
-2. Disable the validation set, # TODO
 ### AlphaPose Usage 
 
 #### Inference
@@ -135,48 +152,45 @@ Then just convert the output format to coco using getAnnotationsFromAlphaPose.ip
 
 2. Put json from cvat into a folder to load from and the same as the video id for example "02.json". Set annotation_folder to the path to this folder in split_video_to_jpg.ipynb and optionally change combined_json_path for output file. 
 
-3. Put split images and annotation file into a training folder to load from. From the [AlphaPose install.md](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/INSTALL.md) the file structure is:
+3. Put split images and annotation file into a training folder to load from. Adopted the [AlphaPose install.md](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/INSTALL.md) our file structure is:
 ```
     .
-    ├── json
-    ├── exp
     ├── alphapose
-    ├── configs
-    ├── test
-    ├── data
-    └── ├── halpe
-        └── ├── annotations
-            │   ├── halpe_train_v1.json
-            │   └── halpe_val_v1.json
-            ├── images
-            └── ├── train2015
-                │   ├── HICO_train2015_00000001.jpg
-                │   ├── HICO_train2015_00000002.jpg
-                │   ├── HICO_train2015_00000003.jpg
-                │   ├── ... 
-                └── val2017
-                    ├── 000000000139.jpg
-                    ├── 000000000285.jpg
-                    ├── 000000000632.jpg
-                    ├── ...
+    │    ├── alphapose
+    │    ├── .tensorboard
+    │    ├── configs
+    │    ├── data
+    │    │   └── halpe 
+    │    │       ├── annotations
+    │    │       │   ├── halpe_train_v1.json
+    │    │       │   └── halpe_val_v1.json
+    │    │       ├── images
+    │    │       └── ├── train2015
+    │    │           │   ├── HICO_train2015_00000001.jpg
+    │    │           │   ├── HICO_train2015_00000002.jpg
+    │    │           │   ├── HICO_train2015_00000003.jpg
+    │    │           │   ├── ... 
+    │    │           └── val2017
+    │    │               ├── 000000000139.jpg
+    │    │               ├── 000000000285.jpg
+    │    │               ├── 000000000632.jpg
+    │    │               ├── ...
+    │    ├── ...
+    ├── classification
+    ├──...
 ```
-So now put the images and json into this structure or change it in the .yaml in upcomming steps. We do not use the validation set so that folder and json is not needed.
+So now put the images and json into this structure or change it in the .yaml in upcomming steps.
 
 5. Open and edit config in:
 ```
     .
-    ├── json
     ├── exp
     ├── alphapose
     ├── configs
-    │   ├── ...
-    │   └── halpe_26
-    │       └── resnet
-    │           ├── 256x192_res50_lr1e-3_1x.yaml # This one 
-    │           └── ...
+    │   └── 256x192_res50_lr1e-3_1x.yaml
     ├── ...
 ```
-Here you set the train image load folder, annotation file, and set which pretrained weights to use. To use pretrained weights set:
+Here you set the train and validation image load folder, annotation files, and set which pretrained weights to use. To use pretrained weights set:
 ```PRETRAINED: 'pretrained_models/halpe_26_fast_res50_256x192.pth'``` Also change other configs here such as learning rate, epochs, etc. 
 
 6. Run training command:
@@ -192,7 +206,7 @@ Here you set the train image load folder, annotation file, and set which pretrai
     ├── ...
 ```
 
-7. Run inference with new trained weights, put the trained weights into /pretrained_models folder and in the inference command change ```--checkpoint``` to the weight file name, for example
+7. Run inference with new trained weights, put the trained weights into `/pretrained_models` folder (under alphapose and not in main) and in the inference command change ```--checkpoint``` to the weight file name, for example
 
 ```python scripts/demo_inference.py --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/final_DPG_iter_2.pth --video E:\alphapose\AlphaPose\examples\demo\DJI_0015.MP4 --save_video --vis_fast```
 
@@ -200,21 +214,12 @@ Here you set the train image load folder, annotation file, and set which pretrai
 
 ```python scripts/test.py --cfg configs/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/RegLoss100EpochNoFlipDPG.pth --num_workers 4```
 
-## Usage
-TODO folder structure, where to find what and how to use it
+## Gear Classification
 
-### Classification
-    .
-    ├── cycle_splits                # Files to split video into cycles and plot these
-    │   ├── labeled data            # Cycles labeled with corresponding gear
-    │   ├── lable_cycles.ipynb      # Script to split video into cycles and label these
-    ├── training                    # Scripts for Training a classification model (MLP, LSTM)
+Under ```/classification``` are most files related to gear classification and related material. In ```/cycle_splits``` are notebooks related to investigating the joint singals (`cycle_plots_2D.ipynb`, `cycle_plots_front.ipynb`, and `front_test.ipynb`), and the notebook used for labeling cycles `label_cycles.ipynb`.  The ```/training``` folder contains most files for setting up the data, optimizing hyperparameters, and trainng and testing the models for gear classification. Finally in `/classify_angle` is just a single test file for testing the viewangle classification method and in `/cycles_stats` a single notebook for creating plots about the dataset.
 
-This folder contains files that can be used to split a video of a crosscountry skier into cycles. 
-
-#### Label Cycles (Britta)
-
-With the file `lable_cycles.ipynb` a video of a crosscountry skier can be split into cycles and the cycles can be labeled with the corresponding gear. To do so the video and the keypoint annotations are needed. The keypoint annotations need to follow the COCO format and therefore contain the following section:
+### Label Cycles
+With the file `label_cycles.ipynb` a video of a crosscountry skier can be split into cycles and the cycles can be labeled with the corresponding gear. To do so the video and the keypoint annotations are needed. The keypoint annotations need to follow the COCO format and therefore contain the following section:
 
 ```
 {
@@ -227,10 +232,10 @@ With the file `lable_cycles.ipynb` a video of a crosscountry skier can be split 
 ```
 We are using the following keypoints: `["Nose","LEye","REye","LEar","REar","LShoulder","RShoulder","LElbow","RElbow","LWrist","RWrist","LHip","RHip","LKnee","RKnee","LAnkle","RAnkle","Head","Neck","Hip","LBigToe","RBigToe","LSmallToe","RSmallToe","LHeel","RHeel"]`
 
-Under Config you can modify the following parameters:
+Under Config in the notebook you can modify the following parameters:
 |Param  | Description   |
 |------ |---------------|
-|CHOOSEN_JOINT | With this parameter we can set a single joint that we want to use for detecting a cycle. It is only possible to set one joint for this. |
+|CHOOSEN_JOINT | With this parameter we can set a single joint that we want to use for detecting a cycle. It is only possible to set one joint for this. At the moment this parameter is not used. The chosen joint is instead selected based on the view angle.|
 |CHOOSEN_REF| Sets a reference joint to compute relative movements of other joints. By doing so we can better compare the cycles. We have used the Hip as a reference joint. |
 |CHOOSEN_DIM| Determines the dimension (x or y) to be used for cycle detection. |
 |sigma_value| Defines the smoothing factor for the signals. We are using Gaussian smoothing. |
@@ -271,9 +276,28 @@ As **output** a json file will be saved in your working directory. The json file
 ```
 Each Cycle contains the keypoints for the choosen joints in that time period, a label and the start and end frame. 
 
-#### Training (Emil)
+### Training
 
-The ```/training``` folder contains two main runnable files for optimizing and training MLP or LSTM models for gear classification of the cycles. The file ```train.py``` loads parameters from ```config.yaml``` and does cross validation with each fold getting the average from the seeds listed in config, on the ```train.json``` dataset. In ```/run``` it outputs plots of the averaged metrics in ```/plots```, each model from each seed in each fold in ```/saved_models```, and the tensorboard logs in ```/tensorboard_runs```. 
+The ```/training``` folder contains five main runnable files for setting up the data, conducting hyperparameter optimization, cross-validation, training final models, and testing models for gear classification of the cycles. It also contains train and test results of various runs and controlling yaml files. 
+
+First, the file ```setup_data.py``` is used for combining the label cycle json files and splitting into train and test sets (in here the config is not used so change values in the file if desired). The parameters in ```setup_data.py``` are:
+
+| Param             | Description                                                                            |
+| ----------------- | -------------------------------------------------------------------------------------- |
+| IN_PATH         | Relative path to the directory containing the original labeled `.json` data files from the `label_cycles.ipynb` output.     |
+| OUT_PATH       | Relative path to the directory where the split train/test `.json` files will be saved. |
+| TRAIN_FILE_NAME | Name of the output file that will store the training dataset after splitting.          |
+| TEST_FILE_NAME  | Name of the output file that will store the test dataset after splitting.              |
+| test_size         | Proportion of the dataset to be used as the test set during the train-test split.                                                         |
+| seed             | Random seed value used to ensure reproducibility of the train-test split.                                                                 |
+| EXLUDED_SKIER_IDS | List of skier IDs that should be excluded from the dataset before splitting. Used to filter out specific individuals to create alternate dataset. |
+
+
+
+The file ```tune_hyperparameters.py``` load a search space parameters from ```search_space.yaml``` and other run parameters from ```config.yaml``` and use raytune to optimize models and output the best found paramateres in ```/ray_tune```. However, make sure it is the same network type and number of epochs and max epochs in ```config.yaml``` and ```search_space.yaml```. The file ```train_cv.py``` does cross validation with each fold getting the average from the seeds listed in the config. In ```/run``` it outputs plots of the averaged metrics in ```/plots```, each model from each seed in each fold in ```/saved_models```, and the tensorboard logs in ```/tensorboard_runs```. Run ```train_final.py``` to train a final classification model by manually inserting the best found hyperparameters from hyperparameter optimization and train for the number of epochs with lowest average validation loss from cross-validation. It will train for the numbers of epochs given in the config TRAIN.EPOCHS. Finally, ```test.py``` will run the final test on the hold-out test set created from ```setup_data.py```. This file does not load from the config file but the parameters are saved together with the model weights during training and loads from there, so to set the path to the model weight and test data you have to change `MODEL_PATH` and `TEST_DATA_PATH` in the file. All the LSTM and mlp folders are renamed runs folders contining the specified results.
+
+To train and use your own models for the feedback system take any of the resulting `.pth` model weights and put into `/pretrained_models` and then change the `CLS_GEAR.MODEL_PATH` parameter in `pipe_test.yaml` under `/feedback_system` to the weight name.  
+
 
 Parameters in ```config.yaml```:
 
@@ -284,7 +308,6 @@ Parameters in ```config.yaml```:
 | VAL_SIZE | Proportion of the dataset used for validation in hyperparameter optimization. |
 | ROOT_PATH | Relative path to the dataset. |
 | ROOT_ABSOLUTE_PATH | Absolute path to the dataset for reference. Used in hyperparameter optimization because raytune have different root.  |
-| FILE_PREFIX | Prefix for labeled cycle files in the dataset. |
 | AUG: SMOOTHING | Smoothing factor applied to the dataset. |
 | AUG: NORMALIZATION | Determines if dataset normalization should be applied. |
 | AUG: NORM_TYPE | Type of normalization applied to the dataset `full_signal` or `per_timestamp`. |
@@ -292,7 +315,7 @@ Parameters in ```config.yaml```:
 **DATA_PRESET**
 | Param            | Description |
 |-----------------|-------------|
-| CHOOSEN_JOINTS | List of selected joints used for classification. |
+| CHOOSEN_JOINTS | List of selected joints used for classification, use both x and y value e.g. `LShoulder_x` and `LShoulder_y`. |
 | LABELS | Dictionary mapping cycle labels to numeric values. |
 
 **TRAIN**
@@ -303,11 +326,11 @@ Parameters in ```config.yaml```:
 | OPTIMIZER | Optimization algorithm used. |
 | LOSS | Loss function used `cross_entropy` or `focal_loss`. |
 | LR | Learning rate for the optimizer. |
-| PATIENCE | Number of epochs with no improvement before early stopping. |
+| PATIENCE | Number of epochs with no improvement before early stopping (implemented but not currently used). |
 | K_FOLDS | Number of folds used for k-fold cross-validation. |
 | SEEDS | List of random seeds for reproducibility. The first seed in this list is used for the cross validation split and seed in train/val split for hyperparemeter optimization.  |
 
-**NETWORK**
+**TRAIN.NETWORK**
 | Param            | Description |
 |-----------------|-------------|
 | NETWORKTYPE | Specifies the neural network architecture `lstm` or `mlp`. |
@@ -324,6 +347,7 @@ Parameters in ```config.yaml```:
 | TENSORBOARD_PATH | Path for TensorBoard logs within `ROOT_PATH`. |
 | MODEL_DIR | Path for saved models within `ROOT_PATH`. |
 | PLOT_PATH | Path for plots within `ROOT_PATH`. |
+| BEST_EPOCH_PATH | Path for txt file with stats about lowest loss epoch in corss-validation within `ROOT_PATH`. |
 
 ### OPTIMIZATION
 | Param            | Description |
@@ -332,17 +356,119 @@ Parameters in ```config.yaml```:
 | OUTPUT_ROOT | Root directory for saving training outputs and checkpoints. |
 | CHECKPOINTS: ENABLE | Enables checkpointing during training `true` or `false`. |
 
+## Feedback system
+Most files related to our implemented feedback system are located under ```/feedback_system```. The image below shows the feedback pipeline that we have implemented. It consists of the following steps:
 
+1) **Keypoint estimation**: The fine-tuned AlphaPose model is used to estimate the keypoints for a given user video.
 
+2) **Viewpoint determination**: The viewpoint of the video is determined, meaning if it is filmed from the front or from right or left side. This will be used later in the process.
 
-The file ```tune_hyperparameters.py``` load a search space parameters from ```search_space.yaml``` and other run parameters from ```config.yaml``` and use raytune to optimize models and output the best found paramateres in ```/ray_tune```. 
+3) **Cycle splitting**: Based on the keypoints the video is split into cycles. A cycle is a repeatable movement pattern. To split the video into cycles we use the x-coordinate of the right ankle for front and right side videos and the x-coordinate of the left ankle for left side videos. Based on this local extremas are calculated and are used to segment the signal into cycles. This is futher explained in our [thesis](https://www.diva-portal.org/smash/record.jsf?dswid=-5670&pid=diva2%3A1966192&c=1&searchType=SIMPLE&language=en&query=Improving+Cross-Country+Skating+Technique+with+AI-Based+Feedback&af=%5B%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all).
 
-#### Create Annotations (Emil)
+4) **Gear classification**: Using our trained MLP network the gear is classified per cycle. All pretrained classifiers are saved under ```/pretrained_models```. 
 
-#### Other models (Britta)
-(write about Installation of MMPose?)
+5) **Dynamic Time Warping**: The cycle is then matched to an expert cycle by using dynamic time warping. Our chosen expert cycles can be found under ```/data/expert_data```.
 
-We have tested the following pose estimation models for this projects (TODO):
+6) **Feedback output**: We have implemented two types of feedback generation. Either the user can select predetermined mistakes that he wants to look for. We have only implemented two of these so far and they are further described in our [thesis](https://www.diva-portal.org/smash/record.jsf?dswid=-5670&pid=diva2%3A1966192&c=1&searchType=SIMPLE&language=en&query=Improving+Cross-Country+Skating+Technique+with+AI-Based+Feedback&af=%5B%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all). Furthermore, there is a general feedback option, where the user can select certain features he wishes to observe. In this mode no specific feedback is given. Instead the user sees where there are high differences to the expert. 
+
+For further information check out our [thesis](https://www.diva-portal.org/smash/record.jsf?dswid=-5670&pid=diva2%3A1966192&c=1&searchType=SIMPLE&language=en&query=Improving+Cross-Country+Skating+Technique+with+AI-Based+Feedback&af=%5B%5D&aq=%5B%5B%5D%5D&aq2=%5B%5B%5D%5D&aqe=%5B%5D&noOfRows=50&sortOrder=author_sort_asc&sortOrder2=title_sort_asc&onlyFullText=false&sf=all).
+
+![feedback_pipeline](Feedback_pipeline.png)
+
+*Feedback system pipeline overview. In the first pose estimation and
+preprocessing stage, the input video is processed by AlphaPose to produce keypoint
+outputs, which are used for view-point identification and segmenting the keypoint data
+into sub-technique cycles. In the second classification and DTW stage, each cycle is
+classified and matched to an expert reference cycle. In the third feedback output stage,
+either user-defined features are compared or specific mistakes are identified, and targeted
+feedback is provided.*
+
+To run the feedback system open the file ```feedback_system.py```. In the file ```config_feedback_pipe.yaml``` you can define the following options:
+
+| Param            | Description |
+|-----------------|-------------|
+|VIDEO_PATH|Define the path of the video that you want to get feedback for.|
+
+**ALPHA_ARGS**
+Parameters for AlphaPose model.
+| Param            | Description |
+|-----------------|-------------|
+|SAVE_VIDEO|Determines if a video with estimated keypoints should be saved|
+|VIS_FAST|If turned on, it will use faster rendering method.|
+|POSE_TRACK|Enables tracking of the person.|
+|CFG_PATH|Path for the alphapose config file.|
+|WEIGHTS_PATH|Path to the fine-tuned model weights.|
+|YOLO_WEIGHT_PATH|Path to the object detector model weights.|
+|GPUS|Choose which cuda device to use by index and input comma to use multi gpus, e.g. 0,1,2,3. (input -1 for cpu only)|
+|OutPUT_PATH|Sets the path where the video with estimated keypoints will be saved if SAVE_VIDEO is set to True. The default path is: data/alphapose_output.|
+|SHOWBOX|Determines if the box from the object detection should be shown.|
+|FORMAT|Determines the keypoint forma.|
+|SAVE_JSON|Determines whether a json with the estimated keypoints should be saved. This is currently not implemented. Currently the keypoints are directly used without saving them.|
+
+**CLS_GEAR**
+Parameters for gear classification.
+| Param            | Description |
+|-----------------|-------------|
+|NETTYPE|Determines the type of net that should be used for classification. Possible options at the moment are: mlp and lstm.|
+|MODEL_PATH|Path to the pretrained classifier.|
+
+**DTW**
+Parameters for dynamic time warping.
+| Param            | Description |
+|-----------------|-------------|
+|VIS_VID_PATH|Path to the expert videos the reference cycles are chosen from. This is needed to show the feedback.|
+|SPLIT|Here you can define for each viewangle which joint you would like to use for splitting a signal into cycles and if the split should be done based on a minimum or maximum.|
+|CHOOSEN_REF|Determines the joint that should be used as a reference value.|
+|CHOOSEN_DIM|Determines if x or y coordinate should be used for the split.|
+|GAUS_FILTER|Determines whether a gaussian filter should be applied.|
+|SIGMA_VALUE|Sigma value for gaussian filter.|
+|ORDER|Determines the order which is used to find local extrema. If a sprint is performed this might have to be set down to 15. Our default value is 22.|
+
+**Feedback**
+Parameters for feedback generation.
+| Param            | Description |
+|-----------------|-------------|
+|SAVE_VIDEO|Determines if the feedback video should be saved.|
+|OUTPUT_PATH|Determines where the feedback video should be saved.|
+|MISTAKE_TYPE|Determines the type of mistake that should be given feedback on. Current options are: general, wide_legs and stiff_ankle.|
+|GENERAL_MODE|In case general is chosen you have the option to select different features to compare. More info will be given [here](#general-feedback-mode).|
+|SAVE_STATISTICS|Determines whether certain statistics for feedback evaluation should be saved.|
+|OUTPUT_STATS|Path where feedback statistics should be saved.|
+
+### General feedback mode
+If the general feedback mode is selected you have the option to select the following features:
+
+1) **Joint angles**: You can compare different joint angles. For this you have to list three joints that should be used to calculate the angle. 
+Example: 
+```
+JOINT_ANGLES: 
+      - ["RElbow", "RShoulder", "RHip"]`
+```
+
+2) **Distances between joints**: You can simply compare the distance between a pair of joints. Example:
+```
+JOINTS_DISTANCES:
+      - ["RKnee", "LKnee"]
+```
+
+3) **Joint line relatives**: This compares the angle between two lines. For this four joints need to be specified. The first two joints will be used for the first line and the last two joints for the secoond line. 
+Example:
+```
+JOINTS_LINES_RELATIVE:
+      - ["LShoulder", "RShoulder", "LHip", "RHip"]
+```
+So in this case the angle between shoulder and hip line will be computed and compared to the expert. 
+
+4) **Joint line horizontals**: This can be used to compare a line to a horizontal line. Again the angle will be used for comparison with the expert. Example: 
+```
+JOINTS_LINES_HORIZONTAL: 
+      - ["LShoulder", "RShoulder"]
+```
+
+For each of these four options, multiple lists of joints can be given. 
+
+## Other pose estimation models
+We have tested the following pose estimation models for this projects:
 
 ||**MediaPipe**|**YoloNas**|**MMPose**|**OpenPose**|**AlphaPose (chosen)**|
 |-|------------|-----------|----------|------------|-------------|
@@ -354,14 +480,6 @@ We have tested the following pose estimation models for this projects (TODO):
 - Accuracy of keypoint annotations
 - Duration for detection
 - Predicted keypoints (We wanted to include all main joints of the body. After meeting with a crosscountry ski trainer we looked for a model that also includes keypoints on the foot.)
-
-
-## Contribution
-TODO not sure if we even need this  
-
-## TODO
-- [ ] Feedback system
-
 
 
 ## References
@@ -378,8 +496,4 @@ Pousibet-Garrido, A., Polo-Rodríguez, A., Moreno-Pérez, J. A., Ruiz-García, I
 Rassem, A., El-Beltagy, M., & Saleh, M. (2017). Cross-Country Skiing Gears Classification using Deep Learning. arXiv:1706.08924. https://doi.org/10.48550/arXiv.1706.08924 
 
 <a id="5">[5]</a> 
-Wang, J., Qiu, K., Peng, H., Fu, J., & Zhu, J. (2019). AI Coach: Deep human pose estimation and analysis for personalized athletic training assistance. Proceedings of the 30th ACM International Conference on Multimedia. https://doi.org/10.1145/3343031.3350910 
-
-<a id="6">[6]</a> 
-Yue, C. Z., Yong, L. C., & Shyan, L. N. (2022). Exercise quality analysis using AI model and computer vision. Journal of Engineering Science and Technology Special Issue (pp. 157 - 171). https://jestec.taylors.edu.my/Special%20Issue%20SIET2022/SIET2022_10.pdf 
-
+Qi, J., Li, D., He, J., & Wang, Y. (2023). Optically Non-Contact Cross-Country Skiing Action Recognition Based on Key-Point Collaborative Estimation and Motion Feature Extraction. Sensors, 23(7), 3639. https://doi.org/10.3390/s23073639

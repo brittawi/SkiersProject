@@ -264,8 +264,8 @@ def plot_training_final_metrics(results, root):
 def plot_lines(output_path, title, xlabel, ylabel, *line_data, labels=None, colors=None):
     
     """
-    Plots multiple lines in a single figure. Used for showing DTW 
-
+    Plots multiple lines in a single figure. Used for showing DTW
+    Currently unused
     Parameters:
     - output_path: The file path to save the plot.
     - title: Title of the plot.
